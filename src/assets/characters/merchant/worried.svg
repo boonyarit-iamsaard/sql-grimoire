@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" role="img" aria-label="Merchant Odalia, worried">
+  <rect width="200" height="200" rx="14" fill="#4a3826"/>
+  <rect x="6" y="6" width="188" height="188" rx="10" fill="#5d4730"/>
+  <path d="M 30 200 C 35 150 70 138 100 138 C 130 138 165 150 170 200 Z" fill="#8c3b2e"/>
+  <path d="M 84 142 L 100 168 L 116 142 L 108 138 L 100 150 L 92 138 Z" fill="#e3b23c"/>
+  <rect x="88" y="112" width="24" height="26" fill="#d9a066"/>
+  <ellipse cx="100" cy="88" rx="34" ry="38" fill="#e8b378"/>
+  <path d="M 62 84 C 58 42 88 34 100 34 C 112 34 142 42 138 84 C 138 62 120 52 100 52 C 80 52 62 62 62 84 Z" fill="#c96f4a"/>
+  <path d="M 62 84 C 62 70 74 56 100 56 C 126 56 138 70 138 84 C 138 74 124 64 100 64 C 76 64 62 74 62 84 Z" fill="#e3b23c" opacity="0.9"/>
+  <circle cx="64" cy="98" r="4" fill="#e3b23c"/>
+  <circle cx="136" cy="98" r="4" fill="#e3b23c"/>
+  <!-- eyes: wide, worried -->
+  <g fill="#3b2a17">
+    <ellipse cx="86" cy="89" rx="5" ry="6"/>
+    <ellipse cx="114" cy="89" rx="5" ry="6"/>
+  </g>
+  <g fill="#fff" opacity="0.8">
+    <circle cx="88" cy="87" r="1.6"/>
+    <circle cx="116" cy="87" r="1.6"/>
+  </g>
+  <!-- brows: raised inward -->
+  <path d="M 78 78 Q 88 71 94 75" fill="none" stroke="#7a5233" stroke-width="3" stroke-linecap="round"/>
+  <path d="M 106 75 Q 112 71 122 78" fill="none" stroke="#7a5233" stroke-width="3" stroke-linecap="round"/>
+  <!-- sweat drop -->
+  <path d="M 132 70 q 6 8 0 12 q -6 -4 0 -12" fill="#9cc4d8"/>
+  <path d="M 100 92 Q 97 100 100 103" fill="none" stroke="#c68a52" stroke-width="3" stroke-linecap="round"/>
+  <!-- mouth: open frown -->
+  <path d="M 91 114 Q 100 108 109 114 Q 100 120 91 114 Z" fill="#8c5a34"/>
+</svg>
