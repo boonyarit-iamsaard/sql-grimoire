@@ -9,7 +9,7 @@ interface SqlCodeBlockProps {
 
 export function SqlCodeBlock({ code }: Readonly<SqlCodeBlockProps>) {
   return (
-    <div className="sql-code-block">
+    <div className="my-1.5 overflow-hidden rounded-lg border border-ctp-surface1 [&_.cm-content]:px-1 [&_.cm-content]:py-2.5">
       <CodeMirror
         value={code.trim()}
         theme={catppuccinMacchiato}

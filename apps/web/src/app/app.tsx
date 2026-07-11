@@ -4,7 +4,10 @@ export function App() {
   const location = useLocation();
   // Keying on pathname re-mounts the page so the fade-in transition replays.
   return (
-    <div className="app-root" key={location.pathname}>
+    <div
+      className="min-h-full motion-safe:animate-page-fade"
+      key={location.pathname}
+    >
       <Outlet />
     </div>
   );

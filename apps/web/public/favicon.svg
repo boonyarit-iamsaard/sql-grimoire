@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <title>SQL Grimoire</title>
+  <!-- crust tile so the mark reads on light and dark browser chrome -->
+  <rect width="64" height="64" rx="14" fill="#181926" />
+
+  <!-- grimoire: spine + gold cover -->
+  <path d="M18 12h-4a4 4 0 0 0-4 4v32a4 4 0 0 0 4 4h4z" fill="#a98f52" />
+  <path d="M18 12h31a4 4 0 0 1 4 4v32a4 4 0 0 1-4 4H18z" fill="#eed49f" />
+
+  <!-- database-cylinder sigil embossed on the cover -->
+  <g fill="none" stroke="#181926" stroke-width="3" stroke-linecap="round">
+    <ellipse cx="35.5" cy="24" rx="8" ry="3.2" />
+    <path d="M27.5 24v16a8 3.2 0 0 0 16 0V24" />
+    <path d="M27.5 32a8 3.2 0 0 0 16 0" />
+  </g>
+
+  <!-- a quiet spark of magic -->
+  <path d="m52 6 1.6 3.9L57.5 11.5l-3.9 1.6L52 17l-1.6-3.9-3.9-1.6 3.9-1.6z" fill="#b7bdf8" />
+</svg>

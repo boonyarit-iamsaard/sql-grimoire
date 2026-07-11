@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { format } from "sql-formatter";
+import { Button } from "../components/button";
 import { DialogueBox } from "../components/dialogue-box";
 import { MissionFeedback } from "../components/mission-feedback";
 import { QueryResultTable } from "../components/query-result-table";
@@ -17,6 +18,11 @@ import { SqliteRuntime } from "../sql/sqlite-runtime";
 
 type Phase = "briefing" | "workbench";
 
+const briefingClasses =
+  "flex min-h-screen flex-col items-center justify-center gap-[22px] p-6";
+const sqlErrorClasses =
+  "rounded-[10px] border-2 border-ctp-red bg-ctp-base px-4 py-3 font-mono text-mono whitespace-pre-wrap text-ctp-red motion-safe:animate-shake";
+
 export function MissionPage() {
   const navigate = useNavigate();
   const { missionId } = useParams();
@@ -24,11 +30,9 @@ export function MissionPage() {
 
   if (!mission) {
     return (
-      <div className="briefing">
+      <div className={briefingClasses}>
         <h1>Unknown mission</h1>
-        <button type="button" className="btn" onClick={() => navigate("/map")}>
-          Back to Map
-        </button>
+        <Button onClick={() => navigate("/map")}>Back to Map</Button>
       </div>
     );
   }
@@ -154,76 +158,72 @@ function MissionAttemptPage({ mission }: Readonly<MissionAttemptPageProps>) {
 
   if (phase === "briefing") {
     return (
-      <div className="briefing">
-        <h1>{mission.title}</h1>
+      <div className={briefingClasses}>
+        <h1 className="m-0 text-[2rem]">{mission.title}</h1>
         <DialogueBox
           lines={mission.dialogue}
           finishLabel="Begin Investigation"
           onFinished={() => setPhase("workbench")}
         />
-        <div className="panel objective-card">
-          <strong>Objective:</strong> {mission.objective}
+        <div className="w-[min(720px,100%)] rounded-xl border-2 border-ctp-surface1 bg-ctp-base px-5 py-3.5 text-base text-ctp-text shadow-paper">
+          <strong className="font-display text-ctp-yellow">Objective:</strong>{" "}
+          {mission.objective}
         </div>
       </div>
     );
   }
 
   return (
-    <div className="workbench">
-      <header className="wb-header">
+    <div className="mx-auto max-w-[1280px] px-5 pt-4 pb-8">
+      <header className="mb-3 flex items-start justify-between gap-4">
         <div>
-          <h1>{mission.title} — Ledger Desk</h1>
-          <p className="wb-objective">
-            <strong>Objective:</strong> {mission.objective}
+          <h1 className="mb-0.5 text-2xl">{mission.title} — Ledger Desk</h1>
+          <p className="m-0 max-w-[72ch] text-ctp-subtext1">
+            <strong className="text-ctp-yellow">Objective:</strong>{" "}
+            {mission.objective}
           </p>
         </div>
-        <button
-          type="button"
-          className="btn btn-ghost"
+        <Button
+          variant="ghost"
           onClick={() => {
             playClick();
             navigate("/map");
           }}
         >
           ← Map
-        </button>
+        </Button>
       </header>
 
-      <div className="wb-grid">
+      <div className="grid grid-cols-[250px_1fr] items-start gap-3.5 max-[1100px]:grid-cols-[210px_1fr]">
         <SchemaExplorer tables={tables} />
 
-        <div className="wb-main">
-          <div className="panel editor-panel">
+        <div className="flex min-w-0 flex-col gap-3">
+          <div className="overflow-hidden rounded-xl border-2 border-ctp-surface1 bg-ctp-base shadow-paper">
             <SqlEditor value={query} onChange={setQuery} />
-            <div className="editor-toolbar">
-              <button
-                type="button"
-                className="btn btn-primary"
+            <div className="flex flex-wrap gap-2.5 border-ctp-surface1 border-t bg-ctp-mantle px-3 py-2.5">
+              <Button
+                variant="primary"
                 onClick={runQuery}
                 disabled={busy || !dbReady}
               >
                 ▶ Run Query
-              </button>
-              <button
-                type="button"
-                className="btn"
+              </Button>
+              <Button
                 onClick={submitAnswer}
                 disabled={busy || !dbReady || query.trim() === ""}
               >
                 ⚑ Submit Answer
-              </button>
-              <button
-                type="button"
-                className="btn btn-ghost"
+              </Button>
+              <Button
+                variant="ghost"
                 onClick={formatQuery}
                 disabled={query.trim() === ""}
               >
                 ✎ Format
-              </button>
-              <span className="spacer" />
-              <button
-                type="button"
-                className="btn btn-ghost"
+              </Button>
+              <span className="flex-1" />
+              <Button
+                variant="ghost"
                 onClick={() => {
                   playClick();
                   setHintIndex((i) =>
@@ -233,34 +233,33 @@ function MissionAttemptPage({ mission }: Readonly<MissionAttemptPageProps>) {
                 disabled={hintIndex >= mission.challenge.hints.length - 1}
               >
                 💡 Hint
-              </button>
-              <button
-                type="button"
-                className="btn btn-danger"
+              </Button>
+              <Button
+                variant="danger"
                 onClick={resetDatabase}
                 disabled={busy || !dbReady}
               >
                 ⟲ Reset Database
-              </button>
+              </Button>
             </div>
           </div>
 
           {initError && (
-            <div className="sql-error">
+            <div className={sqlErrorClasses}>
               ⚠ The guild database failed to open: {initError}
             </div>
           )}
 
           {hintIndex >= 0 && (
-            <div className="panel hint-box">
-              <span className="hint-tag">
+            <div className="rounded-xl border-2 border-ctp-surface1 bg-ctp-base px-4 py-3 text-ctp-text italic shadow-paper motion-safe:animate-page-fade">
+              <span className="mr-2 font-display text-ctp-peach not-italic">
                 Hint {hintIndex + 1}/{mission.challenge.hints.length}
               </span>
               {mission.challenge.hints[hintIndex]}
             </div>
           )}
 
-          {sqlError && <div className="sql-error">⚠ {sqlError}</div>}
+          {sqlError && <div className={sqlErrorClasses}>⚠ {sqlError}</div>}
 
           {result && (
             <QueryResultTable

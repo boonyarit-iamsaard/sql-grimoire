@@ -40,8 +40,14 @@ Full founder vision, curriculum ladder, and sequencing plan: see `VISION.md`.
   Prettier is the fallback for everything else (Markdown, HTML, YAML). When Biome
   support for a language goes stable, move it over: enable in `biome.json` and add
   a per-language override in `.vscode/settings.json`.
-- Plain CSS in `apps/web/src/styles.css`, Catppuccin Macchiato palette (vars `--ctp-*`), JetBrains Mono
-  (self-hosted via Fontsource) at `--mono-size: 14px` for all code surfaces.
+- Tailwind CSS v4 (CSS-first config): `apps/web/src/styles.css` holds the `@theme` tokens —
+  Catppuccin Macchiato palette (`--color-ctp-*`), fonts, `--shadow-paper`, keyframes — plus
+  base heading/body styles; everything else is utilities in JSX. Class composition goes through
+  `cn()` (`apps/web/src/lib/cn.ts`, clsx + tailwind-merge). Shared `Button` component in
+  `apps/web/src/components/button.tsx` — its variant record is cva-shaped on purpose; adopt
+  `cva` only when a second variant axis (e.g. `size`) appears. Code surfaces use the `text-mono` token (14px,
+  JetBrains Mono self-hosted via Fontsource). Residual CSS is only for CodeMirror internals
+  and the `prefers-reduced-motion` kill-switch.
 - `optimizeDeps.include: ["sql.js"]` in `apps/web/vite.config.ts` is load-bearing: sql.js is CommonJS and
   the dev-mode module worker fails to import it without prebundling (prod build works either way).
 - Don't gate Run/Submit on client-side SQL validity — SQLite is the judge; error messages are the

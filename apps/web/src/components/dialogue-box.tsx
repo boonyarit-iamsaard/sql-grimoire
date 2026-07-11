@@ -1,6 +1,8 @@
 import { useState } from "react";
 import type { DialogueLine } from "../game/dialogue/dialogue-types";
 import { playClick } from "../game/sound";
+import { cn } from "../lib/cn";
+import { Button } from "./button";
 
 interface DialogueBoxProps {
   lines: DialogueLine[];
@@ -27,30 +29,34 @@ export function DialogueBox({
   };
 
   return (
-    <div className="dialogue-box">
+    <div className="grid w-[min(720px,100%)] grid-cols-[150px_1fr] gap-[18px] rounded-[14px] border-[3px] border-ctp-surface2 bg-linear-to-b from-ctp-surface0 to-ctp-base p-5 text-ctp-text shadow-[inset_0_0_0_1px_rgba(255,255,255,0.04),var(--shadow-paper)]">
       <img
-        className="portrait"
+        className="h-[150px] w-[150px] rounded-[10px] border-2 border-ctp-surface2 motion-safe:animate-portrait-pop"
         src={line.portrait}
         alt={line.speaker}
         key={line.portrait}
       />
       <div>
-        <div className="speaker">{line.speaker}</div>
-        <div className="line">{line.text}</div>
+        <div className="mb-1.5 font-display text-[1.15rem] text-ctp-peach">
+          {line.speaker}
+        </div>
+        <div className="min-h-[4.6em] text-[1.05rem]">{line.text}</div>
       </div>
-      <div className="dialogue-controls">
-        <div className="progress-dots">
+      <div className="col-span-full flex items-center justify-between">
+        <div className="flex gap-1.5">
           {lines.map((l, i) => (
-            <span key={l.id} className={i === index ? "active" : ""} />
+            <span
+              key={l.id}
+              className={cn(
+                "h-[9px] w-[9px] rounded-full border border-ctp-overlay0",
+                i === index ? "bg-ctp-peach" : "bg-ctp-surface2",
+              )}
+            />
           ))}
         </div>
-        <button
-          type="button"
-          className={isLast ? "btn btn-primary" : "btn"}
-          onClick={advance}
-        >
+        <Button variant={isLast ? "primary" : "default"} onClick={advance}>
           {isLast ? finishLabel : "Next ▸"}
-        </button>
+        </Button>
       </div>
     </div>
   );
