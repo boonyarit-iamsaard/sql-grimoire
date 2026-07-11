@@ -1,6 +1,6 @@
 # SQL Grimoire — Vision
 
-*Recorded 2026-07-11, verbatim from the founder:*
+_Recorded 2026-07-11, verbatim from the founder:_
 
 > My ambitious goal is to build a web-based RPG learning platform that helps working developers
 > move from merely using SQL to truly mastering database reasoning. Instead of teaching syntax
@@ -14,20 +14,20 @@
 
 ## Where the prototype fits
 
-The one-mission prototype in this repo is step one: it validates the *format* — embedded
+The one-mission prototype in this repo is step one: it validates the _format_ — embedded
 database, result-graded challenges, narrative wrapper, all in-browser. The open question it
 exists to answer: **do playtesters finish mission one wanting mission two?**
 
 ## Curriculum ladder → engine requirements
 
-| Rung | Topics | Runs on |
-| --- | --- | --- |
-| 1–3 | querying, schema design, constraints | sql.js (current engine), as-is |
-| 4 | transactions | sql.js, single-session missions |
-| 5 | concurrency | needs a new workbench mode: two interleaved sessions (deadlocks, lost updates) — the feature no competitor has; prototype it early |
-| 6–7 | indexing, query plans | needs a real planner + row volume: PGlite (Postgres-in-wasm) behind the existing `SqlRuntime` interface |
-| 8 | migrations | long-running/locking semantics; PGlite |
-| 9 | ORM behavior | "trace viewer" workbench panel showing generated SQL |
+| Rung | Topics                               | Runs on                                                                                                                            |
+| ---- | ------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------- |
+| 1–3  | querying, schema design, constraints | sql.js (current engine), as-is                                                                                                     |
+| 4    | transactions                         | sql.js, single-session missions                                                                                                    |
+| 5    | concurrency                          | needs a new workbench mode: two interleaved sessions (deadlocks, lost updates) — the feature no competitor has; prototype it early |
+| 6–7  | indexing, query plans                | needs a real planner + row volume: PGlite (Postgres-in-wasm) behind the existing `SqlRuntime` interface                            |
+| 8    | migrations                           | long-running/locking semantics; PGlite                                                                                             |
+| 9    | ORM behavior                         | "trace viewer" workbench panel showing generated SQL                                                                               |
 
 ## Sequencing discipline
 
