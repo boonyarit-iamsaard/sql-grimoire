@@ -1,11 +1,11 @@
 import { useEffect, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { format } from "sql-formatter";
-import { DialogueBox } from "../components/DialogueBox";
-import { MissionFeedback } from "../components/MissionFeedback";
-import { QueryResultTable } from "../components/QueryResultTable";
-import { SchemaExplorer } from "../components/SchemaExplorer";
-import { SqlEditor } from "../components/SqlEditor";
+import { DialogueBox } from "../components/dialogue-box";
+import { MissionFeedback } from "../components/mission-feedback";
+import { QueryResultTable } from "../components/query-result-table";
+import { SchemaExplorer } from "../components/schema-explorer";
+import { SqlEditor } from "../components/sql-editor";
 import { campaignCatalog } from "../game/campaign/campaign-catalog";
 import { MissionAttempt } from "../game/missions/mission-attempt";
 import type { Mission } from "../game/missions/mission-types";
@@ -36,7 +36,11 @@ export function MissionPage() {
   return <MissionAttemptPage key={mission.id} mission={mission} />;
 }
 
-function MissionAttemptPage({ mission }: { mission: Mission }) {
+interface MissionAttemptPageProps {
+  mission: Mission;
+}
+
+function MissionAttemptPage({ mission }: Readonly<MissionAttemptPageProps>) {
   const navigate = useNavigate();
 
   const attemptRef = useRef<MissionAttempt | null>(null);

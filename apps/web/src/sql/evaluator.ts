@@ -87,7 +87,7 @@ export function evaluate(
 
 /** Player scripts may contain several statements; the answer is the last result set. */
 function lastResult(results: QueryResult[]): QueryResult | null {
-  return results.length > 0 ? results[results.length - 1] : null;
+  return results.at(-1) ?? null;
 }
 
 function normalizeColumns(columns: string[]): string[] {
@@ -105,7 +105,7 @@ function normalizeRows(result: QueryResult, columnOrder: string[]): string[] {
         )
         .join("␟"),
     )
-    .sort();
+    .sort((a, b) => a.localeCompare(b));
 }
 
 function normalizeValue(value: SqlValue): string {

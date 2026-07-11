@@ -2,12 +2,12 @@ import { catppuccinMacchiato } from "@catppuccin/codemirror";
 import { SQLite, sql } from "@codemirror/lang-sql";
 import CodeMirror from "@uiw/react-codemirror";
 
-type Props = {
+interface SqlEditorProps {
   value: string;
   onChange: (value: string) => void;
-};
+}
 
-export function SqlEditor({ value, onChange }: Props) {
+export function SqlEditor({ value, onChange }: Readonly<SqlEditorProps>) {
   return (
     <CodeMirror
       value={value}

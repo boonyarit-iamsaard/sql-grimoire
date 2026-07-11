@@ -1,6 +1,6 @@
 import type { DialogueLine } from "../dialogue/dialogue-types";
 
-export type Mission = {
+export interface Mission {
   id: string;
   title: string;
   locationId: string;
@@ -28,4 +28,4 @@ export type Mission = {
     summary: string;
     concepts: string[];
   };
-};
+}

@@ -2,19 +2,19 @@
 
 export type SqlValue = number | string | Uint8Array | null;
 
-export type QueryResult = {
+export interface QueryResult {
   columns: string[];
   rows: SqlValue[][];
-};
+}
 
 export type RunResult =
   | { ok: true; results: QueryResult[]; durationMs: number }
   | { ok: false; error: string };
 
-export type TableInfo = {
+export interface TableInfo {
   name: string;
   columns: Array<{ name: string; type: string; pk: boolean; notNull: boolean }>;
-};
+}
 
 export interface SqlRuntime {
   /** (Re)creates the database from schema + seed SQL. */

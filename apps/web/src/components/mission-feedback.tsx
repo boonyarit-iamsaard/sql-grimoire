@@ -3,15 +3,15 @@ import xpIcon from "../assets/ui/xp-icon.svg";
 import type { Mission } from "../game/missions/mission-types";
 import { playClick } from "../game/sound";
 import type { EvaluationResult } from "../sql/evaluator";
-import { SqlCodeBlock } from "./SqlCodeBlock";
+import { SqlCodeBlock } from "./sql-code-block";
 
-type Props = {
+interface MissionFeedbackProps {
   mission: Mission;
   evaluation: EvaluationResult;
   playerQuery: string;
   onReturnToEditor: () => void;
   onReturnToMap: () => void;
-};
+}
 
 export function MissionFeedback({
   mission,
@@ -19,7 +19,7 @@ export function MissionFeedback({
   playerQuery,
   onReturnToEditor,
   onReturnToMap,
-}: Props) {
+}: Readonly<MissionFeedbackProps>) {
   // Focus the primary action without scrolling it into view — plain
   // autoFocus would yank the scrollable card down to the bottom button.
   const primaryRef = useRef<HTMLButtonElement>(null);

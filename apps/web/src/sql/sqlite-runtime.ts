@@ -10,12 +10,15 @@ import type {
 
 const QUERY_TIMEOUT_MS = 2000;
 
-type Pending = { resolve: (r: RunResult) => void; timer: number };
+interface Pending {
+  resolve: (r: RunResult) => void;
+  timer: number;
+}
 
 export class SqliteRuntime implements SqlRuntime {
   private worker: Worker | null = null;
   private nextId = 1;
-  private pending = new Map<number, Pending>();
+  private readonly pending = new Map<number, Pending>();
   private schemaSql = "";
   private seedSql = "";
 
@@ -57,7 +60,7 @@ export class SqliteRuntime implements SqlRuntime {
     msg: Record<string, unknown>,
     timeoutMs = QUERY_TIMEOUT_MS,
   ): Promise<RunResult> {
-    if (!this.worker) this.worker = this.spawn();
+    this.worker ??= this.spawn();
     const id = this.nextId++;
     return new Promise((resolve) => {
       const timer = window.setTimeout(() => {

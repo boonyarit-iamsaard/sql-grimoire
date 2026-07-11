@@ -1,6 +1,10 @@
 import type { TableInfo } from "../sql/sql-runtime";
 
-export function SchemaExplorer({ tables }: { tables: TableInfo[] }) {
+interface SchemaExplorerProps {
+  tables: TableInfo[];
+}
+
+export function SchemaExplorer({ tables }: Readonly<SchemaExplorerProps>) {
   return (
     <aside className="panel schema-explorer">
       <h2>📜 Guild Ledger Schema</h2>

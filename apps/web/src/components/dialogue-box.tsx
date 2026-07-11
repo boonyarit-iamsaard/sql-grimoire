@@ -2,13 +2,17 @@ import { useState } from "react";
 import type { DialogueLine } from "../game/dialogue/dialogue-types";
 import { playClick } from "../game/sound";
 
-type Props = {
+interface DialogueBoxProps {
   lines: DialogueLine[];
   onFinished: () => void;
   finishLabel: string;
-};
+}
 
-export function DialogueBox({ lines, onFinished, finishLabel }: Props) {
+export function DialogueBox({
+  lines,
+  onFinished,
+  finishLabel,
+}: Readonly<DialogueBoxProps>) {
   const [index, setIndex] = useState(0);
   const line = lines[index];
   const isLast = index === lines.length - 1;

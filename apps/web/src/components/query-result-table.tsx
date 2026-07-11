@@ -1,5 +1,10 @@
 import type { QueryResult, SqlValue } from "../sql/sql-runtime";
 
+interface QueryResultTableProps {
+  result: QueryResult;
+  durationMs?: number;
+}
+
 function renderValue(value: SqlValue) {
   if (value === null) return <span className="null-value">NULL</span>;
   if (value instanceof Uint8Array)
@@ -10,10 +15,7 @@ function renderValue(value: SqlValue) {
 export function QueryResultTable({
   result,
   durationMs,
-}: {
-  result: QueryResult;
-  durationMs?: number;
-}) {
+}: Readonly<QueryResultTableProps>) {
   return (
     <div className="panel result-panel">
       <h2>

@@ -3,7 +3,11 @@ import { SQLite, sql } from "@codemirror/lang-sql";
 import CodeMirror, { EditorView } from "@uiw/react-codemirror";
 
 /** Read-only, syntax-highlighted SQL block — same theme as the editor. */
-export function SqlCodeBlock({ code }: { code: string }) {
+interface SqlCodeBlockProps {
+  code: string;
+}
+
+export function SqlCodeBlock({ code }: Readonly<SqlCodeBlockProps>) {
   return (
     <div className="sql-code-block">
       <CodeMirror

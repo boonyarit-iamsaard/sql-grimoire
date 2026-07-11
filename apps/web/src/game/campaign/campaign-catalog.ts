@@ -3,7 +3,7 @@ import merchantGuildImage from "../../assets/locations/merchant-guild.svg";
 import { missingShipment } from "../missions/missing-shipment";
 import type { Mission } from "../missions/mission-types";
 
-export type CampaignLocation = {
+export interface CampaignLocation {
   id: string;
   name: string;
   mapImage: string;
@@ -11,12 +11,12 @@ export type CampaignLocation = {
   missionIds: readonly string[];
   availability: "available" | "locked";
   lockedTitle?: string;
-};
+}
 
-export type CampaignLocationView = CampaignLocation & {
+export interface CampaignLocationView extends CampaignLocation {
   state: "available" | "completed" | "locked";
   nextMissionId: string | null;
-};
+}
 
 export class CampaignCatalog {
   private readonly missionsById: ReadonlyMap<string, Mission>;

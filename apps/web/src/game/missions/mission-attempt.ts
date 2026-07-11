@@ -7,7 +7,7 @@ import type {
 } from "../../sql/sql-runtime";
 import type { Mission } from "./mission-types";
 
-export type MissionCompletion = {
+export interface MissionCompletion {
   missionId: string;
   missionTitle: string;
   concepts: string[];
@@ -15,12 +15,12 @@ export type MissionCompletion = {
   referenceQuery: string;
   explanation: string;
   xp: number;
-};
+}
 
-export type MissionSubmission = {
+export interface MissionSubmission {
   evaluation: EvaluationResult;
   completion: MissionCompletion | null;
-};
+}
 
 export type QueryExecution =
   | { ok: true; data: QueryResult; durationMs: number }
@@ -114,5 +114,7 @@ export class MissionAttempt {
 }
 
 function errorMessage(error: unknown): string {
-  return error instanceof Error ? error.message : String(error);
+  if (error instanceof Error) return error.message;
+  if (typeof error === "string") return error;
+  return JSON.stringify(error);
 }

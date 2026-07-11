@@ -1,9 +1,9 @@
 import { createHashRouter } from "react-router-dom";
-import { GrimoirePage } from "../pages/GrimoirePage";
-import { LandingPage } from "../pages/LandingPage";
-import { MissionPage } from "../pages/MissionPage";
-import { WorldMapPage } from "../pages/WorldMapPage";
-import { App } from "./App";
+import { GrimoirePage } from "../pages/grimoire-page";
+import { LandingPage } from "../pages/landing-page";
+import { MissionPage } from "../pages/mission-page";
+import { WorldMapPage } from "../pages/world-map-page";
+import { App } from "./app";
 
 export const router = createHashRouter([
   {

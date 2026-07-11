@@ -1,5 +1,5 @@
 import { useNavigate } from "react-router-dom";
-import { SqlCodeBlock } from "../components/SqlCodeBlock";
+import { SqlCodeBlock } from "../components/sql-code-block";
 import { usePlayerProgress } from "../game/progress/progress-store";
 import { playClick } from "../game/sound";
 
