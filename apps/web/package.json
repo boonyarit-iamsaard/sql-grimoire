@@ -8,6 +8,7 @@
     "build": "vite build",
     "serve": "vite preview",
     "start": "vite",
+    "test": "vitest run",
     "types:check": "vite build && tsc --noEmit"
   },
   "dependencies": {
@@ -27,6 +28,7 @@
     "@types/sql.js": "^1.4.9",
     "@vitejs/plugin-react": "^4.5.0",
     "typescript": "^5.8.0",
-    "vite": "^6.3.0"
+    "vite": "^6.3.0",
+    "vitest": "^4.1.10"
   }
 }

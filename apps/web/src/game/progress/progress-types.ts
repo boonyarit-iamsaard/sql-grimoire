@@ -1,4 +1,4 @@
-export type JournalEntry = {
+export type GrimoireEntry = {
   missionId: string;
   missionTitle: string;
   concepts: string[];
@@ -11,7 +11,7 @@ export type JournalEntry = {
 export type Progress = {
   xp: number;
   completedMissionIds: string[];
-  journal: JournalEntry[];
+  journal: GrimoireEntry[];
   /** Last query the player submitted (or ran), per mission. */
   lastQueries: Record<string, string>;
   /** Mission the player is currently inside, for the Continue button. */

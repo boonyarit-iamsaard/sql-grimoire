@@ -6,15 +6,11 @@ import { MissionFeedback } from "../components/MissionFeedback";
 import { QueryResultTable } from "../components/QueryResultTable";
 import { SchemaExplorer } from "../components/SchemaExplorer";
 import { SqlEditor } from "../components/SqlEditor";
-import { missionById } from "../game/missions/missing-shipment";
-import {
-  completeMission,
-  getProgress,
-  recordLastQuery,
-  setCurrentMission,
-} from "../game/progress/progress-store";
+import { getMission } from "../game/campaign/campaign-catalog";
+import { MissionAttempt } from "../game/missions/mission-attempt";
+import { playerProgress } from "../game/progress/progress-store";
 import { playClick, playMissionComplete } from "../game/sound";
-import { type EvaluationResult, evaluate } from "../sql/evaluator";
+import type { EvaluationResult } from "../sql/evaluator";
 import type { QueryResult, TableInfo } from "../sql/sql-runtime";
 import { SqliteRuntime } from "../sql/sqlite-runtime";
 
@@ -23,13 +19,13 @@ type Phase = "briefing" | "workbench";
 export function MissionPage() {
   const navigate = useNavigate();
   const { missionId } = useParams();
-  const mission = missionById(missionId ?? "");
+  const mission = getMission(missionId ?? "");
 
-  const runtimeRef = useRef<SqliteRuntime | null>(null);
+  const attemptRef = useRef<MissionAttempt | null>(null);
   const [phase, setPhase] = useState<Phase>("briefing");
   const [tables, setTables] = useState<TableInfo[]>([]);
   const [query, setQuery] = useState(() =>
-    mission ? (getProgress().lastQueries[mission.id] ?? "") : "",
+    mission ? playerProgress.lastQueryFor(mission.id) : "",
   );
   const [result, setResult] = useState<{
     data: QueryResult;
@@ -45,12 +41,12 @@ export function MissionPage() {
   useEffect(() => {
     if (!mission) return;
     const runtime = new SqliteRuntime();
-    runtimeRef.current = runtime;
-    setCurrentMission(mission.id);
+    const attempt = new MissionAttempt(mission, runtime);
+    attemptRef.current = attempt;
+    playerProgress.enterMission(mission.id);
     let disposed = false;
-    runtime
-      .init(mission.database.schemaSql, mission.database.seedSql)
-      .then(() => runtime.tables())
+    attempt
+      .open()
       .then((t) => {
         setTables(t);
         setDbReady(true);
@@ -60,7 +56,7 @@ export function MissionPage() {
       });
     return () => {
       disposed = true;
-      runtime.dispose();
+      attempt.dispose();
     };
   }, [mission]);
 
@@ -76,64 +72,36 @@ export function MissionPage() {
   }
 
   const runQuery = async () => {
-    const runtime = runtimeRef.current;
-    if (!runtime || busy) return;
+    const attempt = attemptRef.current;
+    if (!attempt || busy) return;
     playClick();
     setBusy(true);
     setSqlError(null);
-    recordLastQuery(mission.id, query);
-    const run = await runtime.run(query);
+    playerProgress.recordLastQuery(mission.id, query);
+    const run = await attempt.run(query);
     if (!run.ok) {
       setSqlError(run.error);
       setResult(null);
-    } else if (run.results.length === 0) {
-      setSqlError(null);
-      setResult({
-        data: { columns: [], rows: [] },
-        durationMs: run.durationMs,
-      });
     } else {
-      setResult({
-        data: run.results[run.results.length - 1],
-        durationMs: run.durationMs,
-      });
+      setSqlError(null);
+      setResult({ data: run.data, durationMs: run.durationMs });
     }
     setBusy(false);
   };
 
   const submitAnswer = async () => {
-    const runtime = runtimeRef.current;
-    if (!runtime || busy) return;
+    const attempt = attemptRef.current;
+    if (!attempt || busy) return;
     playClick();
     setBusy(true);
     setSqlError(null);
-    recordLastQuery(mission.id, query);
-    // Reset first so player-made data changes can't skew either result.
-    await runtime.reset();
-    const playerRun = await runtime.run(query);
-    const referenceRun = await runtime.run(mission.challenge.referenceQuery);
-    const verdict = evaluate(
-      playerRun,
-      referenceRun,
-      mission.challenge.expectedColumns,
-      mission.reward.xp,
-    );
-    if (verdict.passed) {
+    playerProgress.recordLastQuery(mission.id, query);
+    const submission = await attempt.submit(query);
+    if (submission.completion) {
       playMissionComplete();
-      completeMission(
-        {
-          missionId: mission.id,
-          missionTitle: mission.title,
-          concepts: mission.explanation.concepts,
-          playerQuery: query,
-          referenceQuery: mission.explanation.referenceSolution,
-          explanation: mission.explanation.summary,
-          completedAt: new Date().toISOString(),
-        },
-        verdict.earnedXp,
-      );
+      playerProgress.completeMission(submission.completion);
     }
-    setEvaluation(verdict);
+    setEvaluation(submission.evaluation);
     setBusy(false);
   };
 
@@ -152,11 +120,11 @@ export function MissionPage() {
   };
 
   const resetDatabase = async () => {
-    const runtime = runtimeRef.current;
-    if (!runtime || busy) return;
+    const attempt = attemptRef.current;
+    if (!attempt || busy) return;
     playClick();
     setBusy(true);
-    await runtime.reset();
+    await attempt.reset();
     setResult(null);
     setSqlError(null);
     setBusy(false);

@@ -27,6 +27,5 @@ export type Mission = {
   explanation: {
     summary: string;
     concepts: string[];
-    referenceSolution: string;
   };
 };

@@ -12,6 +12,9 @@
     },
     "types:check": {
       "dependsOn": ["^types:check"]
+    },
+    "test": {
+      "dependsOn": ["^test"]
     }
   }
 }

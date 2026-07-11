@@ -11,28 +11,34 @@ Full founder vision, curriculum ladder, and sequencing plan: see `VISION.md`.
 
 - `pnpm dev` — dev server (Vite, default port 5173)
 - `pnpm build` — typecheck (`tsc -b`) + production build
+- `pnpm test` — run the Vitest suite
 - `pnpm preview` — serve the production build
 
 ## Architecture (the seams that matter)
 
-- **Missions are pure data** (`src/game/missions/`): schema/seed SQL, dialogue, hints, reward,
-  explanation. Adding a mission = new data file + entry in the `missions` array. No engine changes.
-- **SQL runtime behind an interface** (`src/sql/sql-runtime.ts`): current impl is sql.js (SQLite
-  wasm) inside a Web Worker (`sqlite-runtime.ts` + `sql.worker.ts`). Queries exceeding 2s are
+- **Missions are pure data** (`apps/web/src/game/missions/`): schema/seed SQL, dialogue, hints,
+  reward, explanation. Add a mission data file, then register it and its Location in the campaign
+  catalog (`apps/web/src/game/campaign/campaign-catalog.ts`). No page changes.
+- **Mission Attempts own investigation sequencing**
+  (`apps/web/src/game/missions/mission-attempt.ts`): database lifecycle, result projection,
+  reset-isolated grading, and completion facts sit behind one interface. React owns presentation.
+- **SQL runtime behind an interface** (`apps/web/src/sql/sql-runtime.ts`): current impl is sql.js
+  (SQLite wasm) inside a Web Worker (`sqlite-runtime.ts` + `sql.worker.ts`). Queries exceeding 2s are
   interrupted by terminating the worker and rebuilding the DB. Future missions (query plans,
   concurrency) may need a PGlite implementation behind the same interface.
-- **Grading compares results, never SQL text** (`src/sql/evaluator.ts`,
-  `src/sql/result-normalizer.ts`): pure, portable modules. Columns case-insensitive/any order;
+- **Grading compares results, never SQL text** (`apps/web/src/sql/evaluator.ts`): one pure,
+  portable module owns canonicalization and verdicts. Columns are case-insensitive/in any order;
   rows are a sorted multiset (order ignored, duplicates preserved, NULL via sentinel).
-- **Progress in localStorage** (`src/game/progress/progress-store.ts`). The persisted field is
-  still named `journal` and the storage key `sql-rpg-progress-v1` — renamed only in the UI
-  ("Grimoire", `/grimoire` route) to avoid breaking saves.
+- **Player Progress owns durable completion**
+  (`apps/web/src/game/progress/progress-store.ts`). The persisted field remains `journal` and the
+  storage key remains `sql-rpg-progress-v1` to preserve saves; pages use domain operations instead
+  of the storage shape.
 
 ## Conventions & gotchas
 
-- Plain CSS in `src/styles.css`, Catppuccin Macchiato palette (vars `--ctp-*`), JetBrains Mono
+- Plain CSS in `apps/web/src/styles.css`, Catppuccin Macchiato palette (vars `--ctp-*`), JetBrains Mono
   (self-hosted via Fontsource) at `--mono-size: 14px` for all code surfaces.
-- `optimizeDeps.include: ["sql.js"]` in `vite.config.ts` is load-bearing: sql.js is CommonJS and
+- `optimizeDeps.include: ["sql.js"]` in `apps/web/vite.config.ts` is load-bearing: sql.js is CommonJS and
   the dev-mode module worker fails to import it without prebundling (prod build works either way).
 - Don't gate Run/Submit on client-side SQL validity — SQLite is the judge; error messages are the
   pedagogy. Submit is disabled only on empty input.

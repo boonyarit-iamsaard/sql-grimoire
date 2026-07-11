@@ -330,6 +330,9 @@ src/
 ��� game/
 �   ��� missions/
 �   �   ��� missing-shipment.ts
+�   �   ��� mission-attempt.ts
+�   ��� campaign/
+�   �   ��� campaign-catalog.ts
 �   ��� progress/
 �   �   ��� progress-store.ts
 �   �   ��� progress-types.ts
@@ -339,7 +342,6 @@ src/
 �   ��� sql-runtime.ts
 �   ��� sqlite-runtime.ts
 �   ��� evaluator.ts
-�   ��� result-normalizer.ts
 ��� pages/
 �   ��� LandingPage.tsx
 �   ��� WorldMapPage.tsx
@@ -388,7 +390,6 @@ type Mission = {
   explanation: {
     summary: string;
     concepts: string[];
-    referenceSolution: string;
   };
 };
 ```

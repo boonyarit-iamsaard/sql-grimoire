@@ -9,8 +9,8 @@
 > Long-term, this prototype is step one toward a platform that teaches database _reasoning_
 > (querying → schema design → constraints → transactions → concurrency → indexing → query
 > plans → migrations → ORM behavior) through production incidents framed as quests. The
-> query-evaluation logic (`src/sql/evaluator.ts`, `src/sql/result-normalizer.ts`) and the
-> mission-as-data model are kept pure and portable for exactly that reason.
+> query-evaluation logic (`apps/web/src/sql/evaluator.ts`) and the mission-as-data model are kept
+> pure and portable for exactly that reason.
 >
 > Naming: the product/repo name is **sql-grimoire** (chosen 2026-07-11; "sql-wizard" and
 > "sqlmancer" are taken, "SQL Grimoire" was unclaimed). The in-game world ("The Duskharbor
@@ -31,11 +31,11 @@ Open the printed URL (default <http://localhost:5173>).
   JetBrains Mono (self-hosted) for all code surfaces.
 - **sql.js (SQLite in WebAssembly)** running inside a Web Worker. A runaway query is
   interrupted after 2s by terminating the worker and rebuilding the database.
-- **Result-based grading** (`src/sql/evaluator.ts`): the player query and the reference query are
+- **Result-based grading** (`apps/web/src/sql/evaluator.ts`): the player query and the reference query are
   both executed and their _results_ compared — column names case-insensitively, rows as a sorted
   multiset (row order ignored, duplicates preserved, `NULL`s handled via a sentinel). SQL text is
   never compared.
-- **Progress in `localStorage`** (`src/game/progress/progress-store.ts`): XP, completed missions,
+- **Progress in `localStorage`** (`apps/web/src/game/progress/progress-store.ts`): XP, completed missions,
   grimoire entries, last query. Survives refresh; "Reset progress" on the landing page wipes it.
 - **The Grimoire** (`/grimoire`): every completed mission inscribes its query, the reference
   solution, and the concepts learned — the player's growing spellbook.

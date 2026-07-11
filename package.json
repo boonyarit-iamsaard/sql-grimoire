@@ -8,6 +8,7 @@
     "check": "biome check --write --no-errors-on-unmatched --files-ignore-unknown=true",
     "dev": "turbo run dev",
     "prepare": "husky || true",
+    "test": "turbo run test",
     "types:check": "turbo run types:check"
   },
   "devDependencies": {

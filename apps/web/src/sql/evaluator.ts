@@ -1,7 +1,8 @@
 // Pure evaluation logic — compares the *results* of the player query and the
 // reference query, never the SQL text. Portable: depends only on data types.
-import { normalizeColumns, normalizeRows } from "./result-normalizer";
-import type { QueryResult, RunResult } from "./sql-runtime";
+import type { QueryResult, RunResult, SqlValue } from "./sql-runtime";
+
+const NULL_SENTINEL = "␀NULL";
 
 export type EvaluationResult =
   | { passed: true; earnedXp: number }
@@ -87,4 +88,33 @@ export function evaluate(
 /** Player scripts may contain several statements; the answer is the last result set. */
 function lastResult(results: QueryResult[]): QueryResult | null {
   return results.length > 0 ? results[results.length - 1] : null;
+}
+
+function normalizeColumns(columns: string[]): string[] {
+  return columns.map((column) => column.trim().toLowerCase());
+}
+
+function normalizeRows(result: QueryResult, columnOrder: string[]): string[] {
+  const columns = normalizeColumns(result.columns);
+  const indices = columnOrder.map((column) => columns.indexOf(column));
+  return result.rows
+    .map((row) =>
+      indices
+        .map((index) =>
+          index === -1 ? NULL_SENTINEL : normalizeValue(row[index]),
+        )
+        .join("␟"),
+    )
+    .sort();
+}
+
+function normalizeValue(value: SqlValue): string {
+  if (value === null || value === undefined) return NULL_SENTINEL;
+  if (typeof value === "number") {
+    return Number.isInteger(value)
+      ? String(value)
+      : String(Math.round(value * 1e9) / 1e9);
+  }
+  if (value instanceof Uint8Array) return `blob:${Array.from(value).join(",")}`;
+  return String(value);
 }

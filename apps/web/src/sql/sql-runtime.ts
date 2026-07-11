@@ -25,4 +25,6 @@ export interface SqlRuntime {
   reset(): Promise<void>;
   /** Introspects tables for the schema explorer. */
   tables(): Promise<TableInfo[]>;
+  /** Releases runtime resources and settles pending work. */
+  dispose(): void;
 }

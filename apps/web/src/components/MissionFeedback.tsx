@@ -76,7 +76,7 @@ export function MissionFeedback({
         <SqlCodeBlock code={playerQuery} />
 
         <h3>Reference solution</h3>
-        <SqlCodeBlock code={mission.explanation.referenceSolution} />
+        <SqlCodeBlock code={mission.challenge.referenceQuery} />
 
         <h3>How it works</h3>
         <p>{mission.explanation.summary}</p>

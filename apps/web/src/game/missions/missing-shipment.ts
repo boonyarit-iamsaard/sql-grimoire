@@ -129,23 +129,5 @@ WHERE s.status = 'delayed';
       "Filtering with WHERE",
       "Selecting columns from multiple tables",
     ],
-    referenceSolution: `
-SELECT
-    o.id AS order_id,
-    c.name AS customer_name,
-    s.status AS shipment_status
-FROM orders AS o
-JOIN customers AS c
-    ON c.id = o.customer_id
-JOIN shipments AS s
-    ON s.order_id = o.id
-WHERE s.status = 'delayed';
-`.trim(),
   },
 };
-
-export const missions: Mission[] = [missingShipment];
-
-export function missionById(id: string): Mission | undefined {
-  return missions.find((m) => m.id === id);
-}

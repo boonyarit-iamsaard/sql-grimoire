@@ -1,11 +1,11 @@
 import { useNavigate } from "react-router-dom";
 import { SqlCodeBlock } from "../components/SqlCodeBlock";
-import { useProgress } from "../game/progress/progress-store";
+import { usePlayerProgress } from "../game/progress/progress-store";
 import { playClick } from "../game/sound";
 
 export function GrimoirePage() {
   const navigate = useNavigate();
-  const progress = useProgress();
+  const progress = usePlayerProgress();
 
   return (
     <div className="grimoire-page">
@@ -23,14 +23,14 @@ export function GrimoirePage() {
         </button>
       </div>
 
-      {progress.journal.length === 0 && (
+      {progress.grimoireEntries.length === 0 && (
         <p className="grimoire-empty">
           The pages are blank. Complete a mission and its spell will be
           inscribed here.
         </p>
       )}
 
-      {progress.journal.map((entry) => (
+      {progress.grimoireEntries.map((entry) => (
         <article className="grimoire-entry" key={entry.missionId}>
           <h2>{entry.missionTitle}</h2>
           <div className="completed-at">

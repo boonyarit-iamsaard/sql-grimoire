@@ -1,15 +1,11 @@
 import { useNavigate } from "react-router-dom";
-import {
-  hasSavedProgress,
-  resetProgress,
-  useProgress,
-} from "../game/progress/progress-store";
+import { usePlayerProgress } from "../game/progress/progress-store";
 import { playClick } from "../game/sound";
 
 export function LandingPage() {
   const navigate = useNavigate();
-  useProgress(); // re-render when progress changes (e.g. after reset)
-  const saved = hasSavedProgress();
+  const progress = usePlayerProgress();
+  const saved = progress.hasSavedProgress();
 
   const go = (path: string) => {
     playClick();
@@ -47,7 +43,7 @@ export function LandingPage() {
                 "Erase all XP, journal entries, and mission progress?",
               )
             ) {
-              resetProgress();
+              progress.reset();
             }
           }}
         >
