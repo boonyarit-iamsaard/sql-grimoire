@@ -1,8 +1,8 @@
 import { useEffect, useRef } from "react";
-import type { Mission } from "../game/missions/mission-types";
-import type { EvaluationResult } from "../sql/evaluator";
 import xpIcon from "../assets/ui/xp-icon.svg";
+import type { Mission } from "../game/missions/mission-types";
 import { playClick } from "../game/sound";
+import type { EvaluationResult } from "../sql/evaluator";
 import { SqlCodeBlock } from "./SqlCodeBlock";
 
 type Props = {
@@ -13,7 +13,13 @@ type Props = {
   onReturnToMap: () => void;
 };
 
-export function MissionFeedback({ mission, evaluation, playerQuery, onReturnToEditor, onReturnToMap }: Props) {
+export function MissionFeedback({
+  mission,
+  evaluation,
+  playerQuery,
+  onReturnToEditor,
+  onReturnToMap,
+}: Props) {
   // Focus the primary action without scrolling it into view — plain
   // autoFocus would yank the scrollable card down to the bottom button.
   const primaryRef = useRef<HTMLButtonElement>(null);
@@ -26,12 +32,15 @@ export function MissionFeedback({ mission, evaluation, playerQuery, onReturnToEd
       <div className="feedback-overlay">
         <div className="feedback-card">
           <h2>Not quite, record-keeper…</h2>
-          <div className="fail-reason">{evaluation.reason.replaceAll("_", " ")}</div>
+          <div className="fail-reason">
+            {evaluation.reason.replaceAll("_", " ")}
+          </div>
           <p>{evaluation.message}</p>
           <h3>The guild expects these columns</h3>
           <pre>{mission.challenge.expectedColumns.join(", ")}</pre>
           <div className="card-actions">
             <button
+              type="button"
               className="btn btn-primary"
               ref={primaryRef}
               onClick={() => {
@@ -74,6 +83,7 @@ export function MissionFeedback({ mission, evaluation, playerQuery, onReturnToEd
 
         <div className="card-actions">
           <button
+            type="button"
             className="btn btn-primary"
             ref={primaryRef}
             onClick={() => {

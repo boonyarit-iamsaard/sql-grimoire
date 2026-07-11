@@ -36,7 +36,9 @@ self.onmessage = async (event: MessageEvent<Request>) => {
     } else {
       if (!db) throw new Error("Database not initialized");
       const started = performance.now();
-      const results = db.exec(msg.sql).map((r) => ({ columns: r.columns, rows: r.values }));
+      const results = db
+        .exec(msg.sql)
+        .map((r) => ({ columns: r.columns, rows: r.values }));
       self.postMessage({
         id: msg.id,
         ok: true,
@@ -45,6 +47,10 @@ self.onmessage = async (event: MessageEvent<Request>) => {
       });
     }
   } catch (error) {
-    self.postMessage({ id: msg.id, ok: false, error: String((error as Error).message ?? error) });
+    self.postMessage({
+      id: msg.id,
+      ok: false,
+      error: String((error as Error).message ?? error),
+    });
   }
 };

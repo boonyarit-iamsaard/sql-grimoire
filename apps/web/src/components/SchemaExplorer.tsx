@@ -4,7 +4,9 @@ export function SchemaExplorer({ tables }: { tables: TableInfo[] }) {
   return (
     <aside className="panel schema-explorer">
       <h2>📜 Guild Ledger Schema</h2>
-      {tables.length === 0 && <p className="result-empty">Opening the ledger…</p>}
+      {tables.length === 0 && (
+        <p className="result-empty">Opening the ledger…</p>
+      )}
       {tables.map((table) => (
         <div className="schema-table" key={table.name}>
           <div className="table-name">▦ {table.name}</div>

@@ -13,7 +13,9 @@ function normalizeValue(value: SqlValue): string {
   if (value === null || value === undefined) return NULL_SENTINEL;
   if (typeof value === "number") {
     // 1 and 1.0 compare equal; avoid float noise.
-    return Number.isInteger(value) ? String(value) : String(Math.round(value * 1e9) / 1e9);
+    return Number.isInteger(value)
+      ? String(value)
+      : String(Math.round(value * 1e9) / 1e9);
   }
   if (value instanceof Uint8Array) return `blob:${Array.from(value).join(",")}`;
   return String(value);
@@ -24,10 +26,17 @@ function normalizeValue(value: SqlValue): string {
  * `columnOrder` (lowercased names), serialized, then the rows are sorted so
  * comparison ignores row order while preserving duplicate-row counts.
  */
-export function normalizeRows(result: QueryResult, columnOrder: string[]): string[] {
+export function normalizeRows(
+  result: QueryResult,
+  columnOrder: string[],
+): string[] {
   const cols = normalizeColumns(result.columns);
   const indices = columnOrder.map((c) => cols.indexOf(c));
   return result.rows
-    .map((row) => indices.map((i) => (i === -1 ? NULL_SENTINEL : normalizeValue(row[i]))).join("␟"))
+    .map((row) =>
+      indices
+        .map((i) => (i === -1 ? NULL_SENTINEL : normalizeValue(row[i])))
+        .join("␟"),
+    )
     .sort();
 }

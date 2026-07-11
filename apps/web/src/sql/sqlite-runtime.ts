@@ -1,7 +1,12 @@
 // Main-thread wrapper around the sql.js worker. Enforces a query time budget:
 // if the worker doesn't answer in time, it is terminated and respawned with a
 // fresh copy of the database, so a runaway query can never freeze the app.
-import type { QueryResult, RunResult, SqlRuntime, TableInfo } from "./sql-runtime";
+import type {
+  QueryResult,
+  RunResult,
+  SqlRuntime,
+  TableInfo,
+} from "./sql-runtime";
 
 const QUERY_TIMEOUT_MS = 2000;
 
@@ -15,14 +20,20 @@ export class SqliteRuntime implements SqlRuntime {
   private seedSql = "";
 
   private spawn(): Worker {
-    const worker = new Worker(new URL("./sql.worker.ts", import.meta.url), { type: "module" });
+    const worker = new Worker(new URL("./sql.worker.ts", import.meta.url), {
+      type: "module",
+    });
     worker.onmessage = (event) => {
       const { id, ok, results, error, durationMs } = event.data;
       const entry = this.pending.get(id);
       if (!entry) return;
       this.pending.delete(id);
       clearTimeout(entry.timer);
-      entry.resolve(ok ? { ok: true, results, durationMs: durationMs ?? 0 } : { ok: false, error });
+      entry.resolve(
+        ok
+          ? { ok: true, results, durationMs: durationMs ?? 0 }
+          : { ok: false, error },
+      );
     };
     // A worker that fails to even load (e.g. a broken import) never posts a
     // message — fail every pending call immediately instead of timing out.
@@ -30,7 +41,10 @@ export class SqliteRuntime implements SqlRuntime {
       event.preventDefault();
       for (const [, p] of this.pending) {
         clearTimeout(p.timer);
-        p.resolve({ ok: false, error: `SQL worker failed to start: ${event.message || "unknown error"}` });
+        p.resolve({
+          ok: false,
+          error: `SQL worker failed to start: ${event.message || "unknown error"}`,
+        });
       }
       this.pending.clear();
       this.worker?.terminate();
@@ -39,7 +53,10 @@ export class SqliteRuntime implements SqlRuntime {
     return worker;
   }
 
-  private send(msg: Record<string, unknown>, timeoutMs = QUERY_TIMEOUT_MS): Promise<RunResult> {
+  private send(
+    msg: Record<string, unknown>,
+    timeoutMs = QUERY_TIMEOUT_MS,
+  ): Promise<RunResult> {
     if (!this.worker) this.worker = this.spawn();
     const id = this.nextId++;
     return new Promise((resolve) => {
@@ -50,7 +67,10 @@ export class SqliteRuntime implements SqlRuntime {
         this.worker = null;
         for (const [, p] of this.pending) {
           clearTimeout(p.timer);
-          p.resolve({ ok: false, error: "Interrupted: the database was restarted." });
+          p.resolve({
+            ok: false,
+            error: "Interrupted: the database was restarted.",
+          });
         }
         this.pending.clear();
         void this.init(this.schemaSql, this.seedSql);
@@ -60,7 +80,7 @@ export class SqliteRuntime implements SqlRuntime {
         });
       }, timeoutMs);
       this.pending.set(id, { resolve, timer });
-      this.worker!.postMessage({ id, ...msg });
+      this.worker?.postMessage({ id, ...msg });
     });
   }
 

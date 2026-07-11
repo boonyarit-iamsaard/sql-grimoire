@@ -4,13 +4,22 @@
   "version": "0.0.1",
   "type": "module",
   "scripts": {
-    "dev": "turbo run dev",
     "build": "turbo run build",
-    "preview": "turbo run preview",
-    "prototype": "turbo run prototype"
+    "check": "biome check --write --no-errors-on-unmatched --files-ignore-unknown=true",
+    "dev": "turbo run dev",
+    "prepare": "husky || true",
+    "types:check": "turbo run types:check"
   },
   "devDependencies": {
+    "@biomejs/biome": "^2.5.2",
+    "husky": "^9.1.7",
+    "lint-staged": "^17.0.7",
     "turbo": "^2.5.0"
+  },
+  "lint-staged": {
+    "*.{js,ts,cjs,mjs,d.cts,d.mts,jsx,tsx,json,jsonc}": [
+      "biome check --no-errors-on-unmatched --files-ignore-unknown=true"
+    ]
   },
   "packageManager": "pnpm@10.18.0"
 }

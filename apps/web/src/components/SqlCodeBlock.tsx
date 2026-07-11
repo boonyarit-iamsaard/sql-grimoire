@@ -1,6 +1,6 @@
-import CodeMirror, { EditorView } from "@uiw/react-codemirror";
-import { sql, SQLite } from "@codemirror/lang-sql";
 import { catppuccinMacchiato } from "@catppuccin/codemirror";
+import { SQLite, sql } from "@codemirror/lang-sql";
+import CodeMirror, { EditorView } from "@uiw/react-codemirror";
 
 /** Read-only, syntax-highlighted SQL block — same theme as the editor. */
 export function SqlCodeBlock({ code }: { code: string }) {

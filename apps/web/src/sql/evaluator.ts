@@ -21,19 +21,28 @@ export function evaluate(
     return { passed: false, reason: "SQL_ERROR", message: playerRun.error };
   }
   if (!referenceRun.ok) {
-    return { passed: false, reason: "SQL_ERROR", message: `Mission bug — reference query failed: ${referenceRun.error}` };
+    return {
+      passed: false,
+      reason: "SQL_ERROR",
+      message: `Mission bug — reference query failed: ${referenceRun.error}`,
+    };
   }
 
   const player = lastResult(playerRun.results);
   const reference = lastResult(referenceRun.results);
   if (!reference) {
-    return { passed: false, reason: "SQL_ERROR", message: "Mission bug — reference query returned nothing." };
+    return {
+      passed: false,
+      reason: "SQL_ERROR",
+      message: "Mission bug — reference query returned nothing.",
+    };
   }
   if (!player) {
     return {
       passed: false,
       reason: "INCORRECT_ROWS",
-      message: "Your query returned no result set. Run a SELECT that produces rows.",
+      message:
+        "Your query returned no result set. Run a SELECT that produces rows.",
     };
   }
 
@@ -46,7 +55,11 @@ export function evaluate(
     if (missing.length > 0) parts.push(`Missing: ${missing.join(", ")}.`);
     if (extra.length > 0) parts.push(`Unexpected: ${extra.join(", ")}.`);
     parts.push("Use AS to alias columns to the expected names.");
-    return { passed: false, reason: "INCORRECT_COLUMNS", message: parts.join(" ") };
+    return {
+      passed: false,
+      reason: "INCORRECT_COLUMNS",
+      message: parts.join(" "),
+    };
   }
 
   const playerRows = normalizeRows(player, expected);
@@ -63,7 +76,8 @@ export function evaluate(
       return {
         passed: false,
         reason: "INCORRECT_ROWS",
-        message: "Right columns and row count, but some values don't match the guild ledger. Check which table each column should come from.",
+        message:
+          "Right columns and row count, but some values don't match the guild ledger. Check which table each column should come from.",
       };
     }
   }

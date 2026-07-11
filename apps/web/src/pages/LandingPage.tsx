@@ -1,5 +1,9 @@
 import { useNavigate } from "react-router-dom";
-import { hasSavedProgress, resetProgress, useProgress } from "../game/progress/progress-store";
+import {
+  hasSavedProgress,
+  resetProgress,
+  useProgress,
+} from "../game/progress/progress-store";
 import { playClick } from "../game/sound";
 
 export function LandingPage() {
@@ -16,24 +20,33 @@ export function LandingPage() {
     <div className="landing">
       <h1>SQL Grimoire</h1>
       <p className="premise">
-        A merchant guild's shipments are going missing — open your grimoire, sharpen your
-        query-craft, and find out why.
+        A merchant guild's shipments are going missing — open your grimoire,
+        sharpen your query-craft, and find out why.
       </p>
       <div className="actions">
-        <button className="btn btn-primary" onClick={() => go("/map")}>
+        <button
+          type="button"
+          className="btn btn-primary"
+          onClick={() => go("/map")}
+        >
           {saved ? "New Game" : "Start Game"}
         </button>
         {saved && (
-          <button className="btn" onClick={() => go("/map")}>
+          <button type="button" className="btn" onClick={() => go("/map")}>
             Continue
           </button>
         )}
       </div>
       {saved && (
         <button
+          type="button"
           className="reset-link"
           onClick={() => {
-            if (window.confirm("Erase all XP, journal entries, and mission progress?")) {
+            if (
+              window.confirm(
+                "Erase all XP, journal entries, and mission progress?",
+              )
+            ) {
               resetProgress();
             }
           }}

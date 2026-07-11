@@ -4,10 +4,11 @@
   "version": "0.0.1",
   "type": "module",
   "scripts": {
-    "dev": "vite",
-    "build": "tsc -b && vite build",
-    "preview": "vite preview",
-    "prototype": "vite"
+    "dev": "vite dev",
+    "build": "vite build",
+    "serve": "vite preview",
+    "start": "vite",
+    "types:check": "vite build && tsc --noEmit"
   },
   "dependencies": {
     "@catppuccin/codemirror": "^1.0.3",

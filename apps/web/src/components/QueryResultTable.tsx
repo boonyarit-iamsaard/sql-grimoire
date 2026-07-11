@@ -2,11 +2,18 @@ import type { QueryResult, SqlValue } from "../sql/sql-runtime";
 
 function renderValue(value: SqlValue) {
   if (value === null) return <span className="null-value">NULL</span>;
-  if (value instanceof Uint8Array) return <span className="null-value">[blob]</span>;
+  if (value instanceof Uint8Array)
+    return <span className="null-value">[blob]</span>;
   return String(value);
 }
 
-export function QueryResultTable({ result, durationMs }: { result: QueryResult; durationMs?: number }) {
+export function QueryResultTable({
+  result,
+  durationMs,
+}: {
+  result: QueryResult;
+  durationMs?: number;
+}) {
   return (
     <div className="panel result-panel">
       <h2>
@@ -23,16 +30,18 @@ export function QueryResultTable({ result, durationMs }: { result: QueryResult; 
           <table className="result-table">
             <thead>
               <tr>
-                {result.columns.map((col, i) => (
-                  <th key={i}>{col}</th>
+                {result.columns.map((col) => (
+                  <th key={col}>{col}</th>
                 ))}
               </tr>
             </thead>
             <tbody>
               {result.rows.map((row, ri) => (
-                <tr key={ri}>
+                // biome-ignore lint/suspicious/noArrayIndexKey: result rows have no natural key
+                <tr key={`row-${ri}`}>
                   {row.map((cell, ci) => (
-                    <td key={ci}>{renderValue(cell)}</td>
+                    // biome-ignore lint/suspicious/noArrayIndexKey: cells have no natural key
+                    <td key={`cell-${ci}`}>{renderValue(cell)}</td>
                   ))}
                 </tr>
               ))}

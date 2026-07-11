@@ -21,7 +21,12 @@ export function DialogueBox({ lines, onFinished, finishLabel }: Props) {
 
   return (
     <div className="dialogue-box">
-      <img className="portrait" src={line.portrait} alt={line.speaker} key={line.portrait} />
+      <img
+        className="portrait"
+        src={line.portrait}
+        alt={line.speaker}
+        key={line.portrait}
+      />
       <div>
         <div className="speaker">{line.speaker}</div>
         <div className="line">{line.text}</div>
@@ -29,10 +34,15 @@ export function DialogueBox({ lines, onFinished, finishLabel }: Props) {
       <div className="dialogue-controls">
         <div className="progress-dots">
           {lines.map((_, i) => (
-            <span key={i} className={i === index ? "active" : ""} />
+            // biome-ignore lint/suspicious/noArrayIndexKey: progress dots have no natural key
+            <span key={`dot-${i}`} className={i === index ? "active" : ""} />
           ))}
         </div>
-        <button className={isLast ? "btn btn-primary" : "btn"} onClick={advance} autoFocus>
+        <button
+          type="button"
+          className={isLast ? "btn btn-primary" : "btn"}
+          onClick={advance}
+        >
           {isLast ? finishLabel : "Next ▸"}
         </button>
       </div>

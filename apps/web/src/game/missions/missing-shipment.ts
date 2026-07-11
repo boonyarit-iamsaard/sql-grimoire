@@ -1,7 +1,6 @@
-import type { Mission } from "./mission-types";
 import merchantNeutral from "../../assets/characters/merchant/neutral.svg";
 import merchantWorried from "../../assets/characters/merchant/worried.svg";
-import merchantHappy from "../../assets/characters/merchant/happy.svg";
+import type { Mission } from "./mission-types";
 
 const schemaSql = `
 CREATE TABLE customers (
@@ -117,13 +116,19 @@ WHERE s.status = 'delayed';
   reward: {
     xp: 100,
     successMessage:
-      "Odalia runs a finger down your list and exhales. \"Tobin, Petra, Nyra, and Tobin again — of course, the Duskharbor road is flooded.\" Riders are dispatched within the hour, apologies and honey-cakes in hand. By dusk, the guild's reputation is safe, and the doorkeeper waves you through to the inner archives.",
+      'Odalia runs a finger down your list and exhales. "Tobin, Petra, Nyra, and Tobin again — of course, the Duskharbor road is flooded." Riders are dispatched within the hour, apologies and honey-cakes in hand. By dusk, the guild\'s reputation is safe, and the doorkeeper waves you through to the inner archives.',
   },
 
   explanation: {
     summary:
       "The answer lives in three tables, so the query joins them along their foreign keys: shipments point at orders (shipments.order_id = orders.id) and orders point at customers (orders.customer_id = customers.id). INNER JOIN keeps only rows that match on both sides, the WHERE clause keeps only shipments whose status is 'delayed', and AS renames each output column to what the guild asked for.",
-    concepts: ["SELECT", "Table aliases", "INNER JOIN", "Filtering with WHERE", "Selecting columns from multiple tables"],
+    concepts: [
+      "SELECT",
+      "Table aliases",
+      "INNER JOIN",
+      "Filtering with WHERE",
+      "Selecting columns from multiple tables",
+    ],
     referenceSolution: `
 SELECT
     o.id AS order_id,

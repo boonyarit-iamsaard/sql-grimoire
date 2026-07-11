@@ -1,7 +1,7 @@
 import { useNavigate } from "react-router-dom";
+import { SqlCodeBlock } from "../components/SqlCodeBlock";
 import { useProgress } from "../game/progress/progress-store";
 import { playClick } from "../game/sound";
-import { SqlCodeBlock } from "../components/SqlCodeBlock";
 
 export function GrimoirePage() {
   const navigate = useNavigate();
@@ -11,21 +11,31 @@ export function GrimoirePage() {
     <div className="grimoire-page">
       <div className="page-nav">
         <h1>Your Grimoire</h1>
-        <button className="btn btn-ghost" onClick={() => { playClick(); navigate("/map"); }}>
+        <button
+          type="button"
+          className="btn btn-ghost"
+          onClick={() => {
+            playClick();
+            navigate("/map");
+          }}
+        >
           ← Back to Map
         </button>
       </div>
 
       {progress.journal.length === 0 && (
         <p className="grimoire-empty">
-          The pages are blank. Complete a mission and its spell will be inscribed here.
+          The pages are blank. Complete a mission and its spell will be
+          inscribed here.
         </p>
       )}
 
       {progress.journal.map((entry) => (
         <article className="grimoire-entry" key={entry.missionId}>
           <h2>{entry.missionTitle}</h2>
-          <div className="completed-at">Inscribed {new Date(entry.completedAt).toLocaleString()}</div>
+          <div className="completed-at">
+            Inscribed {new Date(entry.completedAt).toLocaleString()}
+          </div>
 
           <h3>SQL concepts learned</h3>
           <p>{entry.concepts.join(" · ")}</p>

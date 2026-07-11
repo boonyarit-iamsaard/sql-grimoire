@@ -1,6 +1,11 @@
 import { useEffect, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { format } from "sql-formatter";
+import { DialogueBox } from "../components/DialogueBox";
+import { MissionFeedback } from "../components/MissionFeedback";
+import { QueryResultTable } from "../components/QueryResultTable";
+import { SchemaExplorer } from "../components/SchemaExplorer";
+import { SqlEditor } from "../components/SqlEditor";
 import { missionById } from "../game/missions/missing-shipment";
 import {
   completeMission,
@@ -9,14 +14,9 @@ import {
   setCurrentMission,
 } from "../game/progress/progress-store";
 import { playClick, playMissionComplete } from "../game/sound";
-import { SqliteRuntime } from "../sql/sqlite-runtime";
+import { type EvaluationResult, evaluate } from "../sql/evaluator";
 import type { QueryResult, TableInfo } from "../sql/sql-runtime";
-import { evaluate, type EvaluationResult } from "../sql/evaluator";
-import { DialogueBox } from "../components/DialogueBox";
-import { SchemaExplorer } from "../components/SchemaExplorer";
-import { SqlEditor } from "../components/SqlEditor";
-import { QueryResultTable } from "../components/QueryResultTable";
-import { MissionFeedback } from "../components/MissionFeedback";
+import { SqliteRuntime } from "../sql/sqlite-runtime";
 
 type Phase = "briefing" | "workbench";
 
@@ -28,8 +28,13 @@ export function MissionPage() {
   const runtimeRef = useRef<SqliteRuntime | null>(null);
   const [phase, setPhase] = useState<Phase>("briefing");
   const [tables, setTables] = useState<TableInfo[]>([]);
-  const [query, setQuery] = useState(() => (mission ? getProgress().lastQueries[mission.id] ?? "" : ""));
-  const [result, setResult] = useState<{ data: QueryResult; durationMs: number } | null>(null);
+  const [query, setQuery] = useState(() =>
+    mission ? (getProgress().lastQueries[mission.id] ?? "") : "",
+  );
+  const [result, setResult] = useState<{
+    data: QueryResult;
+    durationMs: number;
+  } | null>(null);
   const [sqlError, setSqlError] = useState<string | null>(null);
   const [hintIndex, setHintIndex] = useState(-1);
   const [evaluation, setEvaluation] = useState<EvaluationResult | null>(null);
@@ -63,7 +68,9 @@ export function MissionPage() {
     return (
       <div className="briefing">
         <h1>Unknown mission</h1>
-        <button className="btn" onClick={() => navigate("/map")}>Back to Map</button>
+        <button type="button" className="btn" onClick={() => navigate("/map")}>
+          Back to Map
+        </button>
       </div>
     );
   }
@@ -81,9 +88,15 @@ export function MissionPage() {
       setResult(null);
     } else if (run.results.length === 0) {
       setSqlError(null);
-      setResult({ data: { columns: [], rows: [] }, durationMs: run.durationMs });
+      setResult({
+        data: { columns: [], rows: [] },
+        durationMs: run.durationMs,
+      });
     } else {
-      setResult({ data: run.results[run.results.length - 1], durationMs: run.durationMs });
+      setResult({
+        data: run.results[run.results.length - 1],
+        durationMs: run.durationMs,
+      });
     }
     setBusy(false);
   };
@@ -99,7 +112,12 @@ export function MissionPage() {
     await runtime.reset();
     const playerRun = await runtime.run(query);
     const referenceRun = await runtime.run(mission.challenge.referenceQuery);
-    const verdict = evaluate(playerRun, referenceRun, mission.challenge.expectedColumns, mission.reward.xp);
+    const verdict = evaluate(
+      playerRun,
+      referenceRun,
+      mission.challenge.expectedColumns,
+      mission.reward.xp,
+    );
     if (verdict.passed) {
       playMissionComplete();
       completeMission(
@@ -127,7 +145,9 @@ export function MissionPage() {
     } catch {
       // sql-formatter can't parse it — leave the text as typed; running the
       // query will surface the real SQLite error.
-      setSqlError("Couldn't format — the SQL isn't parseable yet. Run it to see the exact error.");
+      setSqlError(
+        "Couldn't format — the SQL isn't parseable yet. Run it to see the exact error.",
+      );
     }
   };
 
@@ -167,7 +187,14 @@ export function MissionPage() {
             <strong>Objective:</strong> {mission.objective}
           </p>
         </div>
-        <button className="btn btn-ghost" onClick={() => { playClick(); navigate("/map"); }}>
+        <button
+          type="button"
+          className="btn btn-ghost"
+          onClick={() => {
+            playClick();
+            navigate("/map");
+          }}
+        >
           ← Map
         </button>
       </header>
@@ -179,46 +206,78 @@ export function MissionPage() {
           <div className="panel editor-panel">
             <SqlEditor value={query} onChange={setQuery} />
             <div className="editor-toolbar">
-              <button className="btn btn-primary" onClick={runQuery} disabled={busy || !dbReady}>
+              <button
+                type="button"
+                className="btn btn-primary"
+                onClick={runQuery}
+                disabled={busy || !dbReady}
+              >
                 ▶ Run Query
               </button>
-              <button className="btn" onClick={submitAnswer} disabled={busy || !dbReady || query.trim() === ""}>
+              <button
+                type="button"
+                className="btn"
+                onClick={submitAnswer}
+                disabled={busy || !dbReady || query.trim() === ""}
+              >
                 ⚑ Submit Answer
               </button>
-              <button className="btn btn-ghost" onClick={formatQuery} disabled={query.trim() === ""}>
+              <button
+                type="button"
+                className="btn btn-ghost"
+                onClick={formatQuery}
+                disabled={query.trim() === ""}
+              >
                 ✎ Format
               </button>
               <span className="spacer" />
               <button
+                type="button"
                 className="btn btn-ghost"
                 onClick={() => {
                   playClick();
-                  setHintIndex((i) => Math.min(i + 1, mission.challenge.hints.length - 1));
+                  setHintIndex((i) =>
+                    Math.min(i + 1, mission.challenge.hints.length - 1),
+                  );
                 }}
                 disabled={hintIndex >= mission.challenge.hints.length - 1}
               >
                 💡 Hint
               </button>
-              <button className="btn btn-danger" onClick={resetDatabase} disabled={busy || !dbReady}>
+              <button
+                type="button"
+                className="btn btn-danger"
+                onClick={resetDatabase}
+                disabled={busy || !dbReady}
+              >
                 ⟲ Reset Database
               </button>
             </div>
           </div>
 
           {initError && (
-            <div className="sql-error">⚠ The guild database failed to open: {initError}</div>
+            <div className="sql-error">
+              ⚠ The guild database failed to open: {initError}
+            </div>
           )}
 
           {hintIndex >= 0 && (
             <div className="panel hint-box">
-              <span className="hint-tag">Hint {hintIndex + 1}/{mission.challenge.hints.length}</span>
+              <span className="hint-tag">
+                Hint {hintIndex + 1}/{mission.challenge.hints.length}
+              </span>
               {mission.challenge.hints[hintIndex]}
             </div>
           )}
 
           {sqlError && <div className="sql-error">⚠ {sqlError}</div>}
 
-          {result && <QueryResultTable result={result.data} durationMs={result.durationMs} />}
+          {result && (
+            <QueryResultTable
+              result={result.data}
+              durationMs={result.durationMs}
+            />
+          )}
         </div>
       </div>
 

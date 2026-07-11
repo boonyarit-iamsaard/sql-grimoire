@@ -1,6 +1,10 @@
 // localStorage-backed progress store with a React subscription hook.
 import { useSyncExternalStore } from "react";
-import { emptyProgress, type JournalEntry, type Progress } from "./progress-types";
+import {
+  emptyProgress,
+  type JournalEntry,
+  type Progress,
+} from "./progress-types";
 
 const STORAGE_KEY = "sql-rpg-progress-v1";
 
@@ -24,7 +28,9 @@ function save(next: Progress) {
   } catch {
     // Storage full/blocked — progress just won't survive a refresh.
   }
-  listeners.forEach((l) => l());
+  listeners.forEach((l) => {
+    l();
+  });
 }
 
 export function getProgress(): Progress {
@@ -32,7 +38,11 @@ export function getProgress(): Progress {
 }
 
 export function hasSavedProgress(): boolean {
-  return cache.xp > 0 || cache.completedMissionIds.length > 0 || cache.currentMissionId !== null;
+  return (
+    cache.xp > 0 ||
+    cache.completedMissionIds.length > 0 ||
+    cache.currentMissionId !== null
+  );
 }
 
 export function recordLastQuery(missionId: string, query: string) {
@@ -52,7 +62,10 @@ export function completeMission(entry: JournalEntry, xp: number) {
     completedMissionIds: alreadyDone
       ? cache.completedMissionIds
       : [...cache.completedMissionIds, entry.missionId],
-    journal: [...cache.journal.filter((j) => j.missionId !== entry.missionId), entry],
+    journal: [
+      ...cache.journal.filter((j) => j.missionId !== entry.missionId),
+      entry,
+    ],
     currentMissionId: null,
   });
 }

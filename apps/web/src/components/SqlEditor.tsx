@@ -1,6 +1,6 @@
-import CodeMirror from "@uiw/react-codemirror";
-import { sql, SQLite } from "@codemirror/lang-sql";
 import { catppuccinMacchiato } from "@catppuccin/codemirror";
+import { SQLite, sql } from "@codemirror/lang-sql";
+import CodeMirror from "@uiw/react-codemirror";
 
 type Props = {
   value: string;
