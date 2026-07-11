@@ -5,6 +5,7 @@ import type {
   QueryResult,
   RunResult,
   SqlRuntime,
+  SqlValue,
   TableInfo,
 } from "./sql-runtime";
 
@@ -29,7 +30,9 @@ export class SqliteRuntime implements SqlRuntime {
     worker.onmessage = (event) => {
       const { id, ok, results, error, durationMs } = event.data;
       const entry = this.pending.get(id);
-      if (!entry) return;
+      if (!entry) {
+        return;
+      }
       this.pending.delete(id);
       clearTimeout(entry.timer);
       entry.resolve(
@@ -92,7 +95,9 @@ export class SqliteRuntime implements SqlRuntime {
     this.seedSql = seedSql;
     // First call also compiles the wasm — give it a generous budget.
     const result = await this.send({ kind: "init", schemaSql, seedSql }, 15000);
-    if (!result.ok) throw new Error(result.error);
+    if (!result.ok) {
+      throw new Error(result.error);
+    }
   }
 
   run(sql: string): Promise<RunResult> {
@@ -101,7 +106,9 @@ export class SqliteRuntime implements SqlRuntime {
 
   async reset(): Promise<void> {
     const result = await this.send({ kind: "reset" });
-    if (!result.ok) throw new Error(result.error);
+    if (!result.ok) {
+      throw new Error(result.error);
+    }
   }
 
   dispose() {
@@ -118,12 +125,16 @@ export class SqliteRuntime implements SqlRuntime {
     const names = await this.run(
       "SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%' ORDER BY name",
     );
-    if (!names.ok || names.results.length === 0) return [];
+    if (!names.ok || names.results.length === 0) {
+      return [];
+    }
     const tables: TableInfo[] = [];
     for (const row of names.results[0].rows) {
       const name = String(row[0]);
       const info = await this.run(`PRAGMA table_info(${JSON.stringify(name)})`);
-      if (!info.ok || info.results.length === 0) continue;
+      if (!info.ok || info.results.length === 0) {
+        continue;
+      }
       const cols = asRecords(info.results[0]);
       tables.push({
         name,
@@ -139,7 +150,7 @@ export class SqliteRuntime implements SqlRuntime {
   }
 }
 
-function asRecords(result: QueryResult): Array<Record<string, unknown>> {
+function asRecords(result: QueryResult): Array<Record<string, SqlValue>> {
   return result.rows.map((row) =>
     Object.fromEntries(result.columns.map((col, i) => [col, row[i]])),
   );

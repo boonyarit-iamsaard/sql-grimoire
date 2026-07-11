@@ -44,7 +44,9 @@ describe("Campaign catalog", () => {
 
   it("adds a second Mission as catalog data and selects its Location path", () => {
     const firstMission = campaignCatalog.getMission("missing-shipment");
-    if (!firstMission) throw new Error("Expected fixture Mission");
+    if (!firstMission) {
+      throw new Error("Expected fixture Mission");
+    }
     const secondMission = {
       ...firstMission,
       id: "second-mission",
@@ -75,7 +77,9 @@ describe("Campaign catalog", () => {
 
   it("rejects duplicate and dangling catalog definitions", () => {
     const mission = campaignCatalog.getMission("missing-shipment");
-    if (!mission) throw new Error("Expected fixture Mission");
+    if (!mission) {
+      throw new Error("Expected fixture Mission");
+    }
     const location: CampaignLocation = {
       id: mission.locationId,
       name: "Merchant Guild",

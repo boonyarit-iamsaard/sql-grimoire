@@ -13,9 +13,24 @@ export interface CampaignLocation {
   lockedTitle?: string;
 }
 
+export type CampaignLocationState = "available" | "completed" | "locked";
+
 export interface CampaignLocationView extends CampaignLocation {
-  state: "available" | "completed" | "locked";
+  state: CampaignLocationState;
   nextMissionId: string | null;
+}
+
+function locationState(
+  locked: boolean,
+  completed: boolean,
+): CampaignLocationState {
+  if (locked) {
+    return "locked";
+  }
+  if (completed) {
+    return "completed";
+  }
+  return "available";
 }
 
 export class CampaignCatalog {
@@ -53,7 +68,7 @@ export class CampaignCatalog {
 
       return {
         ...location,
-        state: locked ? "locked" : completed ? "completed" : "available",
+        state: locationState(locked, completed),
         nextMissionId,
       };
     });

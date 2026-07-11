@@ -19,8 +19,11 @@ export function DialogueBox({
 
   const advance = () => {
     playClick();
-    if (isLast) onFinished();
-    else setIndex(index + 1);
+    if (isLast) {
+      onFinished();
+    } else {
+      setIndex(index + 1);
+    }
   };
 
   return (
@@ -37,9 +40,8 @@ export function DialogueBox({
       </div>
       <div className="dialogue-controls">
         <div className="progress-dots">
-          {lines.map((_, i) => (
-            // biome-ignore lint/suspicious/noArrayIndexKey: progress dots have no natural key
-            <span key={`dot-${i}`} className={i === index ? "active" : ""} />
+          {lines.map((l, i) => (
+            <span key={l.id} className={i === index ? "active" : ""} />
           ))}
         </div>
         <button

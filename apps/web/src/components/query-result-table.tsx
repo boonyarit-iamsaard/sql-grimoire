@@ -1,3 +1,4 @@
+import { useMemo } from "react";
 import type { QueryResult, SqlValue } from "../sql/sql-runtime";
 
 interface QueryResultTableProps {
@@ -6,9 +7,12 @@ interface QueryResultTableProps {
 }
 
 function renderValue(value: SqlValue) {
-  if (value === null) return <span className="null-value">NULL</span>;
-  if (value instanceof Uint8Array)
+  if (value === null) {
+    return <span className="null-value">NULL</span>;
+  }
+  if (value instanceof Uint8Array) {
     return <span className="null-value">[blob]</span>;
+  }
   return String(value);
 }
 
@@ -16,10 +20,19 @@ export function QueryResultTable({
   result,
   durationMs,
 }: Readonly<QueryResultTableProps>) {
+  const rowIds = useMemo(
+    () => result.rows.map(() => crypto.randomUUID()),
+    [result],
+  );
+  const colIds = useMemo(
+    () => result.columns.map(() => crypto.randomUUID()),
+    [result],
+  );
+
   return (
     <div className="panel result-panel">
       <h2>
-        Query Result
+        Query Result{" "}
         <span className="result-meta">
           {result.rows.length} row{result.rows.length === 1 ? "" : "s"}
           {durationMs !== undefined && ` · ${durationMs.toFixed(1)}ms`}
@@ -39,11 +52,9 @@ export function QueryResultTable({
             </thead>
             <tbody>
               {result.rows.map((row, ri) => (
-                // biome-ignore lint/suspicious/noArrayIndexKey: result rows have no natural key
-                <tr key={`row-${ri}`}>
+                <tr key={rowIds[ri]}>
                   {row.map((cell, ci) => (
-                    // biome-ignore lint/suspicious/noArrayIndexKey: cells have no natural key
-                    <td key={`cell-${ci}`}>{renderValue(cell)}</td>
+                    <td key={colIds[ci]}>{renderValue(cell)}</td>
                   ))}
                 </tr>
               ))}

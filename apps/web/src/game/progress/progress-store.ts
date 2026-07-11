@@ -58,7 +58,9 @@ export class PlayerProgress {
   }
 
   enterMission(missionId: string | null): void {
-    if (this.progress.currentMissionId === missionId) return;
+    if (this.progress.currentMissionId === missionId) {
+      return;
+    }
     this.save({ ...this.progress, currentMissionId: missionId });
   }
 
@@ -137,7 +139,9 @@ function load(storage: ProgressStorage): Progress {
 }
 
 function normalizeProgress(value: unknown): Progress {
-  if (!isRecord(value)) return freshProgress();
+  if (!isRecord(value)) {
+    return freshProgress();
+  }
 
   return {
     xp:
@@ -174,7 +178,9 @@ function stringArray(value: unknown): string[] {
 }
 
 function stringRecord(value: unknown): Record<string, string> {
-  if (!isRecord(value)) return {};
+  if (!isRecord(value)) {
+    return {};
+  }
   return Object.fromEntries(
     Object.entries(value).filter(
       (entry): entry is [string, string] => typeof entry[1] === "string",

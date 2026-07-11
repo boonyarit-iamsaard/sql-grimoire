@@ -56,10 +56,13 @@
         }
       },
       "style": {
+        "noEnum": "error",
+        "noNonNullAssertion": "error",
         "noParameterAssign": "error",
         "useAsConstAssertion": "error",
+        "useBlockStatements": "error",
         "useDefaultParameterLast": "error",
-        "useEnumInitializers": "error",
+        "useNodejsImportProtocol": "error",
         "useSelfClosingElements": "error",
         "useSingleVarDeclarator": "error",
         "noUnusedTemplateLiteral": "error",

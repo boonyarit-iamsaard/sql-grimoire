@@ -73,7 +73,9 @@ function MissionAttemptPage({ mission }: Readonly<MissionAttemptPageProps>) {
         setDbReady(true);
       })
       .catch((error: Error) => {
-        if (!disposed) setInitError(error.message);
+        if (!disposed) {
+          setInitError(error.message);
+        }
       });
     return () => {
       disposed = true;
@@ -83,7 +85,9 @@ function MissionAttemptPage({ mission }: Readonly<MissionAttemptPageProps>) {
 
   const runQuery = async () => {
     const attempt = attemptRef.current;
-    if (!attempt || busy) return;
+    if (!attempt || busy) {
+      return;
+    }
     playClick();
     setBusy(true);
     setSqlError(null);
@@ -101,7 +105,9 @@ function MissionAttemptPage({ mission }: Readonly<MissionAttemptPageProps>) {
 
   const submitAnswer = async () => {
     const attempt = attemptRef.current;
-    if (!attempt || busy) return;
+    if (!attempt || busy) {
+      return;
+    }
     playClick();
     setBusy(true);
     setSqlError(null);
@@ -131,7 +137,9 @@ function MissionAttemptPage({ mission }: Readonly<MissionAttemptPageProps>) {
 
   const resetDatabase = async () => {
     const attempt = attemptRef.current;
-    if (!attempt || busy) return;
+    if (!attempt || busy) {
+      return;
+    }
     playClick();
     setBusy(true);
     const reset = await attempt.reset();

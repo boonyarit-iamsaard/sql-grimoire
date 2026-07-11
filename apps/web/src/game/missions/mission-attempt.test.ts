@@ -36,13 +36,17 @@ class RecordingRuntime implements SqlRuntime {
 
   async run(sql: string): Promise<RunResult> {
     this.calls.push(`run:${sql}`);
-    if (this.runError) throw this.runError;
+    if (this.runError) {
+      throw this.runError;
+    }
     return this.runResults.shift() ?? this.nextRun;
   }
 
   async reset() {
     this.calls.push("reset");
-    if (this.resetError) throw this.resetError;
+    if (this.resetError) {
+      throw this.resetError;
+    }
   }
 
   async tables(): Promise<TableInfo[]> {

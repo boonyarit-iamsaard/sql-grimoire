@@ -53,8 +53,12 @@ export function evaluate(
   const extra = got.filter((c) => !expected.includes(c));
   if (missing.length > 0 || extra.length > 0) {
     const parts = [`Expected columns: ${expected.join(", ")}.`];
-    if (missing.length > 0) parts.push(`Missing: ${missing.join(", ")}.`);
-    if (extra.length > 0) parts.push(`Unexpected: ${extra.join(", ")}.`);
+    if (missing.length > 0) {
+      parts.push(`Missing: ${missing.join(", ")}.`);
+    }
+    if (extra.length > 0) {
+      parts.push(`Unexpected: ${extra.join(", ")}.`);
+    }
     parts.push("Use AS to alias columns to the expected names.");
     return {
       passed: false,
@@ -109,12 +113,16 @@ function normalizeRows(result: QueryResult, columnOrder: string[]): string[] {
 }
 
 function normalizeValue(value: SqlValue): string {
-  if (value === null || value === undefined) return NULL_SENTINEL;
+  if (value === null || value === undefined) {
+    return NULL_SENTINEL;
+  }
   if (typeof value === "number") {
     return Number.isInteger(value)
       ? String(value)
       : String(Math.round(value * 1e9) / 1e9);
   }
-  if (value instanceof Uint8Array) return `blob:${Array.from(value).join(",")}`;
+  if (value instanceof Uint8Array) {
+    return `blob:${Array.from(value).join(",")}`;
+  }
   return String(value);
 }

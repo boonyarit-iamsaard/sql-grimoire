@@ -69,21 +69,25 @@ export const missingShipment: Mission = {
 
   dialogue: [
     {
+      id: "briefing-1",
       speaker: "Merchant Odalia",
       portrait: merchantWorried,
       text: "Thank the roads you're here, record-keeper. Four caravans left our gates this fortnight — and customers keep arriving to say their goods never came.",
     },
     {
+      id: "briefing-2",
       speaker: "Merchant Odalia",
       portrait: merchantWorried,
       text: "The guild ledger tracks every customer, every order, every shipment. Somewhere in those tables is a list of shipments marked 'delayed' — I just can't read the ledger-script.",
     },
     {
+      id: "briefing-3",
       speaker: "Merchant Odalia",
       portrait: merchantNeutral,
       text: "I need to know which orders are stuck and whose names are on them, so I can send riders with apologies before the whole town turns on us.",
     },
     {
+      id: "briefing-4",
       speaker: "Merchant Odalia",
       portrait: merchantNeutral,
       text: "Bring me each delayed order's ID, the customer's name, and the shipment status. The ledger desk is yours.",

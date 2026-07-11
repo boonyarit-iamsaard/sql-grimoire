@@ -36,6 +36,10 @@ Full founder vision, curriculum ladder, and sequencing plan: see `VISION.md`.
 
 ## Conventions & gotchas
 
+- Formatter split: Biome owns only languages it fully supports (JS/TS/JSON/CSS);
+  Prettier is the fallback for everything else (Markdown, HTML, YAML). When Biome
+  support for a language goes stable, move it over: enable in `biome.json` and add
+  a per-language override in `.vscode/settings.json`.
 - Plain CSS in `apps/web/src/styles.css`, Catppuccin Macchiato palette (vars `--ctp-*`), JetBrains Mono
   (self-hosted via Fontsource) at `--mono-size: 14px` for all code surfaces.
 - `optimizeDeps.include: ["sql.js"]` in `apps/web/vite.config.ts` is load-bearing: sql.js is CommonJS and
@@ -50,10 +54,9 @@ Full founder vision, curriculum ladder, and sequencing plan: see `VISION.md`.
 
 ## Markdown workflow
 
-After finishing any edits to Markdown files, always run:
-
-- `pnpm dlx prettier --write "**/*.md"`
-- `pnpm dlx markdownlint-cli "**/*.md"`
+After finishing any edits to Markdown files, always run `pnpm md:check` —
+prettier (write) + markdownlint over `**/*.md`, both pinned as local
+devDependencies.
 
 ## Verification
 

@@ -34,7 +34,9 @@ self.onmessage = async (event: MessageEvent<Request>) => {
       createDb(SQL);
       self.postMessage({ id: msg.id, ok: true, results: [] });
     } else {
-      if (!db) throw new Error("Database not initialized");
+      if (!db) {
+        throw new Error("Database not initialized");
+      }
       const started = performance.now();
       const results = db
         .exec(msg.sql)
@@ -50,7 +52,7 @@ self.onmessage = async (event: MessageEvent<Request>) => {
     self.postMessage({
       id: msg.id,
       ok: false,
-      error: String((error as Error).message ?? error),
+      error: error instanceof Error ? error.message : String(error),
     });
   }
 };

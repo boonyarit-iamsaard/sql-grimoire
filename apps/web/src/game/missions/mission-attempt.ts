@@ -45,7 +45,9 @@ export class MissionAttempt {
   async run(query: string): Promise<QueryExecution> {
     try {
       const result = await this.runtime.run(query);
-      if (!result.ok) return result;
+      if (!result.ok) {
+        return result;
+      }
       return {
         ok: true,
         data: result.results.at(-1) ?? { columns: [], rows: [] },
@@ -114,7 +116,11 @@ export class MissionAttempt {
 }
 
 function errorMessage(error: unknown): string {
-  if (error instanceof Error) return error.message;
-  if (typeof error === "string") return error;
+  if (error instanceof Error) {
+    return error.message;
+  }
+  if (typeof error === "string") {
+    return error;
+  }
   return JSON.stringify(error);
 }
