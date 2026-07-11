@@ -1,11 +1,13 @@
-import { useNavigate } from "react-router-dom";
-import { Button } from "../components/button";
-import { SqlCodeBlock } from "../components/sql-code-block";
-import { usePlayerProgress } from "../game/progress/progress-store";
-import { playClick } from "../game/sound";
+import { playClick } from "../../shared/audio/sound";
+import { Button } from "../../shared/ui/button";
+import { SqlCodeBlock } from "../../shared/ui/sql-code-block";
+import { usePlayerProgress } from "../progress/progress-store";
 
-export function GrimoirePage() {
-  const navigate = useNavigate();
+interface GrimoireScreenProps {
+  onBack: () => void;
+}
+
+export function GrimoireScreen({ onBack }: Readonly<GrimoireScreenProps>) {
   const progress = usePlayerProgress();
 
   return (
@@ -16,7 +18,7 @@ export function GrimoirePage() {
           variant="ghost"
           onClick={() => {
             playClick();
-            navigate("/map");
+            onBack();
           }}
         >
           ← Back to Map

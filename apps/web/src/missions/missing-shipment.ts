@@ -1,6 +1,6 @@
-import merchantNeutral from "../../assets/characters/merchant/neutral.svg";
-import merchantWorried from "../../assets/characters/merchant/worried.svg";
-import type { Mission } from "./mission-types";
+import merchantNeutral from "../assets/characters/merchant/neutral.svg";
+import merchantWorried from "../assets/characters/merchant/worried.svg";
+import type { Mission } from "../features/mission/mission-types";
 
 const schemaSql = `
 CREATE TABLE customers (

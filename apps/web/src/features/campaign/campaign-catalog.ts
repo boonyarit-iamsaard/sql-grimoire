@@ -1,7 +1,7 @@
 import lockedLocationImage from "../../assets/locations/locked-location.svg";
 import merchantGuildImage from "../../assets/locations/merchant-guild.svg";
-import { missingShipment } from "../missions/missing-shipment";
-import type { Mission } from "../missions/mission-types";
+import { missingShipment } from "../../missions/missing-shipment";
+import type { Mission } from "../mission/mission-types";
 
 export interface CampaignLocation {
   id: string;

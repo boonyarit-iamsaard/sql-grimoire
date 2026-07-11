@@ -1,20 +1,19 @@
 import { useEffect, useRef, useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
 import { format } from "sql-formatter";
-import { Button } from "../components/button";
-import { DialogueBox } from "../components/dialogue-box";
-import { MissionFeedback } from "../components/mission-feedback";
-import { QueryResultTable } from "../components/query-result-table";
-import { SchemaExplorer } from "../components/schema-explorer";
-import { SqlEditor } from "../components/sql-editor";
-import { campaignCatalog } from "../game/campaign/campaign-catalog";
-import { MissionAttempt } from "../game/missions/mission-attempt";
-import type { Mission } from "../game/missions/mission-types";
-import { playerProgress } from "../game/progress/progress-store";
-import { playClick, playMissionComplete } from "../game/sound";
-import type { EvaluationResult } from "../sql/evaluator";
-import type { QueryResult, TableInfo } from "../sql/sql-runtime";
-import { SqliteRuntime } from "../sql/sqlite-runtime";
+import { playClick, playMissionComplete } from "../../shared/audio/sound";
+import { Button } from "../../shared/ui/button";
+import type { EvaluationResult } from "../../sql/evaluator";
+import type { QueryResult, TableInfo } from "../../sql/sql-runtime";
+import { SqliteRuntime } from "../../sql/sqlite-runtime";
+import { campaignCatalog } from "../campaign/campaign-catalog";
+import { playerProgress } from "../progress/progress-store";
+import { DialogueBox } from "./components/dialogue-box";
+import { MissionFeedback } from "./components/mission-feedback";
+import { QueryResultTable } from "./components/query-result-table";
+import { SchemaExplorer } from "./components/schema-explorer";
+import { SqlEditor } from "./components/sql-editor";
+import { MissionAttempt } from "./mission-attempt";
+import type { Mission } from "./mission-types";
 
 type Phase = "briefing" | "workbench";
 
@@ -23,30 +22,40 @@ const briefingClasses =
 const sqlErrorClasses =
   "rounded-[10px] border-2 border-ctp-red bg-ctp-base px-4 py-3 font-mono text-mono whitespace-pre-wrap text-ctp-red motion-safe:animate-shake";
 
-export function MissionPage() {
-  const navigate = useNavigate();
-  const { missionId } = useParams();
-  const mission = campaignCatalog.getMission(missionId ?? "");
+interface MissionScreenProps {
+  missionId: string;
+  onBack: () => void;
+}
+
+export function MissionScreen({
+  missionId,
+  onBack,
+}: Readonly<MissionScreenProps>) {
+  const mission = campaignCatalog.getMission(missionId);
 
   if (!mission) {
     return (
       <div className={briefingClasses}>
         <h1>Unknown mission</h1>
-        <Button onClick={() => navigate("/map")}>Back to Map</Button>
+        <Button onClick={onBack}>Back to Map</Button>
       </div>
     );
   }
 
-  return <MissionAttemptPage key={mission.id} mission={mission} />;
+  return (
+    <MissionAttemptScreen key={mission.id} mission={mission} onBack={onBack} />
+  );
 }
 
-interface MissionAttemptPageProps {
+interface MissionAttemptScreenProps {
   mission: Mission;
+  onBack: () => void;
 }
 
-function MissionAttemptPage({ mission }: Readonly<MissionAttemptPageProps>) {
-  const navigate = useNavigate();
-
+function MissionAttemptScreen({
+  mission,
+  onBack,
+}: Readonly<MissionAttemptScreenProps>) {
   const attemptRef = useRef<MissionAttempt | null>(null);
   const [phase, setPhase] = useState<Phase>("briefing");
   const [tables, setTables] = useState<TableInfo[]>([]);
@@ -187,7 +196,7 @@ function MissionAttemptPage({ mission }: Readonly<MissionAttemptPageProps>) {
           variant="ghost"
           onClick={() => {
             playClick();
-            navigate("/map");
+            onBack();
           }}
         >
           ← Map
@@ -276,7 +285,7 @@ function MissionAttemptPage({ mission }: Readonly<MissionAttemptPageProps>) {
           evaluation={evaluation}
           playerQuery={query}
           onReturnToEditor={() => setEvaluation(null)}
-          onReturnToMap={() => navigate("/map")}
+          onReturnToMap={onBack}
         />
       )}
     </div>

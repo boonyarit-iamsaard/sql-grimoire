@@ -1,5 +1,5 @@
 import { useSyncExternalStore } from "react";
-import type { MissionCompletion } from "../missions/mission-attempt";
+import type { MissionCompletion } from "../mission/mission-attempt";
 import {
   emptyProgress,
   type GrimoireEntry,

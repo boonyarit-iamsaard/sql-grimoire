@@ -1,5 +1,5 @@
 import { useMemo } from "react";
-import type { QueryResult, SqlValue } from "../sql/sql-runtime";
+import type { QueryResult, SqlValue } from "../../../sql/sql-runtime";
 
 interface QueryResultTableProps {
   result: QueryResult;

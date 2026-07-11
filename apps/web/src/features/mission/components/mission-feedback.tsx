@@ -1,10 +1,10 @@
 import { useEffect, useRef } from "react";
-import xpIcon from "../assets/ui/xp-icon.svg";
-import type { Mission } from "../game/missions/mission-types";
-import { playClick } from "../game/sound";
-import type { EvaluationResult } from "../sql/evaluator";
-import { Button } from "./button";
-import { SqlCodeBlock } from "./sql-code-block";
+import xpIcon from "../../../assets/ui/xp-icon.svg";
+import { playClick } from "../../../shared/audio/sound";
+import { Button } from "../../../shared/ui/button";
+import { SqlCodeBlock } from "../../../shared/ui/sql-code-block";
+import type { EvaluationResult } from "../../../sql/evaluator";
+import type { Mission } from "../mission-types";
 
 interface MissionFeedbackProps {
   mission: Mission;

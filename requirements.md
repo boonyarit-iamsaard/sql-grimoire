@@ -23,7 +23,7 @@ The prototype contains one complete mission:
 
 The player helps a merchant investigate delayed shipments by querying an embedded database.
 
-The complete experience should take approximately 10-15 minutes.
+The complete experience should take approximately 10–15 minutes.
 
 ## 4. Core User Flow
 
@@ -204,7 +204,7 @@ It should:
 4. Compare normalized result rows.
 5. Ignore row order unless the mission explicitly requires ordering.
 6. Preserve duplicate-row semantics.
-7. handle `NULL` values consistently.
+7. Handle `NULL` values consistently.
 8. Return a structured pass or failure result.
 
 Suggested result shape:
@@ -256,22 +256,22 @@ Required assets:
 
 ```text
 assets/
-��� maps/
-�   ��� world-map.webp
-��� characters/
-�   ��� merchant/
-�       ��� neutral.webp
-�       ��� worried.webp
-�       ��� happy.webp
-��� locations/
-�   ��� merchant-guild.webp
-�   ��� locked-location.webp
-��� ui/
-�   ��� dialogue-frame.webp
-�   ��� xp-icon.svg
-��� audio/
-    ��� button-click.ogg
-    ��� mission-complete.ogg
+├── maps/
+│   └── world-map.webp
+├── characters/
+│   └── merchant/
+│       ├── neutral.webp
+│       ├── worried.webp
+│       └── happy.webp
+├── locations/
+│   ├── merchant-guild.webp
+│   └── locked-location.webp
+├── ui/
+│   ├── dialogue-frame.webp
+│   └── xp-icon.svg
+└── audio/
+    ├── button-click.ogg
+    └── mission-complete.ogg
 ```
 
 All external assets must have licenses that permit commercial web use.
@@ -289,7 +289,7 @@ ASSET-LICENSES.md
 - React
 - TypeScript
 - Vite
-- React Router
+- TanStack Router with file-based routing
 - CodeMirror or Monaco Editor
 - CSS Modules, Tailwind CSS, or plain CSS
 
@@ -324,36 +324,30 @@ No account system or backend is required.
 
 ```text
 src/
-��� app/
-�   ��� router.tsx
-�   ��� App.tsx
-��� game/
-�   ��� missions/
-�   �   ��� missing-shipment.ts
-�   �   ��� mission-attempt.ts
-�   ��� campaign/
-�   �   ��� campaign-catalog.ts
-�   ��� progress/
-�   �   ��� progress-store.ts
-�   �   ��� progress-types.ts
-�   ��� dialogue/
-�       ��� dialogue-types.ts
-��� sql/
-�   ��� sql-runtime.ts
-�   ��� sqlite-runtime.ts
-�   ��� evaluator.ts
-��� pages/
-�   ��� LandingPage.tsx
-�   ��� WorldMapPage.tsx
-�   ��� MissionPage.tsx
-�   ��� JournalPage.tsx
-��� components/
-�   ��� DialogueBox.tsx
-�   ��� SchemaExplorer.tsx
-�   ��� SqlEditor.tsx
-�   ��� QueryResultTable.tsx
-�   ��� MissionFeedback.tsx
-��� assets/
+├── app/
+│   └── router.ts
+├── routes/
+│   ├── __root.tsx
+│   ├── index.tsx
+│   ├── map.tsx
+│   ├── mission.$missionId.tsx
+│   └── grimoire.tsx
+├── features/
+│   ├── campaign/
+│   ├── grimoire/
+│   ├── landing/
+│   ├── mission/
+│   └── progress/
+├── missions/
+│   └── missing-shipment.ts
+├── shared/
+│   ├── audio/
+│   └── ui/
+├── sql/
+│   ├── sql-runtime.ts
+│   ├── sqlite-runtime.ts
+│   └── evaluator.ts
+└── assets/
 ```
 
 ## 12. Mission Data Model

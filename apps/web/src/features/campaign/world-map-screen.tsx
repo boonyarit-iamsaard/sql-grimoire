@@ -1,11 +1,10 @@
-import { useNavigate } from "react-router-dom";
-import worldMap from "../assets/maps/world-map.svg";
-import xpIcon from "../assets/ui/xp-icon.svg";
-import { Button } from "../components/button";
-import { campaignCatalog } from "../game/campaign/campaign-catalog";
-import { usePlayerProgress } from "../game/progress/progress-store";
-import { playClick } from "../game/sound";
-import { cn } from "../lib/cn";
+import worldMap from "../../assets/maps/world-map.svg";
+import xpIcon from "../../assets/ui/xp-icon.svg";
+import { cn } from "../../lib/cn";
+import { playClick } from "../../shared/audio/sound";
+import { Button } from "../../shared/ui/button";
+import { usePlayerProgress } from "../progress/progress-store";
+import { campaignCatalog } from "./campaign-catalog";
 
 const spotBaseClasses =
   "absolute flex -translate-x-1/2 -translate-y-1/2 flex-col items-center gap-0.5 border-none bg-transparent p-1.5";
@@ -14,8 +13,17 @@ const spotImageClasses =
 const spotLabelClasses =
   "whitespace-nowrap rounded-full border border-ctp-surface2 bg-[rgba(24,25,38,0.88)] px-3 py-[3px] font-display text-[0.9rem] text-ctp-text";
 
-export function WorldMapPage() {
-  const navigate = useNavigate();
+interface WorldMapScreenProps {
+  onOpenGrimoire: () => void;
+  onOpenMission: (missionId: string) => void;
+  onOpenTitle: () => void;
+}
+
+export function WorldMapScreen({
+  onOpenGrimoire,
+  onOpenMission,
+  onOpenTitle,
+}: Readonly<WorldMapScreenProps>) {
   const progress = usePlayerProgress();
   const locations = campaignCatalog.getLocations((missionId) =>
     progress.isMissionCompleted(missionId),
@@ -44,7 +52,7 @@ export function WorldMapPage() {
             variant="ghost"
             onClick={() => {
               playClick();
-              navigate("/grimoire");
+              onOpenGrimoire();
             }}
           >
             Grimoire
@@ -53,7 +61,7 @@ export function WorldMapPage() {
             variant="ghost"
             onClick={() => {
               playClick();
-              navigate("/");
+              onOpenTitle();
             }}
           >
             Title
@@ -90,6 +98,8 @@ export function WorldMapPage() {
             );
           }
 
+          const nextMissionId = location.nextMissionId;
+
           return (
             <button
               key={location.id}
@@ -99,7 +109,7 @@ export function WorldMapPage() {
               style={style}
               onClick={() => {
                 playClick();
-                navigate(`/mission/${location.nextMissionId}`);
+                onOpenMission(nextMissionId);
               }}
             >
               <span className="relative">

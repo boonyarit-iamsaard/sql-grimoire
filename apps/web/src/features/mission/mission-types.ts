@@ -1,4 +1,4 @@
-import type { DialogueLine } from "../dialogue/dialogue-types";
+import type { DialogueLine } from "./dialogue-types";
 
 export interface Mission {
   id: string;

@@ -1,4 +1,4 @@
-import type { TableInfo } from "../sql/sql-runtime";
+import type { TableInfo } from "../../../sql/sql-runtime";
 
 interface SchemaExplorerProps {
   tables: TableInfo[];

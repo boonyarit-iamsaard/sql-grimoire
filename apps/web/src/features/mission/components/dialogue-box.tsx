@@ -1,8 +1,8 @@
 import { useState } from "react";
-import type { DialogueLine } from "../game/dialogue/dialogue-types";
-import { playClick } from "../game/sound";
-import { cn } from "../lib/cn";
-import { Button } from "./button";
+import { cn } from "../../../lib/cn";
+import { playClick } from "../../../shared/audio/sound";
+import { Button } from "../../../shared/ui/button";
+import type { DialogueLine } from "../dialogue-types";
 
 interface DialogueBoxProps {
   lines: DialogueLine[];

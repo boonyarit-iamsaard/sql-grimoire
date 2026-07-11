@@ -1,17 +1,19 @@
-import { useNavigate } from "react-router-dom";
-import { Button } from "../components/button";
-import { usePlayerProgress } from "../game/progress/progress-store";
-import { playClick } from "../game/sound";
+import { playClick } from "../../shared/audio/sound";
+import { Button } from "../../shared/ui/button";
+import { usePlayerProgress } from "../progress/progress-store";
 
-export function LandingPage() {
-  const navigate = useNavigate();
+interface LandingScreenProps {
+  onOpenMap: () => void;
+}
+
+export function LandingScreen({ onOpenMap }: Readonly<LandingScreenProps>) {
   const progress = usePlayerProgress();
   const saved = progress.hasSavedProgress();
 
-  const go = (path: string) => {
+  function openMap() {
     playClick();
-    navigate(path);
-  };
+    onOpenMap();
+  }
 
   return (
     <div className="flex min-h-screen flex-col items-center justify-center gap-[18px] p-6 text-center">
@@ -23,10 +25,10 @@ export function LandingPage() {
         sharpen your query-craft, and find out why.
       </p>
       <div className="mt-2.5 flex gap-3.5">
-        <Button variant="primary" onClick={() => go("/map")}>
+        <Button variant="primary" onClick={openMap}>
           {saved ? "New Game" : "Start Game"}
         </Button>
-        {saved && <Button onClick={() => go("/map")}>Continue</Button>}
+        {saved && <Button onClick={openMap}>Continue</Button>}
       </div>
       {saved && (
         <button

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import type { MissionCompletion } from "../missions/mission-attempt";
+import type { MissionCompletion } from "../mission/mission-attempt";
 import { PlayerProgress } from "./progress-store";
 
 class MemoryStorage {
