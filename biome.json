@@ -23,6 +23,7 @@
       "!**/.wrangler",
       "!**/.alchemy",
       "!**/.svelte-kit",
+      "!**/.pnpm-store",
       "!**/wrangler.jsonc",
       "!**/.source",
       "!**/convex/_generated"

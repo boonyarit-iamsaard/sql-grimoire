@@ -6,7 +6,7 @@
   "scripts": {
     "build": "turbo run build",
     "check": "biome check --write --no-errors-on-unmatched --files-ignore-unknown=true",
-    "ci": "pnpm check && pnpm types:check && pnpm build",
+    "ci": "biome ci --no-errors-on-unmatched --files-ignore-unknown=true . && pnpm types:check && pnpm test && pnpm build",
     "dev": "turbo run dev",
     "md:check": "prettier --write \"**/*.md\" && markdownlint \"**/*.md\" --ignore-path .gitignore",
     "prepare": "husky || true",
