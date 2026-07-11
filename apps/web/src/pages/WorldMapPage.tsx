@@ -1,23 +1,23 @@
 import { useNavigate } from "react-router-dom";
 import worldMap from "../assets/maps/world-map.svg";
 import xpIcon from "../assets/ui/xp-icon.svg";
-import { getCampaignLocations } from "../game/campaign/campaign-catalog";
+import { campaignCatalog } from "../game/campaign/campaign-catalog";
 import { usePlayerProgress } from "../game/progress/progress-store";
 import { playClick } from "../game/sound";
 
 export function WorldMapPage() {
   const navigate = useNavigate();
   const progress = usePlayerProgress();
-  const locations = getCampaignLocations((missionId) =>
+  const locations = campaignCatalog.getLocations((missionId) =>
     progress.isMissionCompleted(missionId),
   );
   const featuredMissionId = locations.find(
-    ({ availability, missionId }) =>
-      availability === "available" && missionId !== null,
-  )?.missionId;
+    ({ availability, nextMissionId }) =>
+      availability === "available" && nextMissionId !== null,
+  )?.nextMissionId;
   const featuredMissionDone = locations.some(
-    ({ missionId, state }) =>
-      missionId === featuredMissionId && state === "completed",
+    ({ missionIds, state }) =>
+      missionIds.includes(featuredMissionId ?? "") && state === "completed",
   );
 
   return (
@@ -60,7 +60,7 @@ export function WorldMapPage() {
           const completed = location.state === "completed";
           const style = location.position;
 
-          if (location.state === "locked" || !location.missionId) {
+          if (location.state === "locked" || !location.nextMissionId) {
             return (
               <div
                 key={location.id}
@@ -82,7 +82,7 @@ export function WorldMapPage() {
               style={style}
               onClick={() => {
                 playClick();
-                navigate(`/mission/${location.missionId}`);
+                navigate(`/mission/${location.nextMissionId}`);
               }}
             >
               <span style={{ position: "relative" }}>

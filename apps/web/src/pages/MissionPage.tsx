@@ -6,8 +6,9 @@ import { MissionFeedback } from "../components/MissionFeedback";
 import { QueryResultTable } from "../components/QueryResultTable";
 import { SchemaExplorer } from "../components/SchemaExplorer";
 import { SqlEditor } from "../components/SqlEditor";
-import { getMission } from "../game/campaign/campaign-catalog";
+import { campaignCatalog } from "../game/campaign/campaign-catalog";
 import { MissionAttempt } from "../game/missions/mission-attempt";
+import type { Mission } from "../game/missions/mission-types";
 import { playerProgress } from "../game/progress/progress-store";
 import { playClick, playMissionComplete } from "../game/sound";
 import type { EvaluationResult } from "../sql/evaluator";
@@ -19,13 +20,30 @@ type Phase = "briefing" | "workbench";
 export function MissionPage() {
   const navigate = useNavigate();
   const { missionId } = useParams();
-  const mission = getMission(missionId ?? "");
+  const mission = campaignCatalog.getMission(missionId ?? "");
+
+  if (!mission) {
+    return (
+      <div className="briefing">
+        <h1>Unknown mission</h1>
+        <button type="button" className="btn" onClick={() => navigate("/map")}>
+          Back to Map
+        </button>
+      </div>
+    );
+  }
+
+  return <MissionAttemptPage key={mission.id} mission={mission} />;
+}
+
+function MissionAttemptPage({ mission }: { mission: Mission }) {
+  const navigate = useNavigate();
 
   const attemptRef = useRef<MissionAttempt | null>(null);
   const [phase, setPhase] = useState<Phase>("briefing");
   const [tables, setTables] = useState<TableInfo[]>([]);
   const [query, setQuery] = useState(() =>
-    mission ? playerProgress.lastQueryFor(mission.id) : "",
+    playerProgress.lastQueryFor(mission.id),
   );
   const [result, setResult] = useState<{
     data: QueryResult;
@@ -39,7 +57,6 @@ export function MissionPage() {
   const [initError, setInitError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!mission) return;
     const runtime = new SqliteRuntime();
     const attempt = new MissionAttempt(mission, runtime);
     attemptRef.current = attempt;
@@ -59,17 +76,6 @@ export function MissionPage() {
       attempt.dispose();
     };
   }, [mission]);
-
-  if (!mission) {
-    return (
-      <div className="briefing">
-        <h1>Unknown mission</h1>
-        <button type="button" className="btn" onClick={() => navigate("/map")}>
-          Back to Map
-        </button>
-      </div>
-    );
-  }
 
   const runQuery = async () => {
     const attempt = attemptRef.current;
@@ -124,9 +130,13 @@ export function MissionPage() {
     if (!attempt || busy) return;
     playClick();
     setBusy(true);
-    await attempt.reset();
-    setResult(null);
-    setSqlError(null);
+    const reset = await attempt.reset();
+    if (reset.ok) {
+      setResult(null);
+      setSqlError(null);
+    } else {
+      setSqlError(reset.error);
+    }
     setBusy(false);
   };
 

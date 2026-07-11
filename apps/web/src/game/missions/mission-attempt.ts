@@ -1,5 +1,10 @@
 import { type EvaluationResult, evaluate } from "../../sql/evaluator";
-import type { QueryResult, SqlRuntime, TableInfo } from "../../sql/sql-runtime";
+import type {
+  QueryResult,
+  RunResult,
+  SqlRuntime,
+  TableInfo,
+} from "../../sql/sql-runtime";
 import type { Mission } from "./mission-types";
 
 export type MissionCompletion = {
@@ -21,6 +26,8 @@ export type QueryExecution =
   | { ok: true; data: QueryResult; durationMs: number }
   | { ok: false; error: string };
 
+export type AttemptOperation = { ok: true } | { ok: false; error: string };
+
 export class MissionAttempt {
   constructor(
     private readonly mission: Mission,
@@ -36,17 +43,26 @@ export class MissionAttempt {
   }
 
   async run(query: string): Promise<QueryExecution> {
-    const result = await this.runtime.run(query);
-    if (!result.ok) return result;
-    return {
-      ok: true,
-      data: result.results.at(-1) ?? { columns: [], rows: [] },
-      durationMs: result.durationMs,
-    };
+    try {
+      const result = await this.runtime.run(query);
+      if (!result.ok) return result;
+      return {
+        ok: true,
+        data: result.results.at(-1) ?? { columns: [], rows: [] },
+        durationMs: result.durationMs,
+      };
+    } catch (error) {
+      return { ok: false, error: errorMessage(error) };
+    }
   }
 
-  reset(): Promise<void> {
-    return this.runtime.reset();
+  async reset(): Promise<AttemptOperation> {
+    try {
+      await this.runtime.reset();
+      return { ok: true };
+    } catch (error) {
+      return { ok: false, error: errorMessage(error) };
+    }
   }
 
   dispose(): void {
@@ -54,12 +70,25 @@ export class MissionAttempt {
   }
 
   async submit(playerQuery: string): Promise<MissionSubmission> {
-    await this.runtime.reset();
-    const playerRun = await this.runtime.run(playerQuery);
-    await this.runtime.reset();
-    const referenceRun = await this.runtime.run(
-      this.mission.challenge.referenceQuery,
-    );
+    let playerRun: RunResult;
+    let referenceRun: RunResult;
+    try {
+      await this.runtime.reset();
+      playerRun = await this.runtime.run(playerQuery);
+      await this.runtime.reset();
+      referenceRun = await this.runtime.run(
+        this.mission.challenge.referenceQuery,
+      );
+    } catch (error) {
+      return {
+        evaluation: {
+          passed: false,
+          reason: "SQL_ERROR",
+          message: errorMessage(error),
+        },
+        completion: null,
+      };
+    }
     const evaluation = evaluate(
       playerRun,
       referenceRun,
@@ -82,4 +111,8 @@ export class MissionAttempt {
         : null,
     };
   }
+}
+
+function errorMessage(error: unknown): string {
+  return error instanceof Error ? error.message : String(error);
 }

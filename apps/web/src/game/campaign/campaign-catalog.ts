@@ -8,14 +8,57 @@ export type CampaignLocation = {
   name: string;
   mapImage: string;
   position: { left: string; top: string };
-  missionId: string | null;
+  missionIds: readonly string[];
   availability: "available" | "locked";
   lockedTitle?: string;
 };
 
 export type CampaignLocationView = CampaignLocation & {
   state: "available" | "completed" | "locked";
+  nextMissionId: string | null;
 };
+
+export class CampaignCatalog {
+  private readonly missionsById: ReadonlyMap<string, Mission>;
+  private readonly locations: readonly CampaignLocation[];
+
+  constructor(
+    missions: readonly Mission[],
+    locations: readonly CampaignLocation[],
+  ) {
+    validateCatalog(missions, locations);
+    this.missionsById = new Map(
+      missions.map((mission) => [mission.id, mission]),
+    );
+    this.locations = locations;
+  }
+
+  getMission(id: string): Mission | undefined {
+    return this.missionsById.get(id);
+  }
+
+  getLocations(
+    isMissionCompleted: (missionId: string) => boolean = () => false,
+  ): readonly CampaignLocationView[] {
+    return this.locations.map((location) => {
+      const locked =
+        location.availability === "locked" || location.missionIds.length === 0;
+      const nextMissionId = locked
+        ? null
+        : (location.missionIds.find(
+            (missionId) => !isMissionCompleted(missionId),
+          ) ?? location.missionIds[0]);
+      const completed =
+        !locked && location.missionIds.every(isMissionCompleted);
+
+      return {
+        ...location,
+        state: locked ? "locked" : completed ? "completed" : "available",
+        nextMissionId,
+      };
+    });
+  }
+}
 
 const missions: readonly Mission[] = [missingShipment];
 
@@ -25,7 +68,7 @@ const locations: readonly CampaignLocation[] = [
     name: "Merchant Guild",
     mapImage: merchantGuildImage,
     position: { left: "37%", top: "68%" },
-    missionId: missingShipment.id,
+    missionIds: [missingShipment.id],
     availability: "available",
   },
   {
@@ -33,31 +76,13 @@ const locations: readonly CampaignLocation[] = [
     name: "???",
     mapImage: lockedLocationImage,
     position: { left: "74%", top: "43%" },
-    missionId: null,
+    missionIds: [],
     availability: "locked",
     lockedTitle: "Locked — complete the Merchant Guild mission first",
   },
 ];
 
-validateCatalog(missions, locations);
-
-export function getMission(id: string): Mission | undefined {
-  return missions.find((mission) => mission.id === id);
-}
-
-export function getCampaignLocations(
-  isMissionCompleted: (missionId: string) => boolean = () => false,
-): readonly CampaignLocationView[] {
-  return locations.map((location) => ({
-    ...location,
-    state:
-      location.availability === "locked" || location.missionId === null
-        ? "locked"
-        : isMissionCompleted(location.missionId)
-          ? "completed"
-          : "available",
-  }));
-}
+export const campaignCatalog = new CampaignCatalog(missions, locations);
 
 function validateCatalog(
   missionDefinitions: readonly Mission[],
@@ -75,20 +100,36 @@ function validateCatalog(
   const locationsById = new Map(
     locationDefinitions.map((location) => [location.id, location]),
   );
-  const missionIds = new Set(missionDefinitions.map(({ id }) => id));
+  const missionsById = new Map(
+    missionDefinitions.map((mission) => [mission.id, mission]),
+  );
 
   for (const mission of missionDefinitions) {
-    if (!locationsById.has(mission.locationId)) {
+    const location = locationsById.get(mission.locationId);
+    if (!location) {
       throw new Error(
         `Campaign catalog: Mission ${mission.id} references unknown Location ${mission.locationId}.`,
       );
     }
+    if (!location.missionIds.includes(mission.id)) {
+      throw new Error(
+        `Campaign catalog: Location ${location.id} does not offer Mission ${mission.id}.`,
+      );
+    }
   }
   for (const location of locationDefinitions) {
-    if (location.missionId && !missionIds.has(location.missionId)) {
-      throw new Error(
-        `Campaign catalog: Location ${location.id} references unknown Mission ${location.missionId}.`,
-      );
+    for (const missionId of location.missionIds) {
+      const mission = missionsById.get(missionId);
+      if (!mission) {
+        throw new Error(
+          `Campaign catalog: Location ${location.id} references unknown Mission ${missionId}.`,
+        );
+      }
+      if (mission.locationId !== location.id) {
+        throw new Error(
+          `Campaign catalog: Mission ${mission.id} belongs to Location ${mission.locationId}, not ${location.id}.`,
+        );
+      }
     }
   }
 }

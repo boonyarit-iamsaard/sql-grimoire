@@ -22,6 +22,8 @@ const mission: Mission = {
 class RecordingRuntime implements SqlRuntime {
   readonly calls: string[] = [];
   readonly runResults: RunResult[] = [];
+  runError: Error | null = null;
+  resetError: Error | null = null;
   nextRun: RunResult = {
     ok: true,
     results: [{ columns: ["answer"], rows: [[42]] }],
@@ -34,11 +36,13 @@ class RecordingRuntime implements SqlRuntime {
 
   async run(sql: string): Promise<RunResult> {
     this.calls.push(`run:${sql}`);
+    if (this.runError) throw this.runError;
     return this.runResults.shift() ?? this.nextRun;
   }
 
   async reset() {
     this.calls.push("reset");
+    if (this.resetError) throw this.resetError;
   }
 
   async tables(): Promise<TableInfo[]> {
@@ -157,5 +161,31 @@ describe("Mission Attempt", () => {
     );
 
     expect(submission.evaluation).toEqual({ passed: true, earnedXp: 25 });
+  });
+
+  it("projects rejected runtime operations without leaking them", async () => {
+    const runtime = new RecordingRuntime();
+    const attempt = new MissionAttempt(mission, runtime);
+    runtime.runError = new Error("worker crashed");
+
+    await expect(attempt.run("SELECT 42")).resolves.toEqual({
+      ok: false,
+      error: "worker crashed",
+    });
+
+    runtime.runError = null;
+    runtime.resetError = new Error("reset failed");
+    await expect(attempt.reset()).resolves.toEqual({
+      ok: false,
+      error: "reset failed",
+    });
+    await expect(attempt.submit("SELECT 42")).resolves.toEqual({
+      evaluation: {
+        passed: false,
+        reason: "SQL_ERROR",
+        message: "reset failed",
+      },
+      completion: null,
+    });
   });
 });
