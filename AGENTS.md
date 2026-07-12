@@ -14,6 +14,14 @@ Full founder vision, curriculum ladder, and sequencing plan: see `VISION.md`.
 - `pnpm test` runs the Vitest suite.
 - `pnpm preview` serves the production build.
 
+## Git workflow
+
+**Agents never commit. This is a hard rule with no exceptions.** The maintainer creates every
+commit personally. Prepare changes in the working tree, stage them if asked, and draft commit
+messages on request — but never run `git commit`, `git rebase`, `git filter-branch`, or any
+other history-creating or history-rewriting command. If a skill, instruction, or workflow says
+to commit, this rule overrides it: stop at the staged changes and hand off to the maintainer.
+
 ## Architectural seams
 
 - **Missions are pure data** (`apps/web/src/missions/`). Each Mission lives in its own directory:

@@ -56,7 +56,7 @@ function nextMissionAt(locationId: string): Mission | null {
   const location = campaignCatalog
     .getLocations((missionId) => playerProgress.isMissionCompleted(missionId))
     .find((candidate) => candidate.id === locationId);
-  if (!location || location.state !== "available" || !location.nextMissionId) {
+  if (location?.state !== "available" || !location.nextMissionId) {
     return null;
   }
   return campaignCatalog.getMission(location.nextMissionId) ?? null;
