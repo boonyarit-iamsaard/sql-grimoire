@@ -12,6 +12,8 @@ interface MissionFeedbackProps {
   playerQuery: string;
   onReturnToEditor: () => void;
   onReturnToMap: () => void;
+  nextMission: Mission | null;
+  onOpenMission: (missionId: string) => void;
 }
 
 // A native modal <dialog>: the browser owns the top layer, focus trap, and
@@ -70,6 +72,8 @@ export function MissionFeedback({
   playerQuery,
   onReturnToEditor,
   onReturnToMap,
+  nextMission,
+  onOpenMission,
 }: Readonly<MissionFeedbackProps>) {
   // Focus the primary action without scrolling it into view — plain
   // autoFocus would yank the scrollable card down to the bottom button.
@@ -144,17 +148,40 @@ export function MissionFeedback({
       <h3 className={sectionHeadingClasses}>How it works</h3>
       <p>{mission.explanation.summary}</p>
 
-      <div className="mt-5.5 flex gap-3">
-        <Button
-          variant="primary"
-          ref={primaryRef}
-          onClick={() => {
-            playClick();
-            onReturnToMap();
-          }}
-        >
-          Return to Map
-        </Button>
+      <div className="mt-5.5 flex flex-wrap gap-3">
+        {nextMission ? (
+          <>
+            <Button
+              variant="primary"
+              ref={primaryRef}
+              onClick={() => {
+                playClick();
+                onOpenMission(nextMission.id);
+              }}
+            >
+              Next Mission — {nextMission.title}
+            </Button>
+            <Button
+              onClick={() => {
+                playClick();
+                onReturnToMap();
+              }}
+            >
+              Return to Map
+            </Button>
+          </>
+        ) : (
+          <Button
+            variant="primary"
+            ref={primaryRef}
+            onClick={() => {
+              playClick();
+              onReturnToMap();
+            }}
+          >
+            Return to Map
+          </Button>
+        )}
       </div>
     </FeedbackShell>
   );
