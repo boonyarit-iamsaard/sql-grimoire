@@ -47,6 +47,7 @@ Each stage must validate the assumptions required by the next stage:
 1. Playtest mission one with two or three working developers. Observe without providing explanations.
 2. If the result is positive, create missions two through five as one narrative arc covering querying,
    constraints, and transactions.
+
 3. Establish pricing for individual customers.
 4. The plan of record remains a product for individual developers. Team, bootcamp, and company
    sales are a possible later expansion, considered only if individual traction proves out;
@@ -54,6 +55,18 @@ Each stage must validate the assumptions required by the next stage:
    substantial curriculum.
 5. Add platform infrastructure, including accounts, payments, and dashboards, only after a
    validated product slice demonstrates the need.
+
+_Amendment (2026-07-12): steps 1 and 2 are partially reordered. Two facts changed after this
+plan was recorded. First, mission production was repriced: the entire prototype, engine included,
+took one day, so a mission costs hours rather than weeks, and the gate's insurance no longer
+justifies its delay. Second, the founder's own first play produced the "one mission, that's it?"
+reaction — the success signal firing on player zero. The playtest gate therefore moves from one
+mission to a three-mission Arc ("The Guild Ledger Arc"): mission two teaches aggregation, mission
+three teaches absence (LEFT JOIN and NULL reasoning), both SELECT-graded so the engine and
+evaluator are untouched. The validation question becomes: **do playtesters finish the Arc wanting
+more?** The still-locked map location remains the unmet-demand probe. Constraints and transactions
+stay gated behind the playtest verdict, as does all platform infrastructure; the out-of-scope list
+below is unchanged. Plan of record: `.scratch/guild-ledger-arc/spec.md`._
 
 Until validation demands them, the following remain out of scope: authentication, payments, a
 backend API, a cloud database, a game engine, AI-generated hints, user-generated missions, and a

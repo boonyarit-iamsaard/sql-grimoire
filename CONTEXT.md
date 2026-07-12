@@ -8,6 +8,12 @@ SQL Grimoire frames database-reasoning exercises as narrative investigations in 
 A narrative database incident with its own data, objective, grading rules, guidance, reward, and explanation.
 _Avoid_: Challenge, exercise, level
 
+**Arc**:
+An ordered sequence of Missions that tells one continuous story and carries one curriculum
+thread, with stakes and difficulty escalating across it. A Mission is the unit of play; an Arc
+is the unit of progression.
+_Avoid_: Campaign, chapter, season, level pack
+
 **Location**:
 A place in the narrative world that appears on the campaign map and may offer zero or more Missions. A locked Location can exist before its Missions do.
 _Avoid_: Map spot, mission marker
