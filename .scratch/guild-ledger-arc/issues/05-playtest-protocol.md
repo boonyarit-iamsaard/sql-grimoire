@@ -20,6 +20,11 @@ afterward.
 3. **Observation checklist** (from `README.md`, "Evaluating the prototype"): dialogue read or
    skipped; failure messages helping without revealing; hint usage; and the primary metric —
    behavior at the Arc's end, in front of the locked `???` Location.
+   Also: **cross-location wayfinding** — after completing mission one, the success modal
+   offers only "Return to Map" (deliberate: the Archives unlock is a map reveal, decided
+   2026-07-12). Watch whether testers find the newly unlocked Inner Archives unaided; a lost
+   tester here argues for a "Travel to…" continuation button or an unlock animation, not for
+   skipping the map.
 4. **Pass/fail criteria, written in advance.** Draft for the founder to edit: at least two of
    three testers finish the Arc unassisted (hints allowed, intervention not) AND ask about
    the next Mission unprompted. Anything less is a format finding, not a green light for the
