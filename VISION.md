@@ -18,11 +18,12 @@ See "Sequencing discipline."_
 
 ## Where the prototype fits
 
-The one-mission prototype in this repository is the first step: an embedded database,
-result-graded challenges, and a narrative wrapper, all delivered in the browser. The prototype is
-complete but unvalidated — playtesting has not yet started, and the founder is so far the only
-player. It exists to answer the following question: **do playtesters finish mission one wanting
-mission two?**
+The three-Mission Guild Ledger Arc in this repository is the first validation slice: an embedded
+database, result-graded challenges, structured progression, and a narrative wrapper, all delivered
+in the browser. It teaches joins, aggregation, and absence reasoning across "The Missing Shipment,"
+"The Council's Tally," and "The Unwritten Scrolls." The Arc is complete and deployed but remains
+unvalidated by external playtesting. It exists to answer the following question: **do playtesters
+finish the Arc wanting more?**
 
 ## Relationship between curriculum and engine requirements
 
@@ -44,29 +45,24 @@ the missions-two-through-five arc, before pricing depends on the claim.
 
 Each stage must validate the assumptions required by the next stage:
 
-1. Playtest mission one with two or three working developers. Observe without providing explanations.
-2. If the result is positive, create missions two through five as one narrative arc covering querying,
-   constraints, and transactions.
-
-3. Establish pricing for individual customers.
-4. The plan of record remains a product for individual developers. Team, bootcamp, and company
-   sales are a possible later expansion, considered only if individual traction proves out;
-   content depth must precede any such sales because business buyers will require evidence of a
-   substantial curriculum.
+1. Playtest the Guild Ledger Arc with two or three working developers. Observe without providing
+   explanations; hints are allowed, but intervention is not.
+2. Use completion behavior and the reaction to the locked final Location to decide whether the
+   incident-driven RPG format merits further curriculum investment.
+3. If the result is positive, build the next Arc around constraints and transactions, then
+   establish pricing for individual customers.
+4. Keep individual developers as the plan-of-record market. Consider team, bootcamp, and company
+   sales only if individual traction proves out and the curriculum has enough depth to support
+   those buyers.
 5. Add platform infrastructure, including accounts, payments, and dashboards, only after a
    validated product slice demonstrates the need.
 
-_Amendment (2026-07-12): steps 1 and 2 are partially reordered. Two facts changed after this
-plan was recorded. First, mission production was repriced: the entire prototype, engine included,
-took one day, so a mission costs hours rather than weeks, and the gate's insurance no longer
-justifies its delay. Second, the founder's own first play produced the "one mission, that's it?"
-reaction — the success signal firing on player zero. The playtest gate therefore moves from one
-mission to a three-mission Arc ("The Guild Ledger Arc"): mission two teaches aggregation, mission
-three teaches absence (LEFT JOIN and NULL reasoning), both SELECT-graded so the engine and
-evaluator are untouched. The validation question becomes: **do playtesters finish the Arc wanting
-more?** The still-locked map location remains the unmet-demand probe. Constraints and transactions
-stay gated behind the playtest verdict, as does all platform infrastructure; the out-of-scope list
-below is unchanged. Plan of record: `.scratch/guild-ledger-arc/spec.md`._
+This sequence amends the original one-Mission gate. Mission production proved inexpensive enough
+to justify building a complete three-Mission progression before external testing, and the
+founder's first play produced the desired demand for another Mission. Missions two and three remain
+SELECT-graded, so they add curriculum without expanding the evaluator or SQL runtime. The
+still-locked map Location is the unmet-demand probe. Plan of record:
+`.scratch/guild-ledger-arc/spec.md`.
 
 Until validation demands them, the following remain out of scope: authentication, payments, a
 backend API, a cloud database, a game engine, AI-generated hints, user-generated missions, and a

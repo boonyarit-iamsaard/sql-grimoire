@@ -5,10 +5,21 @@
 SQL Grimoire is a browser-based SQL-learning RPG: an embedded database, result-graded challenges,
 and a narrative world where missions are production incidents framed as quests.
 
-This repository contains a complete but unvalidated one-mission prototype, **The Missing
-Shipment**, which takes approximately 10–15 minutes to play. Playtesting has not yet started; the
-prototype exists to answer one question: _do developers enjoy solving a real SQL challenge inside
-a light RPG narrative enough to want a second mission?_
+This repository contains a complete but unvalidated three-mission prototype, **The Guild Ledger
+Arc**, which takes approximately 30–45 minutes to play. The Arc begins with **The Missing
+Shipment**, continues through two progressively harder investigations, and leaves one map Location
+locked as a prompt for unmet demand. Playtesting has not yet started; the prototype exists to
+answer one question: _do playtesters finish the Arc wanting more?_
+
+## Screenshots
+
+![Title screen: SQL Grimoire, with the hook "A merchant guild's shipments are going missing"](docs/screenshots/title-screen.png)
+
+![The Duskharbor Coast world map, where completing the Merchant Guild unlocks the Inner Archives](docs/screenshots/world-map.png)
+
+![Mission briefing: Merchant Odalia explains the missing shipments over portrait dialogue](docs/screenshots/mission-briefing.png)
+
+![The Ledger Desk workbench: schema explorer, SQL editor, Run Query, hints, and submission](docs/screenshots/ledger-desk.png)
 
 ## Running the application
 
@@ -18,6 +29,8 @@ pnpm dev
 ```
 
 Open the printed URL (default <http://localhost:5173>).
+
+A deployed build is available at <https://sql-grimoire.pages.dev>.
 
 ## Development setup
 
@@ -61,10 +74,13 @@ Two tools are required beyond a checkout:
   on the landing page deletes the stored progress.
 - **The Grimoire** (`/grimoire`): every completed mission inscribes its query, the reference
   solution, and the concepts learned — the player's growing spellbook.
+- **Data-driven campaign content** (`apps/web/src/missions/`): the current Arc contains three
+  Missions across the Merchant Guild and Inner Archives. Locations unlock from completed Mission
+  prerequisites; adding a Mission requires content and catalog registration, not a new route.
 - **All art is hand-authored SVG** and both sounds are WebAudio-synthesized. Third-party assets
   (font, editor theme) are listed in [ASSET-LICENSES.md](ASSET-LICENSES.md).
 
-## Walkthrough (spoiler)
+## First Mission walkthrough (spoiler)
 
 ```sql
 SELECT
@@ -85,5 +101,6 @@ Observe the following behavior during a playtest:
 
 - Does the player read the dialogue or skip it, and does the narrative sustain the player's interest?
 - Do failure messages help the player proceed without revealing the answer?
-- After viewing the success screen, does the player ask about the next mission? This is the primary
-  success metric.
+- After the first Mission, does the player find the newly unlocked Inner Archives without help?
+- After finishing the Arc and seeing the locked final Location, does the player ask what comes next?
+  This is the primary success metric.

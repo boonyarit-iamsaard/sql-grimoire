@@ -6,22 +6,22 @@ product
 
 ## Users
 
-The target users are working developers who are comfortable writing everyday SQL and seek genuine
+The target users are working developers who use SQL but are not database specialists and seek genuine
 database mastery across querying, schema design, constraints, transactions, concurrency, indexing,
 query plans, migrations, and ORM behavior. They use the product independently in a browser during self-directed learning time. Their objective
 is to solve a realistic production incident and finish with an understanding of _why_
-the solution works. The current audience consists of playtesters who answer whether completing
-mission one makes them want mission two.
+the solution works. The current audience consists of playtesters who answer whether completing the
+three-Mission Guild Ledger Arc makes them want more.
 
 ## Product Purpose
 
 SQL Grimoire is a browser-based SQL-learning RPG: an embedded database,
 result-graded challenges, and a narrative world where missions are production
-incidents framed as quests. Today it is a complete but unvalidated one-mission prototype; the
+incidents framed as quests. Today it is a complete but unvalidated three-Mission prototype; the
 long-term goal is a commercially viable database-mastery platform for individual developers.
 Team, bootcamp, and company sales are a possible later expansion, considered only if individual
-traction proves out. Success for the prototype is a playtester completing "The Missing Shipment"
-and expressing interest in another mission.
+traction proves out. Success for the prototype is a playtester completing the Guild Ledger Arc
+unassisted, with hints allowed, and expressing interest in another Mission.
 
 ## Brand Personality
 
