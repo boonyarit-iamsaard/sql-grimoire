@@ -1,6 +1,6 @@
 # 01 — Location-prerequisite unlock mechanic
 
-Status: ready-for-agent
+Status: resolved
 
 ## Problem
 
@@ -28,3 +28,14 @@ Guild is completed.
 Completing all Merchant Guild Missions flips the Inner Archives from locked to available on
 the map without a page refresh; the probe Location remains locked after the full Arc is
 completed.
+
+## Answer
+
+Implemented as proposed. `CampaignLocation` gains an optional `prerequisiteLocationId`; when
+set, `getLocations` ignores static `availability` and derives the locked state from whether
+every Mission of the prerequisite Location satisfies the `isMissionCompleted` predicate. A
+Location with no Missions stays locked regardless, which keeps the `???` probe inert.
+`validateCatalog` rejects unknown prerequisite references and cycles (including
+self-reference). Covered by two new tests in `campaign-catalog.test.ts` (unlock before/after,
+probe invariance, both validation failures); 11 tests, typecheck, and build pass. The Inner
+Archives Location itself ships with mission two (issue 02), which is now unblocked.

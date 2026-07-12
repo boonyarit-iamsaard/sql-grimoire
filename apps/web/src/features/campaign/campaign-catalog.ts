@@ -10,6 +10,9 @@ export interface CampaignLocation {
   position: { left: string; top: string };
   missionIds: readonly string[];
   availability: "available" | "locked";
+  /** When set, the Location ignores `availability` and unlocks once every
+   *  Mission of the referenced Location is completed. */
+  prerequisiteLocationId?: string;
   lockedTitle?: string;
 }
 
@@ -36,6 +39,7 @@ function locationState(
 export class CampaignCatalog {
   private readonly missionsById: ReadonlyMap<string, Mission>;
   private readonly locations: readonly CampaignLocation[];
+  private readonly locationsById: ReadonlyMap<string, CampaignLocation>;
 
   constructor(
     missions: readonly Mission[],
@@ -46,6 +50,9 @@ export class CampaignCatalog {
       missions.map((mission) => [mission.id, mission]),
     );
     this.locations = locations;
+    this.locationsById = new Map(
+      locations.map((location) => [location.id, location]),
+    );
   }
 
   getMission(id: string): Mission | undefined {
@@ -55,16 +62,25 @@ export class CampaignCatalog {
   getLocations(
     isMissionCompleted: (missionId: string) => boolean = () => false,
   ): readonly CampaignLocationView[] {
+    const isLocationCompleted = (location: CampaignLocation): boolean =>
+      location.missionIds.length > 0 &&
+      location.missionIds.every(isMissionCompleted);
+
     return this.locations.map((location) => {
+      const prerequisite = location.prerequisiteLocationId
+        ? this.locationsById.get(location.prerequisiteLocationId)
+        : undefined;
       const locked =
-        location.availability === "locked" || location.missionIds.length === 0;
+        location.missionIds.length === 0 ||
+        (prerequisite
+          ? !isLocationCompleted(prerequisite)
+          : location.availability === "locked");
       const nextMissionId = locked
         ? null
         : (location.missionIds.find(
             (missionId) => !isMissionCompleted(missionId),
           ) ?? location.missionIds[0]);
-      const completed =
-        !locked && location.missionIds.every(isMissionCompleted);
+      const completed = !locked && isLocationCompleted(location);
 
       return {
         ...location,
@@ -119,6 +135,8 @@ function validateCatalog(
     missionDefinitions.map((mission) => [mission.id, mission]),
   );
 
+  assertAcyclicPrerequisites(locationDefinitions, locationsById);
+
   for (const mission of missionDefinitions) {
     const location = locationsById.get(mission.locationId);
     if (!location) {
@@ -133,6 +151,14 @@ function validateCatalog(
     }
   }
   for (const location of locationDefinitions) {
+    if (
+      location.prerequisiteLocationId !== undefined &&
+      !locationsById.has(location.prerequisiteLocationId)
+    ) {
+      throw new Error(
+        `Campaign catalog: Location ${location.id} prerequisite references unknown Location ${location.prerequisiteLocationId}.`,
+      );
+    }
     for (const missionId of location.missionIds) {
       const mission = missionsById.get(missionId);
       if (!mission) {
@@ -152,5 +178,24 @@ function validateCatalog(
 function assertUnique(ids: string[], kind: "Mission" | "Location"): void {
   if (new Set(ids).size !== ids.length) {
     throw new Error(`Campaign catalog: ${kind} IDs must be unique.`);
+  }
+}
+
+function assertAcyclicPrerequisites(
+  locationDefinitions: readonly CampaignLocation[],
+  locationsById: ReadonlyMap<string, CampaignLocation>,
+): void {
+  for (const start of locationDefinitions) {
+    const visited = new Set<string>();
+    let current: CampaignLocation | undefined = start;
+    while (current?.prerequisiteLocationId !== undefined) {
+      visited.add(current.id);
+      if (visited.has(current.prerequisiteLocationId)) {
+        throw new Error(
+          `Campaign catalog: Location prerequisites must not form a cycle (via ${start.id}).`,
+        );
+      }
+      current = locationsById.get(current.prerequisiteLocationId);
+    }
   }
 }
