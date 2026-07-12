@@ -1,4 +1,17 @@
 packages:
   - "apps/*"
-allowBuilds:
-  esbuild: true
+
+nodeVersion: 24.0.0
+engineStrict: true
+verifyDepsBeforeRun: error
+
+minimumReleaseAge: 1440
+minimumReleaseAgeIgnoreMissingTime: false
+minimumReleaseAgeStrict: true
+trustPolicy: no-downgrade
+trustPolicyExclude:
+  # Babel still depends on this established release, which predates consistent trust evidence.
+  - "semver@6.3.1"
+blockExoticSubdeps: true
+
+strictDepBuilds: true
