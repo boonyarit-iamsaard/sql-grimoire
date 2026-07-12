@@ -10,6 +10,16 @@ Shipment**, which takes approximately 10–15 minutes to play. Playtesting has n
 prototype exists to answer one question: _do developers enjoy solving a real SQL challenge inside
 a light RPG narrative enough to want a second mission?_
 
+## Screenshots
+
+![Title screen: SQL Grimoire, with the hook "A merchant guild's shipments are going missing"](docs/screenshots/title-screen.png)
+
+![The Duskharbor Coast world map, where completing the Merchant Guild unlocks the Inner Archives](docs/screenshots/world-map.png)
+
+![Mission briefing: Merchant Odalia explains the missing shipments over portrait dialogue](docs/screenshots/mission-briefing.png)
+
+![The Ledger Desk workbench: schema explorer, SQL editor, Run Query, hints, and submission](docs/screenshots/ledger-desk.png)
+
 ## Running the application
 
 ```sh
