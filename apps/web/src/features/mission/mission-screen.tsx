@@ -1,7 +1,17 @@
 import { useEffect, useRef, useState } from "react";
 import { format } from "sql-formatter";
+import { cn } from "../../lib/cn";
 import { playClick, playMissionComplete } from "../../shared/audio/sound";
 import { Button } from "../../shared/ui/button";
+import {
+  FlagIcon,
+  HourglassIcon,
+  LampIcon,
+  PenIcon,
+  PlayIcon,
+  ResetIcon,
+  WarningIcon,
+} from "../../shared/ui/icons";
 import type { EvaluationResult } from "../../sql/evaluator";
 import type { QueryResult, TableInfo } from "../../sql/sql-runtime";
 import { SqliteRuntime } from "../../sql/sqlite-runtime";
@@ -19,8 +29,19 @@ type Phase = "briefing" | "workbench";
 
 const briefingClasses =
   "flex min-h-screen flex-col items-center justify-center gap-[22px] p-6";
-const sqlErrorClasses =
-  "rounded-[10px] border-2 border-ctp-red bg-ctp-base px-4 py-3 font-mono text-mono whitespace-pre-wrap text-ctp-red motion-safe:animate-shake";
+// A genuine failure: red, with a warning shake.
+const errorCardClasses =
+  "flex items-start gap-2 rounded-[10px] border-2 border-ctp-red bg-ctp-base px-4 py-3 font-mono text-mono whitespace-pre-wrap text-ctp-red motion-safe:animate-shake";
+// The 2s runaway guard fired: a calm scholar's note, not an alarm.
+const interruptCardClasses =
+  "flex items-start gap-2 rounded-[10px] border-2 border-ctp-peach bg-ctp-base px-4 py-3 font-mono text-mono whitespace-pre-wrap text-ctp-peach motion-safe:animate-page-fade";
+
+type RunNotice = { kind: "error" | "interrupted"; message: string };
+
+function classifyRunError(message: string): RunNotice {
+  const interrupted = /^(query )?interrupted/i.test(message);
+  return { kind: interrupted ? "interrupted" : "error", message };
+}
 
 interface MissionScreenProps {
   missionId: string;
@@ -66,7 +87,7 @@ function MissionAttemptScreen({
     data: QueryResult;
     durationMs: number;
   } | null>(null);
-  const [sqlError, setSqlError] = useState<string | null>(null);
+  const [runNotice, setRunNotice] = useState<RunNotice | null>(null);
   const [hintIndex, setHintIndex] = useState(-1);
   const [evaluation, setEvaluation] = useState<EvaluationResult | null>(null);
   const [busy, setBusy] = useState(false);
@@ -103,14 +124,14 @@ function MissionAttemptScreen({
     }
     playClick();
     setBusy(true);
-    setSqlError(null);
+    setRunNotice(null);
     playerProgress.recordLastQuery(mission.id, query);
     const run = await attempt.run(query);
     if (!run.ok) {
-      setSqlError(run.error);
+      setRunNotice(classifyRunError(run.error));
       setResult(null);
     } else {
-      setSqlError(null);
+      setRunNotice(null);
       setResult({ data: run.data, durationMs: run.durationMs });
     }
     setBusy(false);
@@ -123,7 +144,7 @@ function MissionAttemptScreen({
     }
     playClick();
     setBusy(true);
-    setSqlError(null);
+    setRunNotice(null);
     playerProgress.recordLastQuery(mission.id, query);
     const submission = await attempt.submit(query);
     if (submission.completion) {
@@ -138,13 +159,15 @@ function MissionAttemptScreen({
     playClick();
     try {
       setQuery(format(query, { language: "sqlite", keywordCase: "upper" }));
-      setSqlError(null);
+      setRunNotice(null);
     } catch {
       // sql-formatter can't parse it — leave the text as typed; running the
       // query will surface the real SQLite error.
-      setSqlError(
-        "Couldn't format — the SQL isn't parseable yet. Run it to see the exact error.",
-      );
+      setRunNotice({
+        kind: "error",
+        message:
+          "Couldn't format — the SQL isn't parseable yet. Run it to see the exact error.",
+      });
     }
   };
 
@@ -153,14 +176,21 @@ function MissionAttemptScreen({
     if (!attempt || busy) {
       return;
     }
+    if (
+      !window.confirm(
+        "Reset the guild database to its original seeded state? Anything you've changed will be undone.",
+      )
+    ) {
+      return;
+    }
     playClick();
     setBusy(true);
     const reset = await attempt.reset();
     if (reset.ok) {
       setResult(null);
-      setSqlError(null);
+      setRunNotice(null);
     } else {
-      setSqlError(reset.error);
+      setRunNotice({ kind: "error", message: reset.error });
     }
     setBusy(false);
   };
@@ -182,8 +212,12 @@ function MissionAttemptScreen({
     );
   }
 
+  // Explore-Then-Seal: Run keeps the gold; Submit only lights up as the
+  // earned terminal step once a result exists. See DESIGN.md.
+  const readyToSeal = result !== null && !busy && dbReady;
+
   return (
-    <div className="mx-auto max-w-[1280px] px-5 pt-4 pb-8">
+    <div className="mx-auto max-w-7xl px-5 pt-4 pb-8">
       <header className="mb-3 flex items-start justify-between gap-4">
         <div>
           <h1 className="mb-0.5 text-2xl">{mission.title} — Ledger Desk</h1>
@@ -203,34 +237,52 @@ function MissionAttemptScreen({
         </Button>
       </header>
 
-      <div className="grid grid-cols-[250px_1fr] items-start gap-3.5 max-[1100px]:grid-cols-[210px_1fr]">
+      <div className="grid grid-cols-[250px_1fr] items-start gap-3.5 max-[1100px]:grid-cols-[210px_1fr] max-[720px]:grid-cols-1">
         <SchemaExplorer tables={tables} />
 
         <div className="flex min-w-0 flex-col gap-3">
           <div className="overflow-hidden rounded-xl border-2 border-ctp-surface1 bg-ctp-base shadow-paper">
-            <SqlEditor value={query} onChange={setQuery} />
-            <div className="flex flex-wrap gap-2.5 border-ctp-surface1 border-t bg-ctp-mantle px-3 py-2.5">
+            <SqlEditor
+              value={query}
+              onChange={setQuery}
+              onRun={runQuery}
+              onSubmit={submitAnswer}
+            />
+            <div className="flex flex-wrap items-center gap-2.5 border-ctp-surface1 border-t bg-ctp-mantle px-3 py-2.5">
               <Button
                 variant="primary"
                 onClick={runQuery}
                 disabled={busy || !dbReady}
               >
-                ▶ Run Query
+                <PlayIcon /> Run Query
               </Button>
               <Button
                 onClick={submitAnswer}
                 disabled={busy || !dbReady || query.trim() === ""}
+                className={cn(
+                  readyToSeal &&
+                    "ring-2 ring-ctp-yellow/70 ring-offset-2 ring-offset-ctp-mantle",
+                )}
+                title={
+                  readyToSeal
+                    ? "Ready to submit — ⌘/Ctrl+Shift+Enter"
+                    : undefined
+                }
               >
-                ⚑ Submit Answer
+                <FlagIcon /> Submit Answer
               </Button>
+              <span className="flex-1" />
+              <span
+                aria-hidden="true"
+                className="hidden h-6 w-px bg-ctp-surface1 sm:block"
+              />
               <Button
                 variant="ghost"
                 onClick={formatQuery}
                 disabled={query.trim() === ""}
               >
-                ✎ Format
+                <PenIcon /> Format
               </Button>
-              <span className="flex-1" />
               <Button
                 variant="ghost"
                 onClick={() => {
@@ -241,21 +293,22 @@ function MissionAttemptScreen({
                 }}
                 disabled={hintIndex >= mission.challenge.hints.length - 1}
               >
-                💡 Hint
+                <LampIcon /> Hint
               </Button>
               <Button
                 variant="danger"
                 onClick={resetDatabase}
                 disabled={busy || !dbReady}
               >
-                ⟲ Reset Database
+                <ResetIcon /> Reset Database
               </Button>
             </div>
           </div>
 
           {initError && (
-            <div className={sqlErrorClasses}>
-              ⚠ The guild database failed to open: {initError}
+            <div className={errorCardClasses}>
+              <WarningIcon className="mt-0.5 shrink-0" />
+              <span>The guild database failed to open: {initError}</span>
             </div>
           )}
 
@@ -268,7 +321,19 @@ function MissionAttemptScreen({
             </div>
           )}
 
-          {sqlError && <div className={sqlErrorClasses}>⚠ {sqlError}</div>}
+          {runNotice?.kind === "interrupted" && (
+            <div className={interruptCardClasses}>
+              <HourglassIcon className="mt-0.5 shrink-0" />
+              <span>{runNotice.message}</span>
+            </div>
+          )}
+
+          {runNotice?.kind === "error" && (
+            <div className={errorCardClasses}>
+              <WarningIcon className="mt-0.5 shrink-0" />
+              <span>{runNotice.message}</span>
+            </div>
+          )}
 
           {result && (
             <QueryResultTable

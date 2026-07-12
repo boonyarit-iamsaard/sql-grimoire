@@ -38,15 +38,15 @@ export function WorldMapScreen({
   );
 
   return (
-    <div className="mx-auto max-w-[1100px] px-6 pt-5 pb-10">
+    <div className="mx-auto max-w-275 px-6 pt-5 pb-10">
       <header className="mb-3.5 flex items-center justify-between gap-4">
         <div>
           <h1 className="m-0 text-[1.9rem]">The Duskharbor Coast</h1>
         </div>
         <nav className="flex items-center gap-2.5">
           <span className="inline-flex items-center gap-2 rounded-full border-2 border-ctp-surface1 bg-ctp-base py-1.5 pr-4 pl-2.5 font-display text-[1.05rem] text-ctp-yellow">
-            <img className="h-[22px] w-[22px]" src={xpIcon} alt="XP" />{" "}
-            {progress.xp} XP
+            <img className="h-5.5 w-5.5" src={xpIcon} alt="XP" /> {progress.xp}{" "}
+            XP
           </span>
           <Button
             variant="ghost"
@@ -122,7 +122,7 @@ export function WorldMapScreen({
                   alt=""
                 />
                 {completed && (
-                  <span className="absolute -top-0.5 -right-1 rotate-[8deg] rounded-full border-2 border-[#6f9a63] bg-ctp-green px-[9px] py-0.5 font-bold text-ctp-crust text-xs">
+                  <span className="absolute -top-0.5 -right-1 rotate-[8deg] rounded-full border-2 border-[#6f9a63] bg-ctp-green px-2.25 py-0.5 font-bold text-ctp-crust text-xs">
                     ✓ Done
                   </span>
                 )}

@@ -9,7 +9,7 @@ interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
 }
 
 const baseClasses =
-  "inline-block rounded-lg border-2 px-[22px] py-2.5 font-display text-base tracking-[0.04em] transition-[transform,box-shadow,filter] duration-[120ms] enabled:hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-45 motion-safe:enabled:hover:-translate-y-px motion-safe:enabled:active:translate-y-px";
+  "inline-flex items-center justify-center gap-1.5 rounded-lg border-2 px-[22px] py-2.5 font-display text-base tracking-[0.04em] transition-[transform,box-shadow,filter] duration-[120ms] outline-none focus-visible:ring-2 focus-visible:ring-ctp-lavender focus-visible:ring-offset-2 focus-visible:ring-offset-ctp-base enabled:hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-45 motion-safe:enabled:hover:-translate-y-px motion-safe:enabled:active:translate-y-px";
 
 const variantClasses: Record<ButtonVariant, string> = {
   default:

@@ -29,9 +29,9 @@ export function DialogueBox({
   };
 
   return (
-    <div className="grid w-[min(720px,100%)] grid-cols-[150px_1fr] gap-[18px] rounded-[14px] border-[3px] border-ctp-surface2 bg-linear-to-b from-ctp-surface0 to-ctp-base p-5 text-ctp-text shadow-[inset_0_0_0_1px_rgba(255,255,255,0.04),var(--shadow-paper)]">
+    <div className="grid w-[min(720px,100%)] grid-cols-[150px_1fr] gap-4.5 rounded-[14px] border-[3px] border-ctp-surface2 bg-linear-to-b from-ctp-surface0 to-ctp-base p-5 text-ctp-text shadow-[inset_0_0_0_1px_rgba(255,255,255,0.04),var(--shadow-paper)]">
       <img
-        className="h-[150px] w-[150px] rounded-[10px] border-2 border-ctp-surface2 motion-safe:animate-portrait-pop"
+        className="size-37.5 rounded-[10px] border-2 border-ctp-surface2 motion-safe:animate-portrait-pop"
         src={line.portrait}
         alt={line.speaker}
         key={line.portrait}
@@ -48,7 +48,7 @@ export function DialogueBox({
             <span
               key={l.id}
               className={cn(
-                "h-[9px] w-[9px] rounded-full border border-ctp-overlay0",
+                "size-2.25 rounded-full border border-ctp-overlay0",
                 i === index ? "bg-ctp-peach" : "bg-ctp-surface2",
               )}
             />

@@ -1,6 +1,7 @@
-node_modules
-dist
 *.local
-tsconfig.tsbuildinfo
-.turbo
+.idea/
 .impeccable/
+.turbo
+dist
+node_modules
+tsconfig.tsbuildinfo
