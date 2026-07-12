@@ -29,7 +29,7 @@ describe("Campaign catalog", () => {
       },
       {
         id: "inner-archives",
-        missionIds: ["council-tally"],
+        missionIds: ["council-tally", "unwritten-scrolls"],
         availability: "locked",
         state: "locked",
       },

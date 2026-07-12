@@ -3,6 +3,7 @@ import lockedLocationImage from "../../assets/locations/locked-location.svg";
 import merchantGuildImage from "../../assets/locations/merchant-guild.svg";
 import { councilTally } from "../../missions/council-tally/mission";
 import { missingShipment } from "../../missions/missing-shipment/mission";
+import { unwrittenScrolls } from "../../missions/unwritten-scrolls/mission";
 import type { Mission } from "../mission/mission-types";
 
 export interface CampaignLocation {
@@ -93,7 +94,11 @@ export class CampaignCatalog {
   }
 }
 
-const missions: readonly Mission[] = [missingShipment, councilTally];
+const missions: readonly Mission[] = [
+  missingShipment,
+  councilTally,
+  unwrittenScrolls,
+];
 
 const locations: readonly CampaignLocation[] = [
   {
@@ -109,7 +114,7 @@ const locations: readonly CampaignLocation[] = [
     name: "Inner Archives",
     mapImage: innerArchivesImage,
     position: { left: "56%", top: "34%" },
-    missionIds: [councilTally.id],
+    missionIds: [councilTally.id, unwrittenScrolls.id],
     availability: "locked",
     prerequisiteLocationId: "merchant-guild",
     lockedTitle: "Locked — complete the Merchant Guild mission first",
