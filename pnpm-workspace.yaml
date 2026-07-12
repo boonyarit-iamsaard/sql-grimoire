@@ -3,6 +3,7 @@ packages:
 
 nodeVersion: 24.0.0
 engineStrict: true
+strictPeerDependencies: true
 verifyDepsBeforeRun: error
 
 minimumReleaseAge: 1440
