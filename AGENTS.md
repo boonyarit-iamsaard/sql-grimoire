@@ -1,18 +1,19 @@
 # SQL Grimoire
 
 SQL Grimoire is a browser-based SQL-learning RPG. It is currently a **complete but unvalidated
-one-mission prototype** ("The Missing Shipment"); the long-term goal is a commercial platform teaching
+three-Mission prototype** ("The Guild Ledger Arc"); the long-term goal is a commercial platform teaching
 database reasoning across querying, schema design, constraints, transactions, concurrency,
 indexing, query plans, migrations, and ORM behavior through production incidents framed as
-quests. The current validation question is whether playtesters finish mission one wanting mission two.
+quests. The current validation question is whether playtesters finish the Arc wanting more.
 Full founder vision, curriculum ladder, and sequencing plan: see `VISION.md`.
 
 ## Commands
 
 - `pnpm dev` starts the Vite development server on port 5173 by default.
-- `pnpm build` runs the typecheck (`tsc -b`) and creates the production build.
+- `pnpm build` creates the production build.
+- `pnpm types:check` runs the application build and TypeScript typecheck.
 - `pnpm test` runs the Vitest suite.
-- `pnpm preview` serves the production build.
+- `pnpm --filter @sql-grimoire/web serve` serves the production build.
 
 ## Git workflow
 
@@ -93,7 +94,7 @@ End-to-end scripts (Playwright driven by Bun) live in the session scratchpad rat
 repository. They cover the landing page, map, briefing, workbench, query execution, SQL errors,
 hints, incorrect and correct submissions, XP and Grimoire updates, persistence after refresh,
 and runaway-query interruption. If the scripts are unavailable, reconstruct them from this list
-and run them against `pnpm preview`.
+and run them against `pnpm --filter @sql-grimoire/web serve`.
 
 ## Agent skills
 
