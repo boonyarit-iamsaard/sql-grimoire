@@ -1,6 +1,6 @@
 # 04 — Deploy to static hosting
 
-Status: needs-triage
+Status: resolved
 Blocked by: 03
 
 ## Problem
@@ -27,3 +27,18 @@ already exists) and GitHub Pages (no new account, but costs a Vite `base` path, 
 
 A fresh browser with no prior state can open the URL, play the full Arc, refresh mid-Mission
 without losing Player Progress, and deep-link directly to `/grimoire`.
+
+## Answer
+
+Cloudflare Pages via wrangler Direct Upload, chosen over the dashboard Git integration so
+deploys only happen after the CI gates pass. The `sql-grimoire` Pages project was created
+from the CLI (production branch `main`); production URL: <https://sql-grimoire.pages.dev>.
+The first deployment was pushed manually from the `feat/guild-ledger-arc` branch and serves
+at <https://feat-guild-ledger-arc.sql-grimoire.pages.dev> — root, `/grimoire`, and
+`/mission/unwritten-scrolls` all return 200 via the automatic SPA fallback (no `404.html`,
+no Vite `base` change, no redirect file). `ci.yaml` now deploys previews on pull requests
+(aliased by branch name) and production on pushes to `main`, using the
+`CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID` repository secrets. wrangler is a pinned
+root devDependency; its transitive build scripts (esbuild, sharp, workerd) are recorded as
+denied in `pnpm-workspace.yaml` (`allowBuilds`) — none are needed for static deploys. The
+remaining human step: confirm both repository secrets are set before the first PR merge.
