@@ -15,15 +15,15 @@ their purpose.
   existing art pipeline: editable vectors that can be recolored to the Catppuccin tokens.
   Attribution required — one line in `ASSET-LICENSES.md` covers it.
 - **[OpenGameArt.org](https://opengameart.org)** — free, but licenses vary per asset (CC0,
-  CC-BY, GPL — avoid GPL art for a commercial product). Good for one-off finds; always
-  record the specific license.
+  CC-BY, GPL). GPL assets may be used commercially subject to their copyleft and source-sharing
+  obligations. Good for one-off finds; record each asset's exact license and the compatibility
+  decision for this project.
 - **[itch.io asset marketplace](https://itch.io/game-assets)** — the deepest pool of both
-  free and paid indie packs (character portraits, UI kits, tilesets). License terms are per
-  creator, usually plain-English and commercial-friendly, but read each page.
+  free and paid indie packs (character portraits, UI kits, tilesets). License terms are set by
+  each creator; read each page, then record the asset's exact license and the compatibility
+  decision for this project.
 - **[CraftPix](https://craftpix.net)** — freebie section plus affordable paid packs, leaning
   polished-casual 2D. Royalty-free license for commercial games.
-- **[2-Minute Tabletop](https://2minutetabletop.com)** — hand-drawn fantasy maps and tokens
-  (free and pay-what-you-want) whose inked style is close to the Duskharbor Coast map.
 
 ## Audio
 
@@ -35,7 +35,9 @@ Current sounds are WebAudio-synthesized; these are for when that ceiling arrives
   professional sound effects released free most years, royalty-free for commercial use. The
   best value in game audio.
 - **[Pixabay Audio](https://pixabay.com/sound-effects)** — free music and sound effects, no
-  attribution required, commercial use allowed; quality varies but browsing is fast.
+  attribution required, and commercial use allowed. Standalone redistribution is prohibited;
+  recognizable trademarks, brands, and other third-party rights require separate review. Quality
+  varies, but browsing is fast.
 - **[incompetech](https://incompetech.com)** (Kevin MacLeod) — the classic CC-BY music
   library; tavern-and-parchment moods are well represented. A paid no-attribution license is
   available.
@@ -43,9 +45,9 @@ Current sounds are WebAudio-synthesized; these are for when that ceiling arrives
 ## Fonts
 
 - **[Google Fonts](https://fonts.google.com) / [Fontsource](https://fontsource.org)** — the
-  project already self-hosts JetBrains Mono via Fontsource; everything there is OFL, exactly
-  the license to want. For a display "fantasy ledger" face, filter Google Fonts by serif and
-  OFL before buying anything.
+  project already self-hosts JetBrains Mono via Fontsource. Select a specific font, verify its
+  actual license, which may be OFL, Apache, UFL, FFL, or another license, and record that exact
+  license in `ASSET-LICENSES.md`.
 - **[Fontshare](https://fontshare.com)** — free, high-quality faces from the Indian Type
   Foundry with a permissive license; the middle ground between Google Fonts and paid
   foundries.
