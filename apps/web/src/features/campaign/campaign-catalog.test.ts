@@ -28,6 +28,12 @@ describe("Campaign catalog", () => {
         state: "available",
       },
       {
+        id: "inner-archives",
+        missionIds: ["council-tally"],
+        availability: "locked",
+        state: "locked",
+      },
+      {
         id: "future-location",
         missionIds: [],
         availability: "locked",
@@ -35,11 +41,11 @@ describe("Campaign catalog", () => {
       },
     ]);
 
-    expect(
-      campaignCatalog.getLocations(
-        (missionId) => missionId === "missing-shipment",
-      )[0].state,
-    ).toBe("completed");
+    const afterFirstMission = campaignCatalog.getLocations(
+      (missionId) => missionId === "missing-shipment",
+    );
+    expect(afterFirstMission[0].state).toBe("completed");
+    expect(afterFirstMission[1].state).toBe("available");
   });
 
   it("adds a second Mission as catalog data and selects its Location path", () => {

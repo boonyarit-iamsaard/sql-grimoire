@@ -1,6 +1,6 @@
 # 02 — Mission two: aggregation incident
 
-Status: ready-for-human
+Status: resolved
 Blocked by: 01
 
 ## Problem
@@ -33,3 +33,16 @@ summary and concepts, and seed-data storytelling.
 
 A playtester who solved mission one can solve mission two with at most the hints; the
 reference query uses `GROUP BY` and an aggregate; `pnpm sql:check`, tests, and build pass.
+
+## Answer
+
+Shipped as "The Council's Tally" (`apps/web/src/missions/council-tally/`), proposed by the
+agent and accepted by the founder without changes. The guild council votes at dawn on repair
+funds; the player tallies delayed orders per city and reports every city with two or more
+(`city`, `delayed_orders`; answer: Duskharbor 4, Thornfield 2, verified by executing the
+seed and reference against SQLite). New NPC Archivist Hesper with two hand-authored SVG
+portraits (neutral, stern); new Inner Archives Location registered with
+`prerequisiteLocationId: "merchant-guild"` and new location art. The `???` probe tooltip was
+reworded to stay truthful after the Archives unlock. Reward 120 XP; the success message
+plants mission three's hook (orders with no shipment scroll at all). All gates pass:
+sqlfluff, 11 tests, typecheck, build.

@@ -1,5 +1,7 @@
+import innerArchivesImage from "../../assets/locations/inner-archives.svg";
 import lockedLocationImage from "../../assets/locations/locked-location.svg";
 import merchantGuildImage from "../../assets/locations/merchant-guild.svg";
+import { councilTally } from "../../missions/council-tally/mission";
 import { missingShipment } from "../../missions/missing-shipment/mission";
 import type { Mission } from "../mission/mission-types";
 
@@ -91,7 +93,7 @@ export class CampaignCatalog {
   }
 }
 
-const missions: readonly Mission[] = [missingShipment];
+const missions: readonly Mission[] = [missingShipment, councilTally];
 
 const locations: readonly CampaignLocation[] = [
   {
@@ -103,13 +105,23 @@ const locations: readonly CampaignLocation[] = [
     availability: "available",
   },
   {
+    id: "inner-archives",
+    name: "Inner Archives",
+    mapImage: innerArchivesImage,
+    position: { left: "56%", top: "34%" },
+    missionIds: [councilTally.id],
+    availability: "locked",
+    prerequisiteLocationId: "merchant-guild",
+    lockedTitle: "Locked — complete the Merchant Guild mission first",
+  },
+  {
     id: "future-location",
     name: "???",
     mapImage: lockedLocationImage,
     position: { left: "74%", top: "43%" },
     missionIds: [],
     availability: "locked",
-    lockedTitle: "Locked — complete the Merchant Guild mission first",
+    lockedTitle: "Locked — the story continues beyond the archives",
   },
 ];
 
