@@ -46,11 +46,26 @@ function classifyRunError(message: string): RunNotice {
 interface MissionScreenProps {
   missionId: string;
   onBack: () => void;
+  onOpenMission: (missionId: string) => void;
+}
+
+/** The next uncompleted Mission at the same Location, if any — computed after
+ *  completion has been applied to Player Progress, so a just-finished Mission
+ *  never nominates itself. */
+function nextMissionAt(locationId: string): Mission | null {
+  const location = campaignCatalog
+    .getLocations((missionId) => playerProgress.isMissionCompleted(missionId))
+    .find((candidate) => candidate.id === locationId);
+  if (location?.state !== "available" || !location.nextMissionId) {
+    return null;
+  }
+  return campaignCatalog.getMission(location.nextMissionId) ?? null;
 }
 
 export function MissionScreen({
   missionId,
   onBack,
+  onOpenMission,
 }: Readonly<MissionScreenProps>) {
   const mission = campaignCatalog.getMission(missionId);
 
@@ -64,18 +79,25 @@ export function MissionScreen({
   }
 
   return (
-    <MissionAttemptScreen key={mission.id} mission={mission} onBack={onBack} />
+    <MissionAttemptScreen
+      key={mission.id}
+      mission={mission}
+      onBack={onBack}
+      onOpenMission={onOpenMission}
+    />
   );
 }
 
 interface MissionAttemptScreenProps {
   mission: Mission;
   onBack: () => void;
+  onOpenMission: (missionId: string) => void;
 }
 
 function MissionAttemptScreen({
   mission,
   onBack,
+  onOpenMission,
 }: Readonly<MissionAttemptScreenProps>) {
   const attemptRef = useRef<MissionAttempt | null>(null);
   const [phase, setPhase] = useState<Phase>("briefing");
@@ -351,6 +373,10 @@ function MissionAttemptScreen({
           playerQuery={query}
           onReturnToEditor={() => setEvaluation(null)}
           onReturnToMap={onBack}
+          nextMission={
+            evaluation.passed ? nextMissionAt(mission.locationId) : null
+          }
+          onOpenMission={onOpenMission}
         />
       )}
     </div>

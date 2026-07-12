@@ -59,9 +59,12 @@
     <circle cx="385" cy="430" r="18"/>
   </g>
 
-  <!-- road between locations -->
-  <path d="M 470 560 C 560 500 640 520 720 470 C 790 425 830 400 880 360"
+  <!-- road: Merchant Guild up to the Inner Archives -->
+  <path d="M 455 540 C 520 480 570 420 610 370 C 640 330 655 305 668 288"
         fill="none" stroke="#8a6d3b" stroke-width="6" stroke-dasharray="2 18" stroke-linecap="round"/>
+  <!-- unopened trail: Inner Archives toward the locked peaks -->
+  <path d="M 690 280 C 748 294 816 315 872 338"
+        fill="none" stroke="#8a6d3b" stroke-width="6" stroke-dasharray="2 18" stroke-linecap="round" opacity="0.35"/>
 
   <!-- harbor town near guild -->
   <g stroke="#7a5f33" stroke-width="3" fill="#c96f4a">

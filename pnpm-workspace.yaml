@@ -16,3 +16,8 @@ trustPolicyExclude:
 blockExoticSubdeps: true
 
 strictDepBuilds: true
+
+allowBuilds:
+  esbuild: false
+  sharp: false
+  workerd: false

@@ -28,6 +28,12 @@ describe("Campaign catalog", () => {
         state: "available",
       },
       {
+        id: "inner-archives",
+        missionIds: ["council-tally", "unwritten-scrolls"],
+        availability: "locked",
+        state: "locked",
+      },
+      {
         id: "future-location",
         missionIds: [],
         availability: "locked",
@@ -35,11 +41,11 @@ describe("Campaign catalog", () => {
       },
     ]);
 
-    expect(
-      campaignCatalog.getLocations(
-        (missionId) => missionId === "missing-shipment",
-      )[0].state,
-    ).toBe("completed");
+    const afterFirstMission = campaignCatalog.getLocations(
+      (missionId) => missionId === "missing-shipment",
+    );
+    expect(afterFirstMission[0].state).toBe("completed");
+    expect(afterFirstMission[1].state).toBe("available");
   });
 
   it("adds a second Mission as catalog data and selects its Location path", () => {
@@ -73,6 +79,100 @@ describe("Campaign catalog", () => {
       state: "completed",
       nextMissionId: "missing-shipment",
     });
+  });
+
+  it("unlocks a Location when its prerequisite Location is completed", () => {
+    const firstMission = campaignCatalog.getMission("missing-shipment");
+    if (!firstMission) {
+      throw new Error("Expected fixture Mission");
+    }
+    const archiveMission = {
+      ...firstMission,
+      id: "archive-mission",
+      locationId: "inner-archives",
+    };
+    const guild: CampaignLocation = {
+      id: "merchant-guild",
+      name: "Merchant Guild",
+      mapImage: "merchant.svg",
+      position: { left: "0", top: "0" },
+      missionIds: [firstMission.id],
+      availability: "available",
+    };
+    const archives: CampaignLocation = {
+      id: "inner-archives",
+      name: "Inner Archives",
+      mapImage: "archives.svg",
+      position: { left: "0", top: "0" },
+      missionIds: [archiveMission.id],
+      availability: "locked",
+      prerequisiteLocationId: "merchant-guild",
+    };
+    const probe: CampaignLocation = {
+      id: "future-location",
+      name: "???",
+      mapImage: "locked.svg",
+      position: { left: "0", top: "0" },
+      missionIds: [],
+      availability: "locked",
+    };
+    const catalog = new CampaignCatalog(
+      [firstMission, archiveMission],
+      [guild, archives, probe],
+    );
+
+    const before = catalog.getLocations();
+    expect(before.map(({ id, state }) => ({ id, state }))).toEqual([
+      { id: "merchant-guild", state: "available" },
+      { id: "inner-archives", state: "locked" },
+      { id: "future-location", state: "locked" },
+    ]);
+    expect(before[1].nextMissionId).toBeNull();
+
+    const after = catalog.getLocations((id) => id === firstMission.id);
+    expect(after.map(({ id, state }) => ({ id, state }))).toEqual([
+      { id: "merchant-guild", state: "completed" },
+      { id: "inner-archives", state: "available" },
+      { id: "future-location", state: "locked" },
+    ]);
+    expect(after[1].nextMissionId).toBe("archive-mission");
+
+    const arcComplete = catalog.getLocations(() => true);
+    expect(arcComplete.map(({ id, state }) => ({ id, state }))).toEqual([
+      { id: "merchant-guild", state: "completed" },
+      { id: "inner-archives", state: "completed" },
+      { id: "future-location", state: "locked" },
+    ]);
+  });
+
+  it("rejects unknown and cyclic Location prerequisites", () => {
+    const mission = campaignCatalog.getMission("missing-shipment");
+    if (!mission) {
+      throw new Error("Expected fixture Mission");
+    }
+    const location: CampaignLocation = {
+      id: mission.locationId,
+      name: "Merchant Guild",
+      mapImage: "merchant.svg",
+      position: { left: "0", top: "0" },
+      missionIds: [mission.id],
+      availability: "available",
+    };
+
+    expect(
+      () =>
+        new CampaignCatalog(
+          [mission],
+          [{ ...location, prerequisiteLocationId: "nowhere" }],
+        ),
+    ).toThrow("prerequisite references unknown Location nowhere");
+    expect(
+      () =>
+        new CampaignCatalog(
+          [mission],
+          [{ ...location, prerequisiteLocationId: location.id }],
+        ),
+    ).toThrow("must not form a cycle");
   });
 
   it("rejects duplicate and dangling catalog definitions", () => {
