@@ -10,6 +10,7 @@
     "dev": "turbo run dev",
     "md:check": "prettier --write \"**/*.md\" && markdownlint \"**/*.md\" --ignore-path .gitignore",
     "prepare": "husky || true",
+    "sql:check": "sqlfluff fix apps && sqlfluff lint apps",
     "test": "turbo run test",
     "types:check": "turbo run types:check"
   },
@@ -28,6 +29,9 @@
     "*.md": [
       "prettier --check",
       "markdownlint --ignore-path .gitignore"
+    ],
+    "*.sql": [
+      "sqlfluff lint"
     ]
   },
   "packageManager": "pnpm@10.18.0"

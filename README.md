@@ -19,6 +19,25 @@ pnpm dev
 
 Open the printed URL (default <http://localhost:5173>).
 
+## Development setup
+
+Two tools are required beyond a checkout:
+
+- **Node.js 24 and pnpm.** The pnpm version is pinned by the `packageManager` field in
+  `package.json`; `pnpm install` provides every JavaScript-ecosystem tool (Biome, Prettier,
+  Vitest, and the rest) from the lockfile.
+- **sqlfluff**, the SQL formatter and linter. It is a Python tool and therefore lives outside
+  the pnpm toolchain. Install it with pipx, pinned to the same version the CI workflow
+  (`.github/workflows/ci.yaml`) installs:
+
+  ```sh
+  pipx install sqlfluff==4.2.2
+  ```
+
+  The pre-commit hook lints staged `.sql` files, so sqlfluff must be on the `PATH` before
+  committing SQL changes. Run `pnpm sql:check` to format and lint all SQL locally. When
+  upgrading sqlfluff, change the version here and in `ci.yaml` together.
+
 ## Documentation map
 
 - [VISION.md](VISION.md) — the founder vision, curriculum ladder, and sequencing plan.
@@ -53,8 +72,8 @@ SELECT
     c.name AS customer_name,
     s.status AS shipment_status
 FROM orders AS o
-JOIN customers AS c ON c.id = o.customer_id
-JOIN shipments AS s ON s.order_id = o.id
+INNER JOIN customers AS c ON o.customer_id = c.id
+INNER JOIN shipments AS s ON o.id = s.order_id
 WHERE s.status = 'delayed';
 ```
 

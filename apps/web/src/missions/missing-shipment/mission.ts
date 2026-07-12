@@ -1,64 +1,9 @@
-import merchantNeutral from "../assets/characters/merchant/neutral.svg";
-import merchantWorried from "../assets/characters/merchant/worried.svg";
-import type { Mission } from "../features/mission/mission-types";
-
-const schemaSql = `
-CREATE TABLE customers (
-    id INTEGER PRIMARY KEY,
-    name TEXT NOT NULL,
-    city TEXT NOT NULL
-);
-
-CREATE TABLE orders (
-    id INTEGER PRIMARY KEY,
-    customer_id INTEGER NOT NULL,
-    status TEXT NOT NULL,
-    created_at TEXT NOT NULL,
-    FOREIGN KEY (customer_id) REFERENCES customers(id)
-);
-
-CREATE TABLE shipments (
-    id INTEGER PRIMARY KEY,
-    order_id INTEGER NOT NULL,
-    status TEXT NOT NULL,
-    shipped_at TEXT,
-    FOREIGN KEY (order_id) REFERENCES orders(id)
-);
-`;
-
-const seedSql = `
-INSERT INTO customers (id, name, city) VALUES
-  (1, 'Mara Voss',      'Emberfall'),
-  (2, 'Tobin Reed',     'Duskharbor'),
-  (3, 'Ilsa Thorn',     'Emberfall'),
-  (4, 'Corvin Ash',     'Windmere'),
-  (5, 'Petra Hale',     'Duskharbor'),
-  (6, 'Aldric Stone',   'Windmere'),
-  (7, 'Nyra Solace',    'Emberfall'),
-  (8, 'Bram Oakes',     'Thornfield');
-
-INSERT INTO orders (id, customer_id, status, created_at) VALUES
-  (101, 1, 'confirmed', '2026-06-28'),
-  (102, 2, 'confirmed', '2026-06-29'),
-  (103, 3, 'confirmed', '2026-06-30'),
-  (104, 4, 'pending',   '2026-07-01'),
-  (105, 5, 'confirmed', '2026-07-01'),
-  (106, 6, 'confirmed', '2026-07-02'),
-  (107, 7, 'confirmed', '2026-07-03'),
-  (108, 1, 'confirmed', '2026-07-04'),
-  (109, 8, 'cancelled', '2026-07-05'),
-  (110, 2, 'confirmed', '2026-07-05');
-
-INSERT INTO shipments (id, order_id, status, shipped_at) VALUES
-  (201, 101, 'delivered',  '2026-06-30'),
-  (202, 102, 'delayed',    '2026-07-01'),
-  (203, 103, 'delivered',  '2026-07-02'),
-  (204, 105, 'delayed',    '2026-07-03'),
-  (205, 106, 'in_transit', '2026-07-04'),
-  (206, 107, 'delayed',    NULL),
-  (207, 108, 'in_transit', '2026-07-06'),
-  (208, 110, 'delayed',    '2026-07-07');
-`;
+import merchantNeutral from "../../assets/characters/merchant/neutral.svg";
+import merchantWorried from "../../assets/characters/merchant/worried.svg";
+import type { Mission } from "../../features/mission/mission-types";
+import referenceSql from "./reference.sql?raw";
+import schemaSql from "./schema.sql?raw";
+import seedSql from "./seed.sql?raw";
 
 export const missingShipment: Mission = {
   id: "missing-shipment",
@@ -98,18 +43,7 @@ export const missingShipment: Mission = {
 
   challenge: {
     expectedColumns: ["order_id", "customer_name", "shipment_status"],
-    referenceQuery: `
-SELECT
-    o.id AS order_id,
-    c.name AS customer_name,
-    s.status AS shipment_status
-FROM orders AS o
-JOIN customers AS c
-    ON c.id = o.customer_id
-JOIN shipments AS s
-    ON s.order_id = o.id
-WHERE s.status = 'delayed';
-`.trim(),
+    referenceQuery: referenceSql.trim(),
     hints: [
       "Start from the shipments table — you only care about rows WHERE status = 'delayed'.",
       "shipments.order_id links to orders.id, and orders.customer_id links to customers.id. That's two INNER JOINs.",

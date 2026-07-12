@@ -24,4 +24,6 @@ jobs:
 
       - run: pnpm install --frozen-lockfile
 
+      - run: pipx run --spec sqlfluff==4.2.2 sqlfluff lint apps
+
       - run: pnpm run ci

@@ -16,9 +16,14 @@ Full founder vision, curriculum ladder, and sequencing plan: see `VISION.md`.
 
 ## Architectural seams
 
-- **Missions are pure data** (`apps/web/src/missions/`). Each Mission contains schema and seed SQL,
-  dialogue, hints, a reward, and an explanation. Add a mission data file, then register it and its Location in the campaign
-  catalog (`apps/web/src/features/campaign/campaign-catalog.ts`). Adding a Mission requires no route changes.
+- **Missions are pure data** (`apps/web/src/missions/`). Each Mission lives in its own directory:
+  a typed `mission.ts` module (dialogue, hints, reward, explanation) alongside `schema.sql`,
+  `seed.sql`, and `reference.sql`, which `mission.ts` imports with `?raw`. Add a mission directory,
+  then register it and its Location in the campaign catalog
+  (`apps/web/src/features/campaign/campaign-catalog.ts`). Adding a Mission requires no route changes.
+  Missions stay TypeScript modules rather than JSON on purpose: the type checker validates content
+  at authoring time and Vite resolves portrait assets. Revisit a JSON serialization format only when
+  a real consumer exists, such as server-delivered missions or an authoring tool.
 - **Routes are thin adapters** (`apps/web/src/routes/`): TanStack Router generates the typed route
   tree from these files. Route modules translate URL parameters and navigation into feature-screen
   props; feature implementations do not depend on the router.
@@ -40,9 +45,14 @@ Full founder vision, curriculum ladder, and sequencing plan: see `VISION.md`.
 ## Conventions and considerations
 
 - Formatter split: Biome owns only languages it fully supports (JavaScript, TypeScript, JSON, and CSS);
+  sqlfluff owns SQL (`.sqlfluff` pins the SQLite dialect; rules are the sqlfluff defaults);
   Prettier is the fallback for everything else (Markdown, HTML, YAML). When Biome
   support for a language becomes stable, move it to Biome: enable it in `biome.json` and add
   a per-language override in `.vscode/settings.json`.
+- SQL quality gates: `pnpm sql:check` runs `sqlfluff fix` then `sqlfluff lint` over `apps`
+  (write locally, like `md:check`); lint-staged lints staged `.sql` files at commit; CI installs
+  sqlfluff with pipx, pinned to the version in `ci.yaml`, and lints before `pnpm run ci`.
+  sqlfluff is a Python tool installed outside pnpm — locally via pipx, not in `package.json`.
 - Tailwind CSS v4 (CSS-first config): `apps/web/src/styles.css` holds the `@theme` tokens —
   Catppuccin Macchiato palette (`--color-ctp-*`), fonts, `--shadow-paper`, keyframes — plus
   base heading/body styles; everything else is utilities in JSX. Class composition goes through
