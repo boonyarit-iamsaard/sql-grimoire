@@ -1,21 +1,14 @@
 # SQL Grimoire
 
 > _Fill your spellbook. Master the database._
->
-> **PROTOTYPE — experimental code answering one question:**
-> _Do developers enjoy solving a real SQL challenge inside a light RPG narrative enough to want a second mission?_
-> Built from [requirements.md](requirements.md). The prototype contains one complete mission that
-> takes approximately 10–15 minutes: **The Missing Shipment**.
->
-> In the long term, this prototype is the first step toward a platform that teaches database
-> _reasoning_ across querying, schema design, constraints, transactions, concurrency, indexing,
-> query plans, migrations, and ORM behavior through production incidents framed as quests. The
-> query-evaluation logic (`apps/web/src/sql/evaluator.ts`) and the mission-as-data model are kept
-> pure and portable for exactly that reason.
->
-> Naming: the product and repository are named **sql-grimoire** (chosen 2026-07-11; "sql-wizard" and
-> "sqlmancer" are taken, "SQL Grimoire" was unclaimed). The in-game world ("The Duskharbor
-> Coast") is story copy and may change freely.
+
+SQL Grimoire is a browser-based SQL-learning RPG: an embedded database, result-graded challenges,
+and a narrative world where missions are production incidents framed as quests.
+
+This repository contains a complete but unvalidated one-mission prototype, **The Missing
+Shipment**, which takes approximately 10–15 minutes to play. Playtesting has not yet started; the
+prototype exists to answer one question: _do developers enjoy solving a real SQL challenge inside
+a light RPG narrative enough to want a second mission?_
 
 ## Running the application
 
@@ -26,10 +19,18 @@ pnpm dev
 
 Open the printed URL (default <http://localhost:5173>).
 
+## Documentation map
+
+- [VISION.md](VISION.md) — the founder vision, curriculum ladder, and sequencing plan.
+- [PRODUCT.md](PRODUCT.md) — target users, product purpose, brand personality, and design
+  principles.
+- [DESIGN.md](DESIGN.md) — the design system ("The Candlelit Ledger Desk").
+- [CONTEXT.md](CONTEXT.md) — the domain glossary.
+
 ## Technology and architecture
 
-- **React, TypeScript, Vite, and TanStack Router**, plain CSS in a Catppuccin Macchiato theme,
-  JetBrains Mono (self-hosted) for all code surfaces.
+- **React, TypeScript, Vite, and TanStack Router**, Tailwind CSS v4 in a Catppuccin Macchiato
+  theme, JetBrains Mono (self-hosted) for all code surfaces.
 - **sql.js (SQLite in WebAssembly)** running inside a Web Worker. A runaway query is
   interrupted after two seconds by terminating the worker and rebuilding the database.
 - **Result-based grading** (`apps/web/src/sql/evaluator.ts`): the player query and the reference query are

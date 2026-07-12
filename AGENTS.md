@@ -1,7 +1,7 @@
 # SQL Grimoire
 
-SQL Grimoire is a browser-based SQL-learning RPG. It is currently a **validated one-mission prototype** ("The Missing
-Shipment") built from `requirements.md`; the long-term goal is a commercial platform teaching
+SQL Grimoire is a browser-based SQL-learning RPG. It is currently a **complete but unvalidated
+one-mission prototype** ("The Missing Shipment"); the long-term goal is a commercial platform teaching
 database reasoning across querying, schema design, constraints, transactions, concurrency,
 indexing, query plans, migrations, and ORM behavior through production incidents framed as
 quests. The current validation question is whether playtesters finish mission one wanting mission two.
@@ -57,9 +57,6 @@ Full founder vision, curriculum ladder, and sequencing plan: see `VISION.md`.
   its error messages are part of the pedagogy. Submit is disabled only on empty input.
 - All art is hand-authored SVG, and sounds are synthesized with WebAudio. Third-party licenses are
   documented in `ASSET-LICENSES.md`.
-- Naming (2026-07): the product and repository are named `sql-grimoire` ("sql-wizard" and "sqlmancer" are taken). The
-  in-game world ("Duskharbor Coast") is narrative text that may change. The directory may still be named
-  `sql-rpg-prototype` — rename to `sql-grimoire` is pending.
 
 ## Markdown workflow
 
