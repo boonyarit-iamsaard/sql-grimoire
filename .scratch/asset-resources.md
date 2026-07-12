@@ -1,9 +1,9 @@
 # Asset resources — curated shortlist
 
-A working list of online sources for game assets, filtered for license clarity (the project
-has commercial ambitions, so `ASSET-LICENSES.md` discipline applies) and stylistic fit with
-the hand-drawn ledger look. Throwaway reference — delete once the useful entries have served
-their purpose.
+A working reference of online sources for game assets, filtered for license clarity (the project
+has commercial ambitions, so `ASSET-LICENSES.md` discipline applies) and stylistic fit with the
+hand-drawn ledger look. Before use, selected entries must be migrated into `ASSET-LICENSES.md` with
+their exact licensing details.
 
 ## 2D art and icons
 
