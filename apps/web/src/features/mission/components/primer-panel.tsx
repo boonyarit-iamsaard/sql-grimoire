@@ -1,4 +1,5 @@
 import { SqlCodeBlock } from "../../../shared/ui/sql-code-block";
+import { TextWithCode } from "../../../shared/ui/text-with-code";
 import type { Primer } from "../mission-types";
 
 /** The Mission's lesson, a collapsible section of the lesson pane so
@@ -17,7 +18,7 @@ export function PrimerPanel({ primer }: Readonly<{ primer: Primer }>) {
               {section.heading}
             </h3>
             <p className="my-0 text-[0.92rem] text-ctp-subtext1">
-              {section.body}
+              <TextWithCode text={section.body} />
             </p>
             {section.exampleSql && <SqlCodeBlock code={section.exampleSql} />}
           </section>

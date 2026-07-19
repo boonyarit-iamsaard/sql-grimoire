@@ -12,6 +12,7 @@ import {
   ResetIcon,
   WarningIcon,
 } from "../../shared/ui/icons";
+import { TextWithCode } from "../../shared/ui/text-with-code";
 import type { EvaluationResult } from "../../sql/evaluator";
 import type { QueryResult, TableInfo } from "../../sql/sql-runtime";
 import { SqliteRuntime } from "../../sql/sqlite-runtime";
@@ -228,7 +229,7 @@ function MissionAttemptScreen({
           <h1 className="mb-0.5 text-2xl">{mission.title}</h1>
           <p className="m-0 max-w-[80ch] text-ctp-subtext1">
             <strong className="text-ctp-yellow">Objective:</strong>{" "}
-            {mission.objective}
+            <TextWithCode text={mission.objective} />
           </p>
         </div>
         <Button
@@ -339,7 +340,7 @@ function MissionAttemptScreen({
                 <span className="mr-2 font-display text-ctp-peach not-italic">
                   Hint {hintIndex + 1}/{mission.challenge.hints.length}
                 </span>
-                {mission.challenge.hints[hintIndex]}
+                <TextWithCode text={mission.challenge.hints[hintIndex]} />
               </div>
             )}
 

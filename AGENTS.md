@@ -80,8 +80,9 @@ parallel agent work.
   `cn()` (`apps/web/src/lib/cn.ts`, clsx and tailwind-merge). Shared `Button` component in
   `apps/web/src/shared/ui/button.tsx` — its variant record intentionally mirrors `cva`; adopt
   `cva` only when a second variant axis, such as `size`, appears. Code surfaces use the `text-mono` token (14 pixels,
-  JetBrains Mono self-hosted via Fontsource). Residual CSS is only for CodeMirror internals
-  and the `prefers-reduced-motion` override.
+  JetBrains Mono self-hosted via Fontsource). Residual CSS is only for CodeMirror internals,
+  the View Transitions route crossfade, the native `<details>` expand, and the
+  `prefers-reduced-motion` override.
 - `optimizeDeps.include: ["sql.js"]` in `apps/web/vite.config.ts` is required because sql.js is CommonJS and
   the development-mode module worker fails to import it without prebundling. The production build works with or without prebundling.
 - Do not disable Run or Submit based on client-side SQL validity. SQLite determines validity, and

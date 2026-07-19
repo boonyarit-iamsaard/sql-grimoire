@@ -34,7 +34,7 @@ export function LandingScreen({
       {saved && (
         <button
           type="button"
-          className="mt-6.5 border-none bg-transparent text-[0.85rem] text-ctp-overlay2 underline hover:text-ctp-red"
+          className="mt-6.5 border-none bg-transparent text-[0.85rem] text-ctp-overlay2 underline transition-colors duration-150 hover:text-ctp-red"
           onClick={() => {
             if (
               window.confirm(

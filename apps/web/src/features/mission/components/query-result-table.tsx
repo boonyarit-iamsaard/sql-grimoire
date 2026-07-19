@@ -30,7 +30,7 @@ export function QueryResultTable({
   );
 
   return (
-    <div className="rounded-xl border-2 border-ctp-surface1 bg-ctp-base px-3.5 py-3 shadow-paper">
+    <div className="rounded-xl border-2 border-ctp-surface1 bg-ctp-base px-3.5 py-3 shadow-paper motion-safe:animate-fade-in">
       <h2 className="mb-2 text-base">
         Query Result{" "}
         <span className="ml-2 font-mono text-ctp-overlay2 text-xs">

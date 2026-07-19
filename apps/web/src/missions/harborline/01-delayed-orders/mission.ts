@@ -9,7 +9,7 @@ export const delayedOrders: Mission = {
   title: "Delayed Orders Piling Up",
   caseId: "harborline",
   objective:
-    "Find all delayed orders and return the order ID, customer name, and shipment status as columns order_id, customer_name, shipment_status.",
+    "Find all delayed orders and return the order ID, customer name, and shipment status as columns `order_id`, `customer_name`, `shipment_status`.",
 
   briefing: {
     reporter: "Priya Sharma",
@@ -28,19 +28,19 @@ export const delayedOrders: Mission = {
     sections: [
       {
         heading: "Reading one table",
-        body: "SELECT picks the columns, FROM names the table, and WHERE keeps only the rows that pass a condition. Strings are compared in single quotes.",
+        body: "`SELECT` picks the columns, `FROM` names the table, and `WHERE` keeps only the rows that pass a condition. Strings are compared in single quotes.",
         exampleSql:
           "SELECT name, city\nFROM customers\nWHERE city = 'Duskharbor';",
       },
       {
         heading: "Following a foreign key with INNER JOIN",
-        body: "An order row does not store the customer's name — it stores a customer_id pointing at the customers table. INNER JOIN stitches two tables together wherever the ON condition matches, and drops rows that have no match on the other side.",
+        body: "An order row does not store the customer's name — it stores a `customer_id` pointing at the `customers` table. `INNER JOIN` stitches two tables together wherever the `ON` condition matches, and drops rows that have no match on the other side.",
         exampleSql:
           "SELECT orders.id, customers.name\nFROM orders\nINNER JOIN customers ON orders.customer_id = customers.id;",
       },
       {
         heading: "Aliases name your output",
-        body: "AS renames an output column, and short table aliases keep multi-table queries readable. When a task asks for exact column names, AS is how you deliver them.",
+        body: "`AS` renames an output column, and short table aliases keep multi-table queries readable. When a task asks for exact column names, `AS` is how you deliver them.",
         exampleSql:
           "SELECT o.id AS order_id, c.name AS customer_name\nFROM orders AS o\nINNER JOIN customers AS c ON o.customer_id = c.id;",
       },
@@ -53,9 +53,9 @@ export const delayedOrders: Mission = {
     expectedColumns: ["order_id", "customer_name", "shipment_status"],
     referenceQuery: referenceSql.trim(),
     hints: [
-      "Start from the shipments table — you only care about rows WHERE status = 'delayed'.",
-      "shipments.order_id links to orders.id, and orders.customer_id links to customers.id. That's two INNER JOINs.",
-      "The output needs exact column names: use AS, e.g. o.id AS order_id, c.name AS customer_name, s.status AS shipment_status.",
+      "Start from the `shipments` table — you only care about rows `WHERE status = 'delayed'`.",
+      "`shipments.order_id` links to `orders.id`, and `orders.customer_id` links to `customers.id`. That's two `INNER JOIN`s.",
+      "The output needs exact column names: use `AS`, e.g. `o.id AS order_id`, `c.name AS customer_name`, `s.status AS shipment_status`.",
     ],
   },
 
@@ -67,7 +67,7 @@ export const delayedOrders: Mission = {
 
   explanation: {
     summary:
-      "The answer lives in three tables, so the query joins them along their foreign keys: shipments point at orders (shipments.order_id = orders.id) and orders point at customers (orders.customer_id = customers.id). INNER JOIN keeps only rows that match on both sides, the WHERE clause keeps only shipments whose status is 'delayed', and AS renames each output column to exactly what the ticket asked for.",
+      "The answer lives in three tables, so the query joins them along their foreign keys: `shipments` point at `orders` (`shipments.order_id = orders.id`) and `orders` point at `customers` (`orders.customer_id = customers.id`). `INNER JOIN` keeps only rows that match on both sides, the `WHERE` clause keeps only shipments whose `status` is `'delayed'`, and `AS` renames each output column to exactly what the ticket asked for.",
     concepts: [
       "SELECT",
       "Table aliases",
