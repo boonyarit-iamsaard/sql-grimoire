@@ -32,6 +32,19 @@ The durable record of a player's current Mission, earned XP, completed Missions,
 Grimoire entries. It is the authority for applying a Mission completion exactly once.
 _Avoid_: Save state, profile
 
+**State-graded Mission**:
+A Mission graded by the database state the player's submitted script leaves behind, verified by
+Probes, rather than by comparing one query's result set. Its submission is a script of one or
+more statements. Missions that are not state-graded are result-graded.
+_Avoid_: DDL mission, write mission
+
+**Probe**:
+One authored grading step for a State-graded Mission, run after the player's script replays on a
+fresh database. A Probe is either a query whose result must match the same Probe run after the
+reference script, or a statement that must fail. Probes judge what the database does, never the
+text or shape of the player's SQL.
+_Avoid_: Assertion, check, test case
+
 **Grimoire Entry**:
 The durable learning record produced by a completed Mission, containing the player's query, the
 reference query, concepts, and explanation.
