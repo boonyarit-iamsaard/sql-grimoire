@@ -1,25 +1,29 @@
 # SQL Grimoire
 
-> _Fill your spellbook. Master the database._
+> _Fill your grimoire. Master the database._
 
-SQL Grimoire is a browser-based SQL-learning RPG: an embedded database, result-graded challenges,
-and a narrative world where missions are production incidents framed as quests.
+SQL Grimoire is a browser-based SQL-learning game: an embedded database, result-graded
+challenges, and missions that are realistic production incidents at a fictional company.
 
-This repository contains a complete but unvalidated three-mission prototype, **The Guild Ledger
-Arc**, which takes approximately 30–45 minutes to play. The Arc begins with **The Missing
-Shipment**, continues through two progressively harder investigations, and leaves one map Location
-locked as a prompt for unmet demand. Playtesting has not yet started; the prototype exists to
-answer one question: _do playtesters finish the Arc wanting more?_
+This repository contains one complete three-mission Case, **The Vanishing Orders** at Harborline
+Trading Co., which takes approximately 30–45 minutes to play. The Case begins with **Delayed
+Orders Piling Up**, continues through two progressively harder investigations, and leaves one
+locked Case on the dashboard as a prompt for unmet demand. Each mission pairs an incident
+briefing with a Primer lesson beside the workbench, so the required concept is always at hand.
+The first playtest validated the core loop and retired an earlier fantasy-RPG framing
+(`docs/adr/0001-business-incident-framing.md`); the current question is whether testers outside
+the founder's circle finish the Case without leaving the platform for knowledge, and still ask
+what comes next.
 
 ## Screenshots
 
-![Title screen: SQL Grimoire, with the hook "A merchant guild's shipments are going missing"](docs/screenshots/title-screen.png)
+![Title screen: SQL Grimoire, with the hook "Customers have paid, but their orders never arrive"](docs/screenshots/title-screen.png)
 
-![The Duskharbor Coast world map, where completing the Merchant Guild unlocks the Inner Archives](docs/screenshots/world-map.png)
+![The Casebook dashboard: progress panel, the Vanishing Orders Case with missions unlocking in order, and a locked coming-soon Case](docs/screenshots/casebook.png)
 
-![Mission briefing: Merchant Odalia explains the missing shipments over portrait dialogue](docs/screenshots/mission-briefing.png)
+![Incident briefing: the support lead reports delayed orders in an escalated ticket](docs/screenshots/incident-briefing.png)
 
-![The Ledger Desk workbench: schema explorer, SQL editor, Run Query, hints, and submission](docs/screenshots/ledger-desk.png)
+![The workbench: Primer lesson and schema explorer beside the SQL editor, Run Query, hints, and submission](docs/screenshots/workbench.png)
 
 ## Running the application
 
@@ -73,10 +77,11 @@ Two tools are required beyond a checkout:
   Grimoire entries, and the last query. Progress survives a page refresh; selecting "Reset progress"
   on the landing page deletes the stored progress.
 - **The Grimoire** (`/grimoire`): every completed mission inscribes its query, the reference
-  solution, and the concepts learned — the player's growing spellbook.
-- **Data-driven campaign content** (`apps/web/src/missions/`): the current Arc contains three
-  Missions across the Merchant Guild and Inner Archives. Locations unlock from completed Mission
-  prerequisites; adding a Mission requires content and catalog registration, not a new route.
+  solution, and the concepts learned — the player's growing personal reference.
+- **Data-driven mission content** (`apps/web/src/missions/`): the current Case contains three
+  Missions sharing one schema. Missions unlock one by one within a Case, and a Case unlocks when
+  the previous Case is completed; adding a Mission requires content and catalog registration
+  (`apps/web/src/features/cases/case-catalog.ts`), not a new route.
 - **All art is hand-authored SVG** and both sounds are WebAudio-synthesized. Third-party assets
   (font, editor theme) are listed in [ASSET-LICENSES.md](ASSET-LICENSES.md).
 
@@ -99,8 +104,9 @@ The expected result contains four rows for orders 102, 105, 107, and 110.
 
 Observe the following behavior during a playtest:
 
-- Does the player read the dialogue or skip it, and does the narrative sustain the player's interest?
+- Does the player consult the Primer when a mission needs a concept they lack, or do they leave
+  the platform to search for it? Staying on the platform is the point of the Primer.
 - Do failure messages help the player proceed without revealing the answer?
-- After the first Mission, does the player find the newly unlocked Inner Archives without help?
-- After finishing the Arc and seeing the locked final Location, does the player ask what comes next?
-  This is the primary success metric.
+- After each Mission, does the player continue to the next one without help?
+- After finishing the Case and seeing the locked coming-soon Case, does the player ask what comes
+  next? This is the primary success metric.

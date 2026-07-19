@@ -9,19 +9,19 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as MapRouteImport } from './routes/map'
 import { Route as GrimoireRouteImport } from './routes/grimoire'
+import { Route as CasesRouteImport } from './routes/cases'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as MissionMissionIdRouteImport } from './routes/mission.$missionId'
 
-const MapRoute = MapRouteImport.update({
-  id: '/map',
-  path: '/map',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const GrimoireRoute = GrimoireRouteImport.update({
   id: '/grimoire',
   path: '/grimoire',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CasesRoute = CasesRouteImport.update({
+  id: '/cases',
+  path: '/cases',
   getParentRoute: () => rootRouteImport,
 } as any)
 const IndexRoute = IndexRouteImport.update({
@@ -37,52 +37,52 @@ const MissionMissionIdRoute = MissionMissionIdRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/cases': typeof CasesRoute
   '/grimoire': typeof GrimoireRoute
-  '/map': typeof MapRoute
   '/mission/$missionId': typeof MissionMissionIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/cases': typeof CasesRoute
   '/grimoire': typeof GrimoireRoute
-  '/map': typeof MapRoute
   '/mission/$missionId': typeof MissionMissionIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/cases': typeof CasesRoute
   '/grimoire': typeof GrimoireRoute
-  '/map': typeof MapRoute
   '/mission/$missionId': typeof MissionMissionIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/grimoire' | '/map' | '/mission/$missionId'
+  fullPaths: '/' | '/cases' | '/grimoire' | '/mission/$missionId'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/grimoire' | '/map' | '/mission/$missionId'
-  id: '__root__' | '/' | '/grimoire' | '/map' | '/mission/$missionId'
+  to: '/' | '/cases' | '/grimoire' | '/mission/$missionId'
+  id: '__root__' | '/' | '/cases' | '/grimoire' | '/mission/$missionId'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  CasesRoute: typeof CasesRoute
   GrimoireRoute: typeof GrimoireRoute
-  MapRoute: typeof MapRoute
   MissionMissionIdRoute: typeof MissionMissionIdRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/map': {
-      id: '/map'
-      path: '/map'
-      fullPath: '/map'
-      preLoaderRoute: typeof MapRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/grimoire': {
       id: '/grimoire'
       path: '/grimoire'
       fullPath: '/grimoire'
       preLoaderRoute: typeof GrimoireRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/cases': {
+      id: '/cases'
+      path: '/cases'
+      fullPath: '/cases'
+      preLoaderRoute: typeof CasesRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/': {
@@ -104,8 +104,8 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  CasesRoute: CasesRoute,
   GrimoireRoute: GrimoireRoute,
-  MapRoute: MapRoute,
   MissionMissionIdRoute: MissionMissionIdRoute,
 }
 export const routeTree = rootRouteImport

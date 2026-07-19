@@ -12,7 +12,7 @@ function MissionRoute() {
   return (
     <MissionScreen
       missionId={missionId}
-      onBack={() => navigate({ to: "/map" })}
+      onBack={() => navigate({ to: "/cases" })}
       onOpenMission={(nextMissionId) =>
         navigate({
           to: "/mission/$missionId",

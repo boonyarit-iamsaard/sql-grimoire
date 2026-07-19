@@ -21,14 +21,14 @@ export function GrimoireScreen({ onBack }: Readonly<GrimoireScreenProps>) {
             onBack();
           }}
         >
-          ← Back to Map
+          ← Back to the Casebook
         </Button>
       </div>
 
       {progress.grimoireEntries.length === 0 && (
         <p className="py-15 text-center text-ctp-subtext0 italic">
-          The pages are blank. Complete a mission and its spell will be
-          inscribed here.
+          The pages are blank. Solve a mission and its record will be inscribed
+          here.
         </p>
       )}
 

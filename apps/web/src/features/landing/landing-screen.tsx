@@ -3,16 +3,18 @@ import { Button } from "../../shared/ui/button";
 import { usePlayerProgress } from "../progress/progress-store";
 
 interface LandingScreenProps {
-  onOpenMap: () => void;
+  onOpenCasebook: () => void;
 }
 
-export function LandingScreen({ onOpenMap }: Readonly<LandingScreenProps>) {
+export function LandingScreen({
+  onOpenCasebook,
+}: Readonly<LandingScreenProps>) {
   const progress = usePlayerProgress();
   const saved = progress.hasSavedProgress();
 
-  function openMap() {
+  function openCasebook() {
     playClick();
-    onOpenMap();
+    onOpenCasebook();
   }
 
   return (
@@ -21,14 +23,13 @@ export function LandingScreen({ onOpenMap }: Readonly<LandingScreenProps>) {
         SQL Grimoire
       </h1>
       <p className="max-w-[46ch] text-[1.15rem] text-ctp-subtext0 italic">
-        A merchant guild's shipments are going missing — open your grimoire,
-        sharpen your query-craft, and find out why.
+        Customers have paid, but their orders never arrive. Open the casebook,
+        work the company's own database, and find out why — one query at a time.
       </p>
       <div className="mt-2.5 flex gap-3.5">
-        <Button variant="primary" onClick={openMap}>
-          {saved ? "New Game" : "Start Game"}
+        <Button variant="primary" onClick={openCasebook}>
+          {saved ? "Continue" : "Open the Casebook"}
         </Button>
-        {saved && <Button onClick={openMap}>Continue</Button>}
       </div>
       {saved && (
         <button
@@ -37,7 +38,7 @@ export function LandingScreen({ onOpenMap }: Readonly<LandingScreenProps>) {
           onClick={() => {
             if (
               window.confirm(
-                "Erase all XP, journal entries, and mission progress?",
+                "Erase all XP, grimoire entries, and mission progress?",
               )
             ) {
               progress.reset();

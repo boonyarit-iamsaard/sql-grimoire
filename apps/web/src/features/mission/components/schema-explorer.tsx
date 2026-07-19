@@ -9,11 +9,11 @@ export function SchemaExplorer({ tables }: Readonly<SchemaExplorerProps>) {
   return (
     <aside className="rounded-xl border-2 border-ctp-surface1 bg-ctp-base p-3.5 shadow-paper">
       <h2 className="mb-2.5 flex items-center gap-1.5 text-[1.05rem]">
-        <ScrollIcon /> Guild Ledger Schema
+        <ScrollIcon /> Database Schema
       </h2>
       {tables.length === 0 && (
         <p className="px-1 py-2 text-ctp-subtext0 italic">
-          Opening the ledger…
+          Opening the database…
         </p>
       )}
       {tables.map((table) => (

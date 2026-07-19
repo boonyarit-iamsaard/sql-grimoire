@@ -83,11 +83,15 @@
   }
 
   body {
+    /* The gradient tile is one viewport tall (body is height: 100%); without
+       no-repeat it restarts on taller pages, drawing a visible seam. The
+       gradient ends in crust, so the crust fallback continues it seamlessly. */
     background: radial-gradient(
-      ellipse at 50% -20%,
-      var(--color-ctp-surface0) 0%,
-      var(--color-ctp-crust) 65%
-    );
+        ellipse at 50% -20%,
+        var(--color-ctp-surface0) 0%,
+        var(--color-ctp-crust) 65%
+      )
+      no-repeat var(--color-ctp-crust);
     color: var(--color-ctp-text);
     font-family: var(--font-body);
     line-height: 1.5;

@@ -86,14 +86,14 @@ export function MissionFeedback({
     return (
       <FeedbackShell onDismiss={onReturnToEditor}>
         <h2 id={headingId} className="text-[1.6rem] text-ctp-red">
-          Not quite, record-keeper…
+          Not quite yet…
         </h2>
         <div className="font-mono text-ctp-maroon text-xs uppercase tracking-[0.08em]">
           {evaluation.reason.replaceAll("_", " ")}
         </div>
         <p>{evaluation.message}</p>
         <h3 className={sectionHeadingClasses}>
-          The guild expects these columns
+          The mission expects these columns
         </h3>
         <pre className={preClasses}>
           {mission.challenge.expectedColumns.join(", ")}
@@ -107,7 +107,7 @@ export function MissionFeedback({
               onReturnToEditor();
             }}
           >
-            Back to the Ledger Desk
+            Back to the Workbench
           </Button>
         </div>
       </FeedbackShell>
@@ -167,7 +167,7 @@ export function MissionFeedback({
                 onReturnToMap();
               }}
             >
-              Return to Map
+              Back to the Casebook
             </Button>
           </>
         ) : (
@@ -179,7 +179,7 @@ export function MissionFeedback({
               onReturnToMap();
             }}
           >
-            Return to Map
+            Back to the Casebook
           </Button>
         )}
       </div>

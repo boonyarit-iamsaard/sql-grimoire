@@ -1,15 +1,15 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { WorldMapScreen } from "../features/campaign/world-map-screen";
+import { CaseDashboardScreen } from "../features/cases/case-dashboard-screen";
 
-export const Route = createFileRoute("/map")({
-  component: MapRoute,
+export const Route = createFileRoute("/cases")({
+  component: CasesRoute,
 });
 
-function MapRoute() {
+function CasesRoute() {
   const navigate = Route.useNavigate();
 
   return (
-    <WorldMapScreen
+    <CaseDashboardScreen
       onOpenGrimoire={() => navigate({ to: "/grimoire" })}
       onOpenMission={(missionId) =>
         navigate({ to: "/mission/$missionId", params: { missionId } })

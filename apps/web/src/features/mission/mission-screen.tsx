@@ -15,10 +15,11 @@ import {
 import type { EvaluationResult } from "../../sql/evaluator";
 import type { QueryResult, TableInfo } from "../../sql/sql-runtime";
 import { SqliteRuntime } from "../../sql/sqlite-runtime";
-import { campaignCatalog } from "../campaign/campaign-catalog";
+import { caseCatalog } from "../cases/case-catalog";
 import { playerProgress } from "../progress/progress-store";
-import { DialogueBox } from "./components/dialogue-box";
+import { IncidentReport } from "./components/incident-report";
 import { MissionFeedback } from "./components/mission-feedback";
+import { PrimerPanel } from "./components/primer-panel";
 import { QueryResultTable } from "./components/query-result-table";
 import { SchemaExplorer } from "./components/schema-explorer";
 import { SqlEditor } from "./components/sql-editor";
@@ -49,17 +50,17 @@ interface MissionScreenProps {
   onOpenMission: (missionId: string) => void;
 }
 
-/** The next uncompleted Mission at the same Location, if any — computed after
+/** The next uncompleted Mission in the same Case, if any — computed after
  *  completion has been applied to Player Progress, so a just-finished Mission
  *  never nominates itself. */
-function nextMissionAt(locationId: string): Mission | null {
-  const location = campaignCatalog
-    .getLocations((missionId) => playerProgress.isMissionCompleted(missionId))
-    .find((candidate) => candidate.id === locationId);
-  if (location?.state !== "available" || !location.nextMissionId) {
+function nextMissionIn(caseId: string): Mission | null {
+  const caseView = caseCatalog
+    .getCases((missionId) => playerProgress.isMissionCompleted(missionId))
+    .find((candidate) => candidate.id === caseId);
+  if (caseView?.state !== "available" || !caseView.nextMissionId) {
     return null;
   }
-  return campaignCatalog.getMission(location.nextMissionId) ?? null;
+  return caseCatalog.getMission(caseView.nextMissionId) ?? null;
 }
 
 export function MissionScreen({
@@ -67,13 +68,13 @@ export function MissionScreen({
   onBack,
   onOpenMission,
 }: Readonly<MissionScreenProps>) {
-  const mission = campaignCatalog.getMission(missionId);
+  const mission = caseCatalog.getMission(missionId);
 
   if (!mission) {
     return (
       <div className={briefingClasses}>
         <h1>Unknown mission</h1>
-        <Button onClick={onBack}>Back to Map</Button>
+        <Button onClick={onBack}>Back to the Casebook</Button>
       </div>
     );
   }
@@ -200,7 +201,7 @@ function MissionAttemptScreen({
     }
     if (
       !window.confirm(
-        "Reset the guild database to its original seeded state? Anything you've changed will be undone.",
+        "Reset the case database to its original seeded state? Anything you've changed will be undone.",
       )
     ) {
       return;
@@ -221,9 +222,9 @@ function MissionAttemptScreen({
     return (
       <div className={briefingClasses}>
         <h1 className="m-0 text-[2rem]">{mission.title}</h1>
-        <DialogueBox
-          lines={mission.dialogue}
-          finishLabel="Begin Investigation"
+        <IncidentReport
+          briefing={mission.briefing}
+          finishLabel="Open the Workbench"
           onFinished={() => setPhase("workbench")}
         />
         <div className="w-[min(720px,100%)] rounded-xl border-2 border-ctp-surface1 bg-ctp-base px-5 py-3.5 text-base text-ctp-text shadow-paper">
@@ -242,7 +243,7 @@ function MissionAttemptScreen({
     <div className="mx-auto max-w-7xl px-5 pt-4 pb-8">
       <header className="mb-3 flex items-start justify-between gap-4">
         <div>
-          <h1 className="mb-0.5 text-2xl">{mission.title} — Ledger Desk</h1>
+          <h1 className="mb-0.5 text-2xl">{mission.title} — Workbench</h1>
           <p className="m-0 max-w-[72ch] text-ctp-subtext1">
             <strong className="text-ctp-yellow">Objective:</strong>{" "}
             {mission.objective}
@@ -255,12 +256,15 @@ function MissionAttemptScreen({
             onBack();
           }}
         >
-          ← Map
+          ← Casebook
         </Button>
       </header>
 
-      <div className="grid grid-cols-[250px_1fr] items-start gap-3.5 max-[1100px]:grid-cols-[210px_1fr] max-[720px]:grid-cols-1">
-        <SchemaExplorer tables={tables} />
+      <div className="grid grid-cols-[300px_1fr] items-start gap-3.5 max-[1100px]:grid-cols-[250px_1fr] max-[720px]:grid-cols-1">
+        <div className="flex min-w-0 flex-col gap-3">
+          <PrimerPanel primer={mission.primer} />
+          <SchemaExplorer tables={tables} />
+        </div>
 
         <div className="flex min-w-0 flex-col gap-3">
           <div className="overflow-hidden rounded-xl border-2 border-ctp-surface1 bg-ctp-base shadow-paper">
@@ -330,7 +334,7 @@ function MissionAttemptScreen({
           {initError && (
             <div className={errorCardClasses}>
               <WarningIcon className="mt-0.5 shrink-0" />
-              <span>The guild database failed to open: {initError}</span>
+              <span>The case database failed to open: {initError}</span>
             </div>
           )}
 
@@ -373,9 +377,7 @@ function MissionAttemptScreen({
           playerQuery={query}
           onReturnToEditor={() => setEvaluation(null)}
           onReturnToMap={onBack}
-          nextMission={
-            evaluation.passed ? nextMissionAt(mission.locationId) : null
-          }
+          nextMission={evaluation.passed ? nextMissionIn(mission.caseId) : null}
           onOpenMission={onOpenMission}
         />
       )}
