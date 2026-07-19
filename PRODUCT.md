@@ -22,9 +22,10 @@ companies, grouped into Cases and paired with Primer lessons beside the workbenc
 one-Case prototype whose core loop passed its first playtest; the long-term goal is a
 commercially viable database-mastery platform for individual developers. Team, bootcamp, and
 company sales are a possible later expansion, considered only if individual traction proves out.
-Success for the current slice is a playtester outside the founder's circle completing the Case
-unassisted — hints and Primers allowed, leaving the platform not required — and expressing
-interest in the next Case.
+Success for the current slice is a cold-to-the-product playtester — someone who has never seen
+the project, uses SQL regularly, and owes the founder nothing — completing the Case unassisted:
+hints and Primers allowed, leaving the platform not required, and expressing interest in the
+next Case (`VISION.md`, second note dated 2026-07-19).
 
 ## Brand Personality
 

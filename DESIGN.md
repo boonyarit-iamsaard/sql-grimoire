@@ -1,6 +1,6 @@
 ---
 name: SQL Grimoire
-description: A browser-based SQL-learning RPG — a candlelit ledger desk where production incidents become quests.
+description: A browser-based SQL-learning game — a candlelit investigator's desk where production incidents become Cases.
 colors:
   ink-base: "#24273a"
   ink-mantle: "#1e2030"
@@ -148,7 +148,8 @@ result grid, and the schema are always the primary surface; narrative and reward
 then step back into the candlelight.
 
 The system rejects the four failure modes named in the product brief. It is **not** a corporate
-learning-management console (no course-card grids, no progress percentages, no certificates). It is
+learning-management console (no certificates, no streak calendars, no course-catalog marketing
+cards — the Casebook shows progress as solved Missions and earned XP, nothing more). It is
 **not** superficial gamification (no streaks, no confetti, no persistent mascot). It is **not** a
 generic software-as-a-service dashboard (no left sidebar of icons, no statistic cards, no default
 administrative dark template). And it is **not** grimdark fantasy (no skulls, no blood-red, no
@@ -184,8 +185,9 @@ accents. All tokens map to the project's `--color-ctp-*` custom properties defin
 
 ### Secondary
 
-- **Ember Peach** (`#f5a97f`, `--color-ctp-peach`): the mentor's voice. Speaker names in dialogue,
-  the active dialogue-progress dot, hint labels, and completed-mission titles in the Grimoire.
+- **Ember Peach** (`#f5a97f`, `--color-ctp-peach`): the mentor's voice. Hint text and its card
+  border, Primer section headings, the company eyebrow on Case cards, the current-Case name in the
+  progress panel, and completed-mission titles in the Grimoire.
 
 ### Tertiary
 
@@ -201,9 +203,9 @@ accents. All tokens map to the project's `--color-ctp-*` custom properties defin
 - **Ink Crust** (`#181926`, `--color-ctp-crust`): the deepest tone — the outer edge of the page
   background gradient, and the dark text printed on gold and green surfaces.
 - **Slate Raised** (`#363a4f`, `--color-ctp-surface0`): the lit top stop of raised gradients
-  (default button, dialogue card) and the sticky table-header fill.
+  (default button, manuscript cards) and the sticky table-header fill.
 - **Slate Border / Slate Edge** (`#494d64` / `#5b6078`, `surface1` / `surface2`): the standard 2–3px
-  card borders and hairline dividers; Slate Edge also draws dialogue dots and map-label rings.
+  card borders and hairline dividers.
 - **Parchment Text** (`#cad3f5`, `--color-ctp-text`): default body and data text.
 - **Parchment Dim / Dimmer** (`#b8c0e0` / `#a5adcb`, `subtext1` / `subtext0`): secondary prose and
   italic flavor lines.
@@ -213,7 +215,7 @@ accents. All tokens map to the project's `--color-ctp-*` custom properties defin
 ### Signal colors
 
 - **Seal Green** (`#a6da95`, `--color-ctp-green`): success only — the "Mission Complete" heading and
-  the "✓ Done" map badge.
+  the completed mission-number circle in the Casebook's mission list.
 - **Warning Red / Maroon** (`#ed8796` / `#ee99a0`, `red` / `maroon`): SQL errors, the danger button
   (Reset Database), the failed-submission heading, and the uppercase failure-reason label.
 
@@ -244,12 +246,12 @@ one side is the study, the other is the terminal.
 - **Display** (Georgia 400, `clamp(2.6rem, 6vw, 4.2rem)`, line-height 1.1, tracking 0.06em): the
   landing title only, with a hard drop-shadow (`0 3px 0 rgba(12,12,22,0.55)`). The single fluid
   heading in the system; everything else is fixed.
-- **Headline** (Georgia 400, 2rem): mission and page `h1` titles ("The Duskharbor Coast", mission
-  title — Ledger Desk).
+- **Headline** (Georgia 400, 2rem): mission and page `h1` titles ("Casebook", the Mission title in
+  the workbench top bar).
 - **Title** (Georgia 400, 1.5rem / 1.17rem for `h3`): in-card headings and the result-table `h2`.
 - **Body** (Segoe UI 400, 1rem, line-height 1.5): prose, objectives, explanations. Cap prose at
   65–75ch (the mission objective already holds a 72ch max).
-- **Label** (Georgia 400, 1rem, tracking 0.04em): all button labels, XP badges, and speaker names.
+- **Label** (Georgia 400, 1rem, tracking 0.04em): all button labels and XP badges.
 - **Mono** (JetBrains Mono 400, 14px): every code and data surface — the SQL editor, result grids,
   schema explorer, concept chips, code blocks, and inline row/duration meta.
 
@@ -276,13 +278,13 @@ catch the light.
 ### Shadow Vocabulary
 
 - **Paper** (`box-shadow: 0 6px 24px rgba(12, 12, 22, 0.5)`, token `--shadow-paper`): the default
-  resting elevation for every card, panel, editor shell, result table, and map frame.
+  resting elevation for every card, panel, editor shell, and result table.
 - **Press Edge** (`box-shadow: 0 2px 0 <edge-color>, var(--shadow-paper)`): buttons stack a 2px solid
   bottom edge in their own darker hue on top of the paper shadow. On `:active` the edge goes to
   `0 0 0`, dropping the button 1px — the tactile "press."
 - **Modal Lift** (`box-shadow: inset 0 0 0 1px rgba(255,255,255,0.04), 0 20px 60px rgba(0,0,0,0.6)`):
-  the mission-feedback and dialogue cards — a deep drop for separation plus an inset top highlight
-  reading as candlelight on a raised edge.
+  the mission-feedback modal — a deep drop for separation plus an inset top highlight reading as
+  candlelight on a raised edge.
 
 ### Named Rules
 
@@ -303,13 +305,14 @@ feature components.
 - **Shape:** gently rounded (8px, `rounded-lg`), 2px border, padding `10px 22px`, Georgia label at
   tracking 0.04em.
 - **Default:** vertical slate gradient (Slate Raised → Ink Base), Parchment Text, Slate Edge border,
-  Press Edge shadow. The neutral action (Continue, Submit Answer, Next).
+  Press Edge shadow. The neutral action (Submit Answer, Back to the Casebook).
 - **Primary:** vertical gold gradient (Candle Gold Highlight → Candle Gold) with Ink Crust text and a
-  gold border/edge. The one emphasized action per surface (Start Game, Run Query, Return to Map).
+  gold border/edge. The one emphasized action per surface (Open the Casebook, Run Query, Start or
+  Continue on a Case card, Next Mission).
 - **Danger:** vertical red gradient (Warning Red Highlight → Warning Red) with Ink Crust text. Reset
   Database only.
 - **Ghost:** transparent, Slate Edge border, Parchment Dim text, no shadow. Low-emphasis navigation
-  (← Map, Grimoire, Format, Hint).
+  and tools (Grimoire, Format, Hint).
 - **Hover / Active / Disabled:** hover brightens 110% and lifts 1px (motion-safe); active drops 1px
   and flattens the press edge; disabled drops to 45% opacity with `not-allowed` cursor. Transitions
   run 120ms over transform, box-shadow, and filter.
@@ -327,12 +330,11 @@ candle.
 ### Cards / Containers
 
 - **Corner Style:** 12px (`rounded-xl`) for standard panels — schema explorer, result table, hint,
-  objective, editor shell; 14px for the dialogue and Grimoire "manuscript" cards; 16px for the
-  feedback modal.
+  objective, editor shell; 14px for the Grimoire "manuscript" cards; 16px for the feedback modal.
 - **Background:** Ink Base for standard cards; a Slate Raised → Ink Base gradient for the elevated
-  "manuscript" cards (dialogue, feedback, Grimoire entries).
+  "manuscript" cards (feedback modal, Grimoire entries).
 - **Border:** 2px Slate Border (standard) or 3px Slate Edge (elevated manuscript cards).
-- **Shadow Strategy:** Paper at rest; Modal Lift for the feedback and dialogue cards. See Elevation.
+- **Shadow Strategy:** Paper at rest; Modal Lift for the feedback modal. See Elevation.
 - **Internal Padding:** ~14px standard panels; 22–30px for manuscript cards and the modal.
 
 ### Inputs / Editor
@@ -349,11 +351,12 @@ candle.
 
 - **Concept chip:** pill (`rounded-full`), Slate Border fill, 1px Muted-Deep border, JetBrains Mono
   12px. Lists the SQL concepts a completed mission taught.
-- **XP pill:** pill, Ink Base fill, 2px Slate Border, gold serif label with the XP icon — the persistent
-  progress readout in the map header.
+- **XP readout:** gold serif figure with the XP icon in the Casebook's progress panel, above a slim
+  gold progress bar of solved Missions.
 - **XP reward badge:** pill with a **dashed** Candle Gold border on Ink Mantle, 1.3rem gold serif —
   the earned-XP moment in the feedback modal. Dashed border signals "an inscription," not a metric.
-- **Map "✓ Done" badge:** small green pill, Ink Crust text, slightly rotated, pinned to a location.
+- **Solved-count pill:** pill, Ink Mantle fill, 1px Slate Edge border, mono "n / m solved" on each
+  Case card; the mission-number circle beside a completed Mission turns Seal Green.
 
 ### Tables (Result Grid)
 
@@ -366,18 +369,18 @@ candle.
 
 ### Navigation
 
-- Top-bar only: an `h1` on the left, ghost buttons and the XP pill on the right. No persistent side
-  navigation anywhere. The world map is the spatial navigation — hand-authored SVG location spots
-  that scale 110% and rotate slightly on hover (motion-safe), each with a pill label.
+- Top-bar only: an `h1` on the left, ghost buttons on the right. No persistent side navigation
+  anywhere. The Casebook dashboard is the hub: a progress panel beside a column of Case cards, each
+  listing its Missions as numbered rows with one Start / Continue action on the next unlocked
+  Mission. Locked Cases render dimmed with a coming-soon note.
 
-### Signature Component: The Dialogue Box
+### Signature Component: The Split Mission Workbench
 
-The narrative frame and the clearest expression of the North Star: a `min(720px, 100%)` manuscript
-card (Slate Raised → Ink Base gradient, 3px Slate Edge border, Modal Lift shadow) laid out as a
-150px portrait beside speaker name (Ember Peach serif) and text. A row of dots tracks progress — the
-current line's dot is Ember Peach, the rest Slate Edge — and a single Next / finish button advances
-it. The portrait pops in with a `portrait-pop` scale animation (motion-safe). This is how story
-frames the work and then steps back.
+The clearest expression of the North Star: the Mission screen splits into a lesson pane and a
+workbench. The lesson pane holds the incident briefing — the business problem in the company's
+voice — and the Primer, its section headings struck in Ember Peach serif. The workbench holds the
+SQL editor, the result grid, and the schema explorer, always the primary surface. The story is the
+incident itself; it frames the work from its own pane and never interrupts the query loop.
 
 ## 6. Do's and Don'ts
 
@@ -398,15 +401,15 @@ frames the work and then steps back.
 - **Do** show SQLite's raw error verbatim in the red error card (`whitespace-pre-wrap`, mono, shake
   animation). The error message is the mentor.
 - **Do** provide a `motion-safe:` gate and a reduced-motion alternative for every animation
-  (page-fade, fade-in/out, portrait-pop, shake, card-rise/settle, and the route crossfade via the
-  View Transitions API); motion must convey state, never decorate.
+  (page-fade, fade-in/out, shake, card-rise/settle, and the route crossfade via the View
+  Transitions API); motion must convey state, never decorate.
 - **Do** verify body/label text hits ≥4.5:1 against Ink Base; if a gray is even close, move it up the
   Parchment ramp toward `#cad3f5`.
 
 ### Don't
 
-- **Don't** build course-card grids, progress percentages, or certificates. This is not a corporate
-  learning-management system.
+- **Don't** build certificates, streak calendars, or course-catalog marketing cards. This is not a
+  corporate learning-management system; progress is solved Missions and earned XP, nothing more.
 - **Don't** add streaks, confetti, celebratory bursts, or a persistent mascot. Rewards are earned and
   quiet — the dashed gold XP badge and a calm "Mission Complete," nothing more.
 - **Don't** introduce a left icon sidebar, statistic cards, charts, or a default administrative dark
