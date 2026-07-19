@@ -35,11 +35,35 @@
 
   --shadow-paper: 0 6px 24px rgba(12, 12, 22, 0.5);
 
-  --animate-page-fade: page-fade 0.45s ease-out;
+  /* Full-route entry stays opacity-only: translating a viewport-height route
+     briefly creates vertical overflow and makes native scrollbars shift it.
+     Route-fade is the fallback for browsers without the View Transitions API;
+     the primary cross-route motion is the ::view-transition crossfade below. */
+  --animate-route-fade: route-fade 0.2s cubic-bezier(0.25, 1, 0.5, 1);
+  --animate-page-fade: page-fade 0.3s cubic-bezier(0.25, 1, 0.5, 1);
+  --animate-fade-in: fade-in 0.3s cubic-bezier(0.25, 1, 0.5, 1);
+  --animate-fade-out: fade-out 0.18s cubic-bezier(0.25, 1, 0.5, 1) forwards;
   --animate-portrait-pop: portrait-pop 0.25s ease-out;
   --animate-shake: shake 0.3s ease-out;
-  --animate-card-rise: card-rise 0.35s cubic-bezier(0.2, 0.9, 0.3, 1.2);
+  --animate-card-rise: card-rise 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+  --animate-card-settle: card-settle 0.18s cubic-bezier(0.25, 1, 0.5, 1)
+    forwards;
 
+  @keyframes route-fade {
+    from {
+      opacity: 0;
+    }
+  }
+  @keyframes fade-in {
+    from {
+      opacity: 0;
+    }
+  }
+  @keyframes fade-out {
+    to {
+      opacity: 0;
+    }
+  }
   @keyframes page-fade {
     from {
       opacity: 0;
@@ -73,6 +97,12 @@
       opacity: 0;
     }
   }
+  @keyframes card-settle {
+    to {
+      transform: translateY(10px) scale(0.98);
+      opacity: 0;
+    }
+  }
 }
 
 @layer base {
@@ -82,12 +112,22 @@
     height: 100%;
   }
 
+  /* Lets transitions animate to/from `auto` sizes (the Primer's <details>
+     expand below). Opt-in and inert everywhere else. */
+  :root {
+    interpolate-size: allow-keywords;
+  }
+
   body {
+    /* The gradient tile is one viewport tall (body is height: 100%); without
+       no-repeat it restarts on taller pages, drawing a visible seam. The
+       gradient ends in crust, so the crust fallback continues it seamlessly. */
     background: radial-gradient(
-      ellipse at 50% -20%,
-      var(--color-ctp-surface0) 0%,
-      var(--color-ctp-crust) 65%
-    );
+        ellipse at 50% -20%,
+        var(--color-ctp-surface0) 0%,
+        var(--color-ctp-crust) 65%
+      )
+      no-repeat var(--color-ctp-crust);
     color: var(--color-ctp-text);
     font-family: var(--font-body);
     line-height: 1.5;
@@ -117,6 +157,14 @@
     font-family: inherit;
     cursor: pointer;
   }
+
+  /* Scrollbars follow the theme: thin and surface-toned on a transparent
+     track, so panes scroll without a bright OS-default bar cutting the dark
+     surface. Color theming only — native behavior stays untouched. */
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: var(--color-ctp-surface2) transparent;
+  }
 }
 
 /* CodeMirror internals — third-party DOM we can't reach with utilities. */
@@ -128,5 +176,56 @@
   font-family: var(--font-mono);
 }
 
+/* Route crossfade via the View Transitions API (enabled with
+   defaultViewTransition on the router). Snapshots live in a fixed top-layer
+   overlay, so this crossfades old and new pages with no blank frame and no
+   scrollbar shift. Opacity-only: translating the root snapshot would visibly
+   nudge the page-background glow. Browsers without support fall back to the
+   route-fade entry animation in __root.tsx. */
+::view-transition-old(root) {
+  animation: 150ms cubic-bezier(0.25, 1, 0.5, 1) both vt-fade-out;
+}
+::view-transition-new(root) {
+  animation: 280ms cubic-bezier(0.25, 1, 0.5, 1) both vt-fade-in;
+}
+@keyframes vt-fade-out {
+  to {
+    opacity: 0;
+  }
+}
+@keyframes vt-fade-in {
+  from {
+    opacity: 0;
+  }
+}
+
+/* Native <details> internals — the Primer's collapse animates open and shut.
+   ::details-content is unreachable with utilities; browsers without support
+   keep the instant toggle. */
+@media (prefers-reduced-motion: no-preference) {
+  details::details-content {
+    block-size: 0;
+    overflow-y: clip;
+    transition:
+      content-visibility 0.3s allow-discrete,
+      block-size 0.3s cubic-bezier(0.25, 1, 0.5, 1);
+  }
+  details[open]::details-content {
+    block-size: auto;
+  }
+}
+
 /* Reduced motion is handled per-site with Tailwind's motion-safe: variant —
-   every animate-* and transform-on-hover utility is gated at its use site. */
+   every animate-* and transform-on-hover utility is gated at its use site.
+   The view-transition pseudos above are the exception: they have no use
+   site, so they are disabled here. The (root) selectors repeat the crossfade
+   rules' specificity so this later block wins without !important. */
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-group(*),
+  ::view-transition-old(root),
+  ::view-transition-new(root),
+  ::view-transition-old(*),
+  ::view-transition-new(*) {
+    animation: none;
+  }
+}

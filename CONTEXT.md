@@ -1,31 +1,38 @@
 # SQL Grimoire
 
-SQL Grimoire frames database-reasoning exercises as narrative investigations in a persistent learning world.
+SQL Grimoire frames database-reasoning exercises as realistic business incidents, grouped into
+Cases that a learner works through in order.
 
 ## Language
 
 **Mission**:
-A narrative database incident with its own data, objective, grading rules, guidance, reward, and explanation.
-_Avoid_: Challenge, exercise, level
+A realistic database incident with its own objective, grading rules, guidance, reward, and
+explanation, solved against its Case's schema.
+_Avoid_: Challenge, exercise, level, quest
 
-**Arc**:
-An ordered sequence of Missions that tells one continuous story and carries one curriculum
-thread, with stakes and difficulty escalating across it. A Mission is the unit of play; an Arc
-is the unit of progression.
-_Avoid_: Campaign, chapter, season, level pack
+**Case**:
+One business problem: a fictional company or system, one schema, and an ordered set of Missions
+that unlock one by one. A Mission is the unit of play; a Case is the unit of progression.
+_Replaces_: Arc, Location (the fantasy campaign map is retired)
+_Avoid_: Campaign, chapter, arc, course, level pack
 
-**Location**:
-A place in the narrative world that appears on the campaign map and may offer zero or more Missions. A locked Location can exist before its Missions do.
-_Avoid_: Map spot, mission marker
+**Primer**:
+The short authored lesson attached to a Mission that teaches the concept the Mission requires,
+with examples runnable against the Case's schema. Read before or during the attempt; optional for
+learners who already know the concept.
+_Avoid_: Lesson, tutorial, theory section
 
 **Mission Attempt**:
-A player's transient investigation of one Mission, including their current query, results, hints, and verdict. Only the current Mission and last query are durable across refreshes.
+A player's transient investigation of one Mission, including their current query, results, hints,
+and verdict. Only the current Mission and last query are durable across refreshes.
 _Avoid_: Session, run, workbench state
 
 **Player Progress**:
-The durable record of a player's current Mission, earned XP, completed Missions, last queries, and Grimoire entries. It is the authority for applying a Mission completion exactly once.
+The durable record of a player's current Mission, earned XP, completed Missions, last queries, and
+Grimoire entries. It is the authority for applying a Mission completion exactly once.
 _Avoid_: Save state, profile
 
 **Grimoire Entry**:
-The durable learning record produced by a completed Mission, containing the player's query, the reference query, concepts, and explanation.
+The durable learning record produced by a completed Mission, containing the player's query, the
+reference query, concepts, and explanation.
 _Avoid_: Journal entry, completion record

@@ -8,5 +8,5 @@ export const Route = createFileRoute("/grimoire")({
 function GrimoireRoute() {
   const navigate = Route.useNavigate();
 
-  return <GrimoireScreen onBack={() => navigate({ to: "/map" })} />;
+  return <GrimoireScreen onBack={() => navigate({ to: "/cases" })} />;
 }

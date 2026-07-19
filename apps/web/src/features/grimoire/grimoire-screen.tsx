@@ -1,6 +1,7 @@
 import { playClick } from "../../shared/audio/sound";
 import { Button } from "../../shared/ui/button";
 import { SqlCodeBlock } from "../../shared/ui/sql-code-block";
+import { TextWithCode } from "../../shared/ui/text-with-code";
 import { usePlayerProgress } from "../progress/progress-store";
 
 interface GrimoireScreenProps {
@@ -21,14 +22,14 @@ export function GrimoireScreen({ onBack }: Readonly<GrimoireScreenProps>) {
             onBack();
           }}
         >
-          ← Back to Map
+          ← Back to the Casebook
         </Button>
       </div>
 
       {progress.grimoireEntries.length === 0 && (
         <p className="py-15 text-center text-ctp-subtext0 italic">
-          The pages are blank. Complete a mission and its spell will be
-          inscribed here.
+          The pages are blank. Solve a mission and its record will be inscribed
+          here.
         </p>
       )}
 
@@ -56,7 +57,9 @@ export function GrimoireScreen({ onBack }: Readonly<GrimoireScreenProps>) {
           <SqlCodeBlock code={entry.referenceQuery} />
 
           <h3 className="mt-4 text-base text-ctp-lavender">What it taught</h3>
-          <p>{entry.explanation}</p>
+          <p>
+            <TextWithCode text={entry.explanation} />
+          </p>
         </article>
       ))}
     </div>

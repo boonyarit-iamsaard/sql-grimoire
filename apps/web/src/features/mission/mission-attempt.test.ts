@@ -6,9 +6,10 @@ import type { Mission } from "./mission-types";
 const mission: Mission = {
   id: "test-mission",
   title: "Test Mission",
-  locationId: "test-location",
+  caseId: "test-case",
   objective: "Return the answer.",
-  dialogue: [],
+  briefing: { reporter: "Test", role: "Tester", channel: "Note", body: [] },
+  primer: { title: "Test primer", sections: [] },
   database: { schemaSql: "CREATE TABLE answers (value INTEGER);", seedSql: "" },
   challenge: {
     expectedColumns: ["answer"],

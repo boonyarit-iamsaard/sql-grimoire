@@ -1,11 +1,15 @@
 # SQL Grimoire
 
-SQL Grimoire is a browser-based SQL-learning RPG. It is currently a **complete but unvalidated
-three-Mission prototype** ("The Guild Ledger Arc"); the long-term goal is a commercial platform teaching
+SQL Grimoire is a browser-based SQL-learning game that frames database-reasoning exercises as
+realistic business incidents. It currently ships one three-Mission Case ("The Vanishing Orders"
+at the fictional Harborline Trading Co.); the long-term goal is a commercial platform teaching
 database reasoning across querying, schema design, constraints, transactions, concurrency,
-indexing, query plans, migrations, and ORM behavior through production incidents framed as
-quests. The current validation question is whether playtesters finish the Arc wanting more.
-Full founder vision, curriculum ladder, and sequencing plan: see `VISION.md`.
+indexing, query plans, migrations, and ORM behavior through production incidents. The first
+playtest passed and retired the original fantasy-RPG framing
+(`docs/adr/0001-business-incident-framing.md`); the current validation question is whether
+testers outside the founder's circle finish the Case without leaving the platform for knowledge
+and still ask what comes next. Full founder vision, curriculum ladder, and sequencing plan: see
+`VISION.md`.
 
 ## Commands
 
@@ -23,16 +27,24 @@ messages on request — but never run `git commit`, `git rebase`, `git filter-br
 other history-creating or history-rewriting command. If a skill, instruction, or workflow says
 to commit, this rule overrides it: stop at the staged changes and hand off to the maintainer.
 
+## Agent orchestration
+
+Do not spawn subagents unless the user or an applicable skill explicitly requests delegation or
+parallel agent work.
+
 ## Architectural seams
 
-- **Missions are pure data** (`apps/web/src/missions/`). Each Mission lives in its own directory:
-  a typed `mission.ts` module (dialogue, hints, reward, explanation) alongside `schema.sql`,
-  `seed.sql`, and `reference.sql`, which `mission.ts` imports with `?raw`. Add a mission directory,
-  then register it and its Location in the campaign catalog
-  (`apps/web/src/features/campaign/campaign-catalog.ts`). Adding a Mission requires no route changes.
+- **Missions are pure data** (`apps/web/src/missions/`). Missions are grouped by Case and
+  numbered by play order (`missions/<case>/<nn>-<slug>/`); each Mission directory holds a typed
+  `mission.ts` module (incident briefing, primer, hints, reward, explanation) alongside
+  `schema.sql`, `seed.sql`, and `reference.sql`, which `mission.ts` imports with `?raw`. Add a
+  mission directory, then register it and its Case in the case catalog
+  (`apps/web/src/features/cases/case-catalog.ts`). Adding a Mission requires no route changes.
   Missions stay TypeScript modules rather than JSON on purpose: the type checker validates content
-  at authoring time and Vite resolves portrait assets. Revisit a JSON serialization format only when
-  a real consumer exists, such as server-delivered missions or an authoring tool.
+  at authoring time. Revisit a JSON serialization format only when a real consumer exists, such as
+  server-delivered missions or an authoring tool. Mission IDs are persisted in saves — keep them
+  stable even when titles or directories change; the three shipped Missions keep their original
+  release slugs (`missing-shipment`, `council-tally`, `unwritten-scrolls`) as IDs.
 - **Routes are thin adapters** (`apps/web/src/routes/`): TanStack Router generates the typed route
   tree from these files. Route modules translate URL parameters and navigation into feature-screen
   props; feature implementations do not depend on the router.
@@ -68,8 +80,9 @@ to commit, this rule overrides it: stop at the staged changes and hand off to th
   `cn()` (`apps/web/src/lib/cn.ts`, clsx and tailwind-merge). Shared `Button` component in
   `apps/web/src/shared/ui/button.tsx` — its variant record intentionally mirrors `cva`; adopt
   `cva` only when a second variant axis, such as `size`, appears. Code surfaces use the `text-mono` token (14 pixels,
-  JetBrains Mono self-hosted via Fontsource). Residual CSS is only for CodeMirror internals
-  and the `prefers-reduced-motion` override.
+  JetBrains Mono self-hosted via Fontsource). Residual CSS is only for CodeMirror internals,
+  global native-scrollbar theming, the View Transitions route crossfade, the native `<details>`
+  expand, and the `prefers-reduced-motion` override.
 - `optimizeDeps.include: ["sql.js"]` in `apps/web/vite.config.ts` is required because sql.js is CommonJS and
   the development-mode module worker fails to import it without prebundling. The production build works with or without prebundling.
 - Do not disable Run or Submit based on client-side SQL validity. SQLite determines validity, and
@@ -91,10 +104,12 @@ devDependencies.
 ## Verification
 
 End-to-end scripts (Playwright driven by Bun) live in the session scratchpad rather than the
-repository. They cover the landing page, map, briefing, workbench, query execution, SQL errors,
-hints, incorrect and correct submissions, XP and Grimoire updates, persistence after refresh,
-and runaway-query interruption. If the scripts are unavailable, reconstruct them from this list
-and run them against `pnpm --filter @sql-grimoire/web serve`.
+repository. They cover the landing page, the Casebook dashboard (progress panel, mission unlock
+chain, locked coming-soon Case), the split mission workbench (incident briefing and primer in the
+lesson pane, output empty state), query execution, SQL errors, hints, incorrect and correct
+submissions, XP and Grimoire updates, persistence after refresh, and runaway-query interruption.
+If the scripts are unavailable, reconstruct them from this list and run them against
+`pnpm --filter @sql-grimoire/web serve`.
 
 ## Agent skills
 

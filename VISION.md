@@ -16,14 +16,23 @@ _Note (2026-07-12): the market focus has narrowed since this was recorded. The p
 targets individual developers; team, bootcamp, and company sales are a possible later expansion.
 See "Sequencing discipline."_
 
+_Note (2026-07-19): the first playtest (three developers) passed the validation gate — all
+finished unassisted, clicked the locked content, and asked what comes next — while rejecting the
+fantasy-RPG packaging. The persistent narrative world is retired in favor of realistic business
+incidents grouped into Cases, with a Primer lesson beside each Mission's workbench. The "RPG"
+in the original vision now means structured progression and earned rewards, not story dialogue.
+See `docs/adr/0001-business-incident-framing.md`._
+
 ## Where the prototype fits
 
-The three-Mission Guild Ledger Arc in this repository is the first validation slice: an embedded
-database, result-graded challenges, structured progression, and a narrative wrapper, all delivered
-in the browser. It teaches joins, aggregation, and absence reasoning across "The Missing Shipment,"
-"The Council's Tally," and "The Unwritten Scrolls." The Arc is complete and deployed but remains
-unvalidated by external playtesting. It exists to answer the following question: **do playtesters
-finish the Arc wanting more?**
+The three-Mission Case in this repository ("The Vanishing Orders" at the fictional Harborline
+Trading Co., reframed from the original Guild Ledger Arc) is the first validation slice: an
+embedded database, result-graded challenges, structured progression, and per-Mission Primer
+lessons, all delivered in the browser. It teaches joins, aggregation, and absence reasoning.
+The first playtest answered the original question — playtesters finished the Arc wanting
+more — and reshaped the packaging (see the 2026-07-19 note above). The next question:
+**do testers outside the founder's circle finish the Case without leaving the platform for
+knowledge, and still ask what comes next?**
 
 ## Relationship between curriculum and engine requirements
 

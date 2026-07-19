@@ -12,22 +12,22 @@ import {
   ResetIcon,
   WarningIcon,
 } from "../../shared/ui/icons";
+import { TextWithCode } from "../../shared/ui/text-with-code";
 import type { EvaluationResult } from "../../sql/evaluator";
 import type { QueryResult, TableInfo } from "../../sql/sql-runtime";
 import { SqliteRuntime } from "../../sql/sqlite-runtime";
-import { campaignCatalog } from "../campaign/campaign-catalog";
+import { caseCatalog } from "../cases/case-catalog";
 import { playerProgress } from "../progress/progress-store";
-import { DialogueBox } from "./components/dialogue-box";
+import { IncidentReport } from "./components/incident-report";
 import { MissionFeedback } from "./components/mission-feedback";
+import { PrimerPanel } from "./components/primer-panel";
 import { QueryResultTable } from "./components/query-result-table";
 import { SchemaExplorer } from "./components/schema-explorer";
 import { SqlEditor } from "./components/sql-editor";
 import { MissionAttempt } from "./mission-attempt";
 import type { Mission } from "./mission-types";
 
-type Phase = "briefing" | "workbench";
-
-const briefingClasses =
+const centeredScreenClasses =
   "flex min-h-screen flex-col items-center justify-center gap-[22px] p-6";
 // A genuine failure: red, with a warning shake.
 const errorCardClasses =
@@ -49,17 +49,17 @@ interface MissionScreenProps {
   onOpenMission: (missionId: string) => void;
 }
 
-/** The next uncompleted Mission at the same Location, if any — computed after
+/** The next uncompleted Mission in the same Case, if any — computed after
  *  completion has been applied to Player Progress, so a just-finished Mission
  *  never nominates itself. */
-function nextMissionAt(locationId: string): Mission | null {
-  const location = campaignCatalog
-    .getLocations((missionId) => playerProgress.isMissionCompleted(missionId))
-    .find((candidate) => candidate.id === locationId);
-  if (location?.state !== "available" || !location.nextMissionId) {
+function nextMissionIn(caseId: string): Mission | null {
+  const caseView = caseCatalog
+    .getCases((missionId) => playerProgress.isMissionCompleted(missionId))
+    .find((candidate) => candidate.id === caseId);
+  if (caseView?.state !== "available" || !caseView.nextMissionId) {
     return null;
   }
-  return campaignCatalog.getMission(location.nextMissionId) ?? null;
+  return caseCatalog.getMission(caseView.nextMissionId) ?? null;
 }
 
 export function MissionScreen({
@@ -67,13 +67,13 @@ export function MissionScreen({
   onBack,
   onOpenMission,
 }: Readonly<MissionScreenProps>) {
-  const mission = campaignCatalog.getMission(missionId);
+  const mission = caseCatalog.getMission(missionId);
 
   if (!mission) {
     return (
-      <div className={briefingClasses}>
+      <div className={centeredScreenClasses}>
         <h1>Unknown mission</h1>
-        <Button onClick={onBack}>Back to Map</Button>
+        <Button onClick={onBack}>Back to the Casebook</Button>
       </div>
     );
   }
@@ -100,7 +100,6 @@ function MissionAttemptScreen({
   onOpenMission,
 }: Readonly<MissionAttemptScreenProps>) {
   const attemptRef = useRef<MissionAttempt | null>(null);
-  const [phase, setPhase] = useState<Phase>("briefing");
   const [tables, setTables] = useState<TableInfo[]>([]);
   const [query, setQuery] = useState(() =>
     playerProgress.lastQueryFor(mission.id),
@@ -200,7 +199,7 @@ function MissionAttemptScreen({
     }
     if (
       !window.confirm(
-        "Reset the guild database to its original seeded state? Anything you've changed will be undone.",
+        "Reset the case database to its original seeded state? Anything you've changed will be undone.",
       )
     ) {
       return;
@@ -217,35 +216,20 @@ function MissionAttemptScreen({
     setBusy(false);
   };
 
-  if (phase === "briefing") {
-    return (
-      <div className={briefingClasses}>
-        <h1 className="m-0 text-[2rem]">{mission.title}</h1>
-        <DialogueBox
-          lines={mission.dialogue}
-          finishLabel="Begin Investigation"
-          onFinished={() => setPhase("workbench")}
-        />
-        <div className="w-[min(720px,100%)] rounded-xl border-2 border-ctp-surface1 bg-ctp-base px-5 py-3.5 text-base text-ctp-text shadow-paper">
-          <strong className="font-display text-ctp-yellow">Objective:</strong>{" "}
-          {mission.objective}
-        </div>
-      </div>
-    );
-  }
-
   // Explore-Then-Seal: Run keeps the gold; Submit only lights up as the
   // earned terminal step once a result exists. See DESIGN.md.
   const readyToSeal = result !== null && !busy && dbReady;
+  const outputEmpty =
+    !initError && hintIndex < 0 && runNotice === null && result === null;
 
   return (
-    <div className="mx-auto max-w-7xl px-5 pt-4 pb-8">
-      <header className="mb-3 flex items-start justify-between gap-4">
+    <div className="mx-auto flex h-screen max-w-[1560px] flex-col px-5 pt-4 pb-4 max-[900px]:h-auto max-[900px]:pb-8">
+      <header className="mb-3 flex shrink-0 items-start justify-between gap-4">
         <div>
-          <h1 className="mb-0.5 text-2xl">{mission.title} — Ledger Desk</h1>
-          <p className="m-0 max-w-[72ch] text-ctp-subtext1">
+          <h1 className="mb-0.5 text-2xl">{mission.title}</h1>
+          <p className="m-0 max-w-[80ch] text-ctp-subtext1">
             <strong className="text-ctp-yellow">Objective:</strong>{" "}
-            {mission.objective}
+            <TextWithCode text={mission.objective} />
           </p>
         </div>
         <Button
@@ -255,22 +239,34 @@ function MissionAttemptScreen({
             onBack();
           }}
         >
-          ← Map
+          ← Casebook
         </Button>
       </header>
 
-      <div className="grid grid-cols-[250px_1fr] items-start gap-3.5 max-[1100px]:grid-cols-[210px_1fr] max-[720px]:grid-cols-1">
-        <SchemaExplorer tables={tables} />
+      <div className="grid min-h-0 flex-1 grid-cols-[minmax(340px,40%)_1fr] gap-3.5 max-[900px]:grid-cols-1">
+        {/* Lesson pane: one framed panel whose sections — briefing, primer,
+            schema — scroll together inside it, so scrolled content clips
+            against the panel's own border instead of a bare page edge. */}
+        <div className="flex min-h-0 min-w-0 flex-col overflow-hidden rounded-xl border-2 border-ctp-surface1 bg-ctp-base shadow-paper">
+          <div className="min-h-0 flex-1 divide-y divide-ctp-surface1 overflow-y-auto max-[900px]:overflow-visible">
+            <IncidentReport briefing={mission.briefing} />
+            <PrimerPanel primer={mission.primer} />
+            <SchemaExplorer tables={tables} />
+          </div>
+        </div>
 
-        <div className="flex min-w-0 flex-col gap-3">
-          <div className="overflow-hidden rounded-xl border-2 border-ctp-surface1 bg-ctp-base shadow-paper">
-            <SqlEditor
-              value={query}
-              onChange={setQuery}
-              onRun={runQuery}
-              onSubmit={submitAnswer}
-            />
-            <div className="flex flex-wrap items-center gap-2.5 border-ctp-surface1 border-t bg-ctp-mantle px-3 py-2.5">
+        <div className="flex min-h-0 min-w-0 flex-col gap-3">
+          <div className="flex min-h-[264px] shrink-0 flex-col overflow-hidden rounded-xl border-2 border-ctp-surface1 bg-ctp-base shadow-paper min-[901px]:h-[45%]">
+            <div className="min-h-[180px] flex-1 [&>div]:h-full">
+              <SqlEditor
+                value={query}
+                onChange={setQuery}
+                onRun={runQuery}
+                onSubmit={submitAnswer}
+                height="100%"
+              />
+            </div>
+            <div className="flex shrink-0 flex-wrap items-center gap-2 border-ctp-surface1 border-t bg-ctp-mantle px-3 py-2.5">
               <Button
                 variant="primary"
                 onClick={runQuery}
@@ -294,10 +290,6 @@ function MissionAttemptScreen({
                 <FlagIcon /> Submit Answer
               </Button>
               <span className="flex-1" />
-              <span
-                aria-hidden="true"
-                className="hidden h-6 w-px bg-ctp-surface1 sm:block"
-              />
               <Button
                 variant="ghost"
                 onClick={formatQuery}
@@ -321,48 +313,58 @@ function MissionAttemptScreen({
                 variant="danger"
                 onClick={resetDatabase}
                 disabled={busy || !dbReady}
+                title="Reset the case database to its seeded state"
               >
-                <ResetIcon /> Reset Database
+                <ResetIcon /> Reset
               </Button>
             </div>
           </div>
 
-          {initError && (
-            <div className={errorCardClasses}>
-              <WarningIcon className="mt-0.5 shrink-0" />
-              <span>The guild database failed to open: {initError}</span>
-            </div>
-          )}
+          {/* Output pane: everything a run or submission produces. */}
+          <div className="flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto pb-1">
+            {outputEmpty && (
+              <div className="flex flex-1 items-center justify-center rounded-xl border-2 border-ctp-surface1 border-dashed py-10 font-mono text-ctp-overlay1 text-mono max-[900px]:hidden">
+                Results appear here — press ⌘/Ctrl+Enter to run
+              </div>
+            )}
 
-          {hintIndex >= 0 && (
-            <div className="rounded-xl border-2 border-ctp-surface1 bg-ctp-base px-4 py-3 text-ctp-text italic shadow-paper motion-safe:animate-page-fade">
-              <span className="mr-2 font-display text-ctp-peach not-italic">
-                Hint {hintIndex + 1}/{mission.challenge.hints.length}
-              </span>
-              {mission.challenge.hints[hintIndex]}
-            </div>
-          )}
+            {initError && (
+              <div className={errorCardClasses}>
+                <WarningIcon className="mt-0.5 shrink-0" />
+                <span>The case database failed to open: {initError}</span>
+              </div>
+            )}
 
-          {runNotice?.kind === "interrupted" && (
-            <div className={interruptCardClasses}>
-              <HourglassIcon className="mt-0.5 shrink-0" />
-              <span>{runNotice.message}</span>
-            </div>
-          )}
+            {hintIndex >= 0 && (
+              <div className="rounded-xl border-2 border-ctp-surface1 bg-ctp-base px-4 py-3 text-ctp-text italic shadow-paper motion-safe:animate-page-fade">
+                <span className="mr-2 font-display text-ctp-peach not-italic">
+                  Hint {hintIndex + 1}/{mission.challenge.hints.length}
+                </span>
+                <TextWithCode text={mission.challenge.hints[hintIndex]} />
+              </div>
+            )}
 
-          {runNotice?.kind === "error" && (
-            <div className={errorCardClasses}>
-              <WarningIcon className="mt-0.5 shrink-0" />
-              <span>{runNotice.message}</span>
-            </div>
-          )}
+            {runNotice?.kind === "interrupted" && (
+              <div className={interruptCardClasses}>
+                <HourglassIcon className="mt-0.5 shrink-0" />
+                <span>{runNotice.message}</span>
+              </div>
+            )}
 
-          {result && (
-            <QueryResultTable
-              result={result.data}
-              durationMs={result.durationMs}
-            />
-          )}
+            {runNotice?.kind === "error" && (
+              <div className={errorCardClasses}>
+                <WarningIcon className="mt-0.5 shrink-0" />
+                <span>{runNotice.message}</span>
+              </div>
+            )}
+
+            {result && (
+              <QueryResultTable
+                result={result.data}
+                durationMs={result.durationMs}
+              />
+            )}
+          </div>
         </div>
       </div>
 
@@ -373,9 +375,7 @@ function MissionAttemptScreen({
           playerQuery={query}
           onReturnToEditor={() => setEvaluation(null)}
           onReturnToMap={onBack}
-          nextMission={
-            evaluation.passed ? nextMissionAt(mission.locationId) : null
-          }
+          nextMission={evaluation.passed ? nextMissionIn(mission.caseId) : null}
           onOpenMission={onOpenMission}
         />
       )}

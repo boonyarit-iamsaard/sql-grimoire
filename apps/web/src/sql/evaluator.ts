@@ -73,7 +73,7 @@ export function evaluate(
     return {
       passed: false,
       reason: "INCORRECT_ROWS",
-      message: `The columns are right, but you returned ${playerRows.length} row(s) and the ledger says there should be ${referenceRows.length}. Check your JOIN and WHERE conditions.`,
+      message: `The columns are right, but you returned ${playerRows.length} row(s) and the expected result has ${referenceRows.length}. Check your JOIN and WHERE conditions.`,
     };
   }
   for (let i = 0; i < playerRows.length; i++) {
@@ -82,7 +82,7 @@ export function evaluate(
         passed: false,
         reason: "INCORRECT_ROWS",
         message:
-          "Right columns and row count, but some values don't match the guild ledger. Check which table each column should come from.",
+          "Right columns and row count, but some values don't match the expected result. Check which table each column should come from.",
       };
     }
   }

@@ -8,5 +8,5 @@ export const Route = createFileRoute("/")({
 function LandingRoute() {
   const navigate = Route.useNavigate();
 
-  return <LandingScreen onOpenMap={() => navigate({ to: "/map" })} />;
+  return <LandingScreen onOpenCasebook={() => navigate({ to: "/cases" })} />;
 }

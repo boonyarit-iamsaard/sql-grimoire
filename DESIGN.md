@@ -398,7 +398,8 @@ frames the work and then steps back.
 - **Do** show SQLite's raw error verbatim in the red error card (`whitespace-pre-wrap`, mono, shake
   animation). The error message is the mentor.
 - **Do** provide a `motion-safe:` gate and a reduced-motion alternative for every animation
-  (page-fade, portrait-pop, shake, card-rise); motion must convey state, never decorate.
+  (page-fade, fade-in/out, portrait-pop, shake, card-rise/settle, and the route crossfade via the
+  View Transitions API); motion must convey state, never decorate.
 - **Do** verify body/label text hits ≥4.5:1 against Ink Base; if a gray is even close, move it up the
   Parchment ramp toward `#cad3f5`.
 

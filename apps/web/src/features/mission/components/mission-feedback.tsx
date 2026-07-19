@@ -1,8 +1,10 @@
-import { type ReactNode, useEffect, useRef } from "react";
+import { type ReactNode, useEffect, useRef, useState } from "react";
 import xpIcon from "../../../assets/ui/xp-icon.svg";
+import { cn } from "../../../lib/cn";
 import { playClick } from "../../../shared/audio/sound";
 import { Button } from "../../../shared/ui/button";
 import { SqlCodeBlock } from "../../../shared/ui/sql-code-block";
+import { TextWithCode } from "../../../shared/ui/text-with-code";
 import type { EvaluationResult } from "../../../sql/evaluator";
 import type { Mission } from "../mission-types";
 
@@ -22,11 +24,43 @@ interface MissionFeedbackProps {
 // interactive backdrop — clicking it (and only it) dismisses, while Escape is
 // handled natively via onCancel.
 const overlayClasses =
-  "fixed inset-0 z-40 m-0 flex h-full max-h-none w-full max-w-none items-center justify-center bg-transparent p-6 backdrop:bg-[rgba(12,12,22,0.78)] motion-safe:animate-page-fade";
+  "fixed inset-0 z-40 m-0 flex h-full max-h-none w-full max-w-none items-center justify-center bg-transparent p-6 backdrop:bg-[rgba(12,12,22,0.78)] motion-safe:animate-fade-in motion-safe:backdrop:animate-fade-in";
+const overlayClosingClasses =
+  "motion-safe:animate-fade-out motion-safe:backdrop:animate-fade-out";
 const backdropClasses =
-  "absolute inset-0 cursor-default bg-transparent outline-none";
+  "absolute inset-0 cursor-default bg-transparent outline-hidden";
 const cardClasses =
   "relative max-h-[90vh] w-[min(680px,100%)] overflow-y-auto rounded-2xl border-[3px] border-ctp-surface2 bg-linear-to-b from-ctp-surface0 to-ctp-base px-[30px] py-[26px] text-ctp-text shadow-[inset_0_0_0_1px_rgba(255,255,255,0.04),0_20px_60px_rgba(0,0,0,0.6)] motion-safe:animate-card-rise";
+const cardClosingClasses = "motion-safe:animate-card-settle";
+
+// The exit animation is 180ms (fade-out / card-settle in styles.css); unmount
+// just after it completes.
+const closeDurationMs = 200;
+
+/** Plays the closing animation, then runs the deferred action. Under reduced
+ *  motion the action runs immediately. */
+function useAnimatedClose(): {
+  closing: boolean;
+  closeThen: (action: () => void) => void;
+} {
+  const [closing, setClosing] = useState(false);
+  const timerRef = useRef<number | undefined>(undefined);
+  useEffect(() => () => window.clearTimeout(timerRef.current), []);
+
+  const closeThen = (action: () => void) => {
+    if (timerRef.current !== undefined) {
+      return;
+    }
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      action();
+      return;
+    }
+    setClosing(true);
+    timerRef.current = window.setTimeout(action, closeDurationMs);
+  };
+
+  return { closing, closeThen };
+}
 const sectionHeadingClasses = "mt-[18px] text-[1.02rem] text-ctp-lavender";
 const preClasses =
   "my-1.5 overflow-x-auto rounded-lg bg-ctp-mantle px-3.5 py-3 font-mono text-mono text-ctp-text";
@@ -36,9 +70,10 @@ const headingId = "mission-feedback-heading";
 /** Native <dialog> shell shared by the pass and fail states. Escape and a
  *  backdrop click both return to the editor — the safe exit. */
 function FeedbackShell({
+  closing,
   onDismiss,
   children,
-}: Readonly<{ onDismiss: () => void; children: ReactNode }>) {
+}: Readonly<{ closing: boolean; onDismiss: () => void; children: ReactNode }>) {
   const dialogRef = useRef<HTMLDialogElement>(null);
   useEffect(() => {
     dialogRef.current?.showModal();
@@ -48,7 +83,7 @@ function FeedbackShell({
     <dialog
       ref={dialogRef}
       aria-labelledby={headingId}
-      className={overlayClasses}
+      className={cn(overlayClasses, closing && overlayClosingClasses)}
       onCancel={(event) => {
         event.preventDefault();
         onDismiss();
@@ -61,7 +96,9 @@ function FeedbackShell({
         className={backdropClasses}
         onClick={onDismiss}
       />
-      <div className={cardClasses}>{children}</div>
+      <div className={cn(cardClasses, closing && cardClosingClasses)}>
+        {children}
+      </div>
     </dialog>
   );
 }
@@ -82,18 +119,23 @@ export function MissionFeedback({
     primaryRef.current?.focus({ preventScroll: true });
   }, []);
 
+  // Dismissals that stay on the workbench play the exit animation; buttons
+  // that navigate away leave instantly — the route crossfade covers those.
+  const { closing, closeThen } = useAnimatedClose();
+  const dismissToEditor = () => closeThen(onReturnToEditor);
+
   if (!evaluation.passed) {
     return (
-      <FeedbackShell onDismiss={onReturnToEditor}>
+      <FeedbackShell closing={closing} onDismiss={dismissToEditor}>
         <h2 id={headingId} className="text-[1.6rem] text-ctp-red">
-          Not quite, record-keeper…
+          Not quite yet…
         </h2>
         <div className="font-mono text-ctp-maroon text-xs uppercase tracking-[0.08em]">
           {evaluation.reason.replaceAll("_", " ")}
         </div>
         <p>{evaluation.message}</p>
         <h3 className={sectionHeadingClasses}>
-          The guild expects these columns
+          The mission expects these columns
         </h3>
         <pre className={preClasses}>
           {mission.challenge.expectedColumns.join(", ")}
@@ -104,10 +146,10 @@ export function MissionFeedback({
             ref={primaryRef}
             onClick={() => {
               playClick();
-              onReturnToEditor();
+              dismissToEditor();
             }}
           >
-            Back to the Ledger Desk
+            Back to the Workbench
           </Button>
         </div>
       </FeedbackShell>
@@ -115,7 +157,7 @@ export function MissionFeedback({
   }
 
   return (
-    <FeedbackShell onDismiss={onReturnToEditor}>
+    <FeedbackShell closing={closing} onDismiss={dismissToEditor}>
       <h2 id={headingId} className="text-[1.6rem] text-ctp-green">
         Mission Complete — {mission.title}
       </h2>
@@ -146,7 +188,9 @@ export function MissionFeedback({
       <SqlCodeBlock code={mission.challenge.referenceQuery} />
 
       <h3 className={sectionHeadingClasses}>How it works</h3>
-      <p>{mission.explanation.summary}</p>
+      <p>
+        <TextWithCode text={mission.explanation.summary} />
+      </p>
 
       <div className="mt-5.5 flex flex-wrap gap-3">
         {nextMission ? (
@@ -167,7 +211,7 @@ export function MissionFeedback({
                 onReturnToMap();
               }}
             >
-              Return to Map
+              Back to the Casebook
             </Button>
           </>
         ) : (
@@ -179,7 +223,7 @@ export function MissionFeedback({
               onReturnToMap();
             }}
           >
-            Return to Map
+            Back to the Casebook
           </Button>
         )}
       </div>

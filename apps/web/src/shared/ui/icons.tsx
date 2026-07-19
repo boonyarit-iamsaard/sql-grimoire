@@ -35,7 +35,7 @@ export function PlayIcon(props: Readonly<IconProps>) {
   );
 }
 
-/** Submit Answer — a guild pennant on its pole. */
+/** Submit Answer — a pennant on its pole. */
 export function FlagIcon(props: Readonly<IconProps>) {
   return (
     <Icon {...props}>
