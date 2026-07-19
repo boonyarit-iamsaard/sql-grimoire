@@ -28,7 +28,7 @@ const overlayClasses =
 const overlayClosingClasses =
   "motion-safe:animate-fade-out motion-safe:backdrop:animate-fade-out";
 const backdropClasses =
-  "absolute inset-0 cursor-default bg-transparent outline-none";
+  "absolute inset-0 cursor-default bg-transparent outline-hidden";
 const cardClasses =
   "relative max-h-[90vh] w-[min(680px,100%)] overflow-y-auto rounded-2xl border-[3px] border-ctp-surface2 bg-linear-to-b from-ctp-surface0 to-ctp-base px-[30px] py-[26px] text-ctp-text shadow-[inset_0_0_0_1px_rgba(255,255,255,0.04),0_20px_60px_rgba(0,0,0,0.6)] motion-safe:animate-card-rise";
 const cardClosingClasses = "motion-safe:animate-card-settle";

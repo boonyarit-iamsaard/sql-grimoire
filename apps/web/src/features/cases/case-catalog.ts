@@ -95,15 +95,18 @@ export class CaseCatalog {
         state = "completed";
       }
 
+      let nextMissionId: string | null = null;
+      if (!locked && missions.length > 0) {
+        nextMissionId =
+          nextIndex === -1 ? missions[0].id : missions[nextIndex].id;
+      }
+
       return {
         ...caseDefinition,
         state,
         missions: missionViews,
         completedCount,
-        nextMissionId:
-          locked || missions.length === 0
-            ? null
-            : (missions[nextIndex]?.id ?? missions[0].id),
+        nextMissionId,
       };
     });
   }
