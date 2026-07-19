@@ -35,8 +35,8 @@ export function CaseDashboardScreen({
   const activeCase = cases.find(({ state }) => state === "available");
 
   return (
-    <div className="mx-auto max-w-240 px-6 pt-5 pb-10">
-      <header className="mb-4 flex items-center justify-between gap-4">
+    <div className="mx-auto w-full max-w-[1560px] px-5 pt-4 pb-10">
+      <header className="mb-3 flex items-center justify-between gap-4">
         <h1 className="m-0 text-[1.9rem]">Casebook</h1>
         <nav className="flex items-center gap-2.5">
           <Button
@@ -60,11 +60,11 @@ export function CaseDashboardScreen({
         </nav>
       </header>
 
-      <div className="grid grid-cols-[230px_1fr] items-start gap-4 max-[720px]:grid-cols-1">
+      <div className="grid grid-cols-[minmax(280px,340px)_1fr] items-start gap-3.5 max-[900px]:grid-cols-1">
         <aside
           className={cn(
             cardClasses,
-            "sticky top-5 px-5 py-4 max-[720px]:static",
+            "sticky top-4 px-5 py-4 max-[900px]:static",
           )}
         >
           <h2 className="mt-0 mb-2.5 text-[1.05rem] text-ctp-lavender">

@@ -7,7 +7,7 @@ interface SchemaExplorerProps {
 
 export function SchemaExplorer({ tables }: Readonly<SchemaExplorerProps>) {
   return (
-    <aside className="rounded-xl border-2 border-ctp-surface1 bg-ctp-base p-3.5 shadow-paper">
+    <aside className="px-5 py-4">
       <h2 className="mb-2.5 flex items-center gap-1.5 text-[1.05rem]">
         <ScrollIcon /> Database Schema
       </h2>

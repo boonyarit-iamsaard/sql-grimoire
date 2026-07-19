@@ -8,8 +8,9 @@ challenges, and missions that are realistic production incidents at a fictional 
 This repository contains one complete three-mission Case, **The Vanishing Orders** at Harborline
 Trading Co., which takes approximately 30–45 minutes to play. The Case begins with **Delayed
 Orders Piling Up**, continues through two progressively harder investigations, and leaves one
-locked Case on the dashboard as a prompt for unmet demand. Each mission pairs an incident
-briefing with a Primer lesson beside the workbench, so the required concept is always at hand.
+locked Case on the dashboard as a prompt for unmet demand. Each mission is a single split-screen
+workbench: the incident briefing, a Primer lesson, and the schema sit in a scrollable lesson pane
+beside the editor and results, so the required knowledge is always at hand.
 The first playtest validated the core loop and retired an earlier fantasy-RPG framing
 (`docs/adr/0001-business-incident-framing.md`); the current question is whether testers outside
 the founder's circle finish the Case without leaving the platform for knowledge, and still ask
@@ -21,9 +22,7 @@ what comes next.
 
 ![The Casebook dashboard: progress panel, the Vanishing Orders Case with missions unlocking in order, and a locked coming-soon Case](docs/screenshots/casebook.png)
 
-![Incident briefing: the support lead reports delayed orders in an escalated ticket](docs/screenshots/incident-briefing.png)
-
-![The workbench: Primer lesson and schema explorer beside the SQL editor, Run Query, hints, and submission](docs/screenshots/workbench.png)
+![The mission workbench: incident briefing, Primer lesson, and schema in a scrollable lesson pane beside the SQL editor and query results](docs/screenshots/workbench.png)
 
 ## Running the application
 

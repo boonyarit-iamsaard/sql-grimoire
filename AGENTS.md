@@ -104,10 +104,11 @@ devDependencies.
 
 End-to-end scripts (Playwright driven by Bun) live in the session scratchpad rather than the
 repository. They cover the landing page, the Casebook dashboard (progress panel, mission unlock
-chain, locked coming-soon Case), the incident briefing, the primer panel, the workbench, query
-execution, SQL errors, hints, incorrect and correct submissions, XP and Grimoire updates,
-persistence after refresh, and runaway-query interruption. If the scripts are unavailable,
-reconstruct them from this list and run them against `pnpm --filter @sql-grimoire/web serve`.
+chain, locked coming-soon Case), the split mission workbench (incident briefing and primer in the
+lesson pane, output empty state), query execution, SQL errors, hints, incorrect and correct
+submissions, XP and Grimoire updates, persistence after refresh, and runaway-query interruption.
+If the scripts are unavailable, reconstruct them from this list and run them against
+`pnpm --filter @sql-grimoire/web serve`.
 
 ## Agent skills
 

@@ -121,6 +121,14 @@
     font-family: inherit;
     cursor: pointer;
   }
+
+  /* Scrollbars follow the theme: thin and surface-toned on a transparent
+     track, so panes scroll without a bright OS-default bar cutting the dark
+     surface. Color theming only — native behavior stays untouched. */
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: var(--color-ctp-surface2) transparent;
+  }
 }
 
 /* CodeMirror internals — third-party DOM we can't reach with utilities. */
