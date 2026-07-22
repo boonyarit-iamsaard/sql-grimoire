@@ -1,11 +1,21 @@
-import { type EvaluationResult, evaluate } from "../../sql/evaluator";
+import {
+  type EvaluationResult,
+  evaluate,
+  evaluateProbes,
+  type ProbeEvaluationInput,
+} from "../../sql/evaluator";
 import type {
   QueryResult,
   RunResult,
   SqlRuntime,
   TableInfo,
 } from "../../sql/sql-runtime";
-import type { Mission } from "./mission-types";
+import {
+  isStateGrading,
+  type Mission,
+  type Probe,
+  type StateGrading,
+} from "./mission-types";
 
 export interface MissionCompletion {
   missionId: string;
@@ -46,7 +56,7 @@ export class MissionAttempt {
     try {
       const result = await this.runtime.run(query);
       if (!result.ok) {
-        return result;
+        return { ok: false, error: result.error };
       }
       return {
         ok: true,
@@ -72,6 +82,10 @@ export class MissionAttempt {
   }
 
   async submit(playerQuery: string): Promise<MissionSubmission> {
+    if (isStateGrading(this.mission.challenge)) {
+      return this.submitStateGraded(playerQuery, this.mission.challenge);
+    }
+
     let playerRun: RunResult;
     let referenceRun: RunResult;
     try {
@@ -82,14 +96,7 @@ export class MissionAttempt {
         this.mission.challenge.referenceQuery,
       );
     } catch (error) {
-      return {
-        evaluation: {
-          passed: false,
-          reason: "SQL_ERROR",
-          message: errorMessage(error),
-        },
-        completion: null,
-      };
+      return failedSubmission(errorMessage(error));
     }
     const evaluation = evaluate(
       playerRun,
@@ -98,6 +105,58 @@ export class MissionAttempt {
       this.mission.reward.xp,
     );
 
+    return this.submissionWithCompletion(
+      playerQuery,
+      this.mission.challenge.referenceQuery,
+      evaluation,
+    );
+  }
+
+  private async submitStateGraded(
+    playerQuery: string,
+    challenge: StateGrading,
+  ): Promise<MissionSubmission> {
+    let playerProbeRuns: RunResult[];
+    let referenceProbeRuns: RunResult[];
+    try {
+      await this.runtime.reset();
+      await this.runtime.run(playerQuery);
+      playerProbeRuns = await runProbes(this.runtime, challenge.probes);
+
+      await this.runtime.reset();
+      const referenceScriptRun = await this.runtime.run(
+        challenge.referenceScript,
+      );
+      if (!referenceScriptRun.ok) {
+        return failedSubmission(
+          `Mission bug — reference script failed: ${referenceScriptRun.error}`,
+        );
+      }
+      referenceProbeRuns = await runProbes(this.runtime, challenge.probes);
+    } catch (error) {
+      return failedSubmission(errorMessage(error));
+    }
+
+    const probeEvaluations: ProbeEvaluationInput[] = challenge.probes.map(
+      (probe, index) => ({
+        type: probe.type,
+        playerRun: playerProbeRuns[index],
+        referenceRun: referenceProbeRuns[index],
+      }),
+    );
+    const evaluation = evaluateProbes(probeEvaluations, this.mission.reward.xp);
+    return this.submissionWithCompletion(
+      playerQuery,
+      challenge.referenceScript,
+      evaluation,
+    );
+  }
+
+  private submissionWithCompletion(
+    playerQuery: string,
+    referenceQuery: string,
+    evaluation: EvaluationResult,
+  ): MissionSubmission {
     return {
       evaluation,
       completion: evaluation.passed
@@ -106,13 +165,31 @@ export class MissionAttempt {
             missionTitle: this.mission.title,
             concepts: this.mission.explanation.concepts,
             playerQuery,
-            referenceQuery: this.mission.challenge.referenceQuery,
+            referenceQuery,
             explanation: this.mission.explanation.summary,
             xp: evaluation.earnedXp,
           }
         : null,
     };
   }
+}
+
+async function runProbes(
+  runtime: SqlRuntime,
+  probes: Probe[],
+): Promise<RunResult[]> {
+  const runs: RunResult[] = [];
+  for (const probe of probes) {
+    runs.push(await runtime.run(probe.sql));
+  }
+  return runs;
+}
+
+function failedSubmission(message: string): MissionSubmission {
+  return {
+    evaluation: { passed: false, reason: "SQL_ERROR", message },
+    completion: null,
+  };
 }
 
 function errorMessage(error: unknown): string {

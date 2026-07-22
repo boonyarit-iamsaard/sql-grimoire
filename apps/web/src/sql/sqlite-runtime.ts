@@ -28,7 +28,7 @@ export class SqliteRuntime implements SqlRuntime {
       type: "module",
     });
     worker.onmessage = (event) => {
-      const { id, ok, results, error, durationMs } = event.data;
+      const { id, ok, results, error, errorKind, durationMs } = event.data;
       const entry = this.pending.get(id);
       if (!entry) {
         return;
@@ -38,7 +38,7 @@ export class SqliteRuntime implements SqlRuntime {
       entry.resolve(
         ok
           ? { ok: true, results, durationMs: durationMs ?? 0 }
-          : { ok: false, error },
+          : { ok: false, error, errorKind: errorKind ?? "runtime" },
       );
     };
     // A worker that fails to even load (e.g. a broken import) never posts a
@@ -50,6 +50,7 @@ export class SqliteRuntime implements SqlRuntime {
         p.resolve({
           ok: false,
           error: `SQL worker failed to start: ${event.message || "unknown error"}`,
+          errorKind: "runtime",
         });
       }
       this.pending.clear();
@@ -76,6 +77,7 @@ export class SqliteRuntime implements SqlRuntime {
           p.resolve({
             ok: false,
             error: "Interrupted: the database was restarted.",
+            errorKind: "runtime",
           });
         }
         this.pending.clear();
@@ -83,6 +85,7 @@ export class SqliteRuntime implements SqlRuntime {
         resolve({
           ok: false,
           error: `Query interrupted after ${timeoutMs}ms. The database has been restored — simplify the query and try again.`,
+          errorKind: "runtime",
         });
       }, timeoutMs);
       this.pending.set(id, { resolve, timer });
@@ -116,7 +119,7 @@ export class SqliteRuntime implements SqlRuntime {
     this.worker = null;
     for (const [, p] of this.pending) {
       clearTimeout(p.timer);
-      p.resolve({ ok: false, error: "Runtime disposed" });
+      p.resolve({ ok: false, error: "Runtime disposed", errorKind: "runtime" });
     }
     this.pending.clear();
   }

@@ -7,9 +7,11 @@ export interface QueryResult {
   rows: SqlValue[][];
 }
 
+export type RunErrorKind = "sql" | "runtime";
+
 export type RunResult =
   | { ok: true; results: QueryResult[]; durationMs: number }
-  | { ok: false; error: string };
+  | { ok: false; error: string; errorKind: RunErrorKind };
 
 export interface TableInfo {
   name: string;

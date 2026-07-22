@@ -1,9 +1,10 @@
+import initSqlJs, { type Database, type SqlJsStatic } from "sql.js";
 import { describe, expect, it } from "vitest";
 import type { RunResult, SqlRuntime, TableInfo } from "../../sql/sql-runtime";
 import { MissionAttempt } from "./mission-attempt";
 import type { Mission } from "./mission-types";
 
-const mission: Mission = {
+const mission = {
   id: "test-mission",
   title: "Test Mission",
   caseId: "test-case",
@@ -18,7 +19,47 @@ const mission: Mission = {
   },
   reward: { xp: 25, successMessage: "Solved." },
   explanation: { summary: "The answer is 42.", concepts: ["SELECT"] },
-};
+} satisfies Mission;
+
+const stateGradedMission = {
+  ...mission,
+  id: "state-graded-test-mission",
+  objective: "Prevent duplicate room bookings.",
+  database: {
+    schemaSql: `
+      CREATE TABLE bookings (
+        id INTEGER PRIMARY KEY,
+        room_id INTEGER NOT NULL,
+        booking_date TEXT NOT NULL,
+        slot TEXT NOT NULL
+      );
+    `,
+    seedSql: `
+      INSERT INTO bookings (id, room_id, booking_date, slot)
+      VALUES
+        (1, 7, '2026-08-01', '10:00'),
+        (2, 7, '2026-08-01', '11:00');
+    `,
+  },
+  challenge: {
+    referenceScript:
+      "CREATE UNIQUE INDEX bookings_room_slot ON bookings (room_id, booking_date, slot);",
+    probes: [
+      {
+        type: "query",
+        sql: "SELECT id, room_id, booking_date, slot FROM bookings",
+      },
+      {
+        type: "must-fail",
+        sql: `
+          INSERT INTO bookings (id, room_id, booking_date, slot)
+          VALUES (3, 7, '2026-08-01', '10:00');
+        `,
+      },
+    ],
+    hints: [],
+  },
+} satisfies Mission;
 
 class RecordingRuntime implements SqlRuntime {
   readonly calls: string[] = [];
@@ -57,6 +98,61 @@ class RecordingRuntime implements SqlRuntime {
 
   dispose() {
     this.calls.push("dispose");
+  }
+}
+
+class InMemorySqliteRuntime implements SqlRuntime {
+  private sqlJs: SqlJsStatic | null = null;
+  private database: Database | null = null;
+  private schemaSql = "";
+  private seedSql = "";
+
+  async init(schemaSql: string, seedSql: string): Promise<void> {
+    this.sqlJs ??= await initSqlJs();
+    this.schemaSql = schemaSql;
+    this.seedSql = seedSql;
+    this.recreateDatabase();
+  }
+
+  async run(sql: string): Promise<RunResult> {
+    if (!this.database) {
+      throw new Error("Database not initialized");
+    }
+    try {
+      const results = this.database
+        .exec(sql)
+        .map((result) => ({ columns: result.columns, rows: result.values }));
+      return { ok: true, results, durationMs: 0 };
+    } catch (error) {
+      return {
+        ok: false,
+        error: error instanceof Error ? error.message : String(error),
+        errorKind: "sql",
+      };
+    }
+  }
+
+  async reset(): Promise<void> {
+    this.recreateDatabase();
+  }
+
+  async tables(): Promise<TableInfo[]> {
+    return [];
+  }
+
+  dispose(): void {
+    this.database?.close();
+    this.database = null;
+  }
+
+  private recreateDatabase(): void {
+    if (!this.sqlJs) {
+      throw new Error("SQL.js not initialized");
+    }
+    this.database?.close();
+    this.database = new this.sqlJs.Database();
+    this.database.run(this.schemaSql);
+    this.database.run(this.seedSql);
   }
 }
 
@@ -192,5 +288,212 @@ describe("Mission Attempt", () => {
       },
       completion: null,
     });
+  });
+
+  it("runs State-graded Probes in their authored order", async () => {
+    const runtime = new RecordingRuntime();
+    const bookingsResult: RunResult = {
+      ok: true,
+      results: [
+        {
+          columns: ["id", "room_id", "booking_date", "slot"],
+          rows: [
+            [1, 7, "2026-08-01", "10:00"],
+            [2, 7, "2026-08-01", "11:00"],
+          ],
+        },
+      ],
+      durationMs: 1,
+    };
+    const constraintError: RunResult = {
+      ok: false,
+      error: "UNIQUE constraint failed",
+      errorKind: "sql",
+    };
+    runtime.runResults.push(
+      { ok: true, results: [], durationMs: 1 },
+      bookingsResult,
+      constraintError,
+      { ok: true, results: [], durationMs: 1 },
+      bookingsResult,
+      constraintError,
+    );
+
+    const playerScript =
+      "CREATE UNIQUE INDEX player_guardrail ON bookings (room_id, booking_date, slot);";
+    const submission = await new MissionAttempt(
+      stateGradedMission,
+      runtime,
+    ).submit(playerScript);
+
+    expect(submission.evaluation).toEqual({ passed: true, earnedXp: 25 });
+    expect(runtime.calls).toEqual([
+      "reset",
+      `run:${playerScript}`,
+      `run:${stateGradedMission.challenge.probes[0].sql}`,
+      `run:${stateGradedMission.challenge.probes[1].sql}`,
+      "reset",
+      `run:${stateGradedMission.challenge.referenceScript}`,
+      `run:${stateGradedMission.challenge.probes[0].sql}`,
+      `run:${stateGradedMission.challenge.probes[1].sql}`,
+    ]);
+  });
+
+  it("passes a State-graded script when every Probe passes", async () => {
+    const runtime = new InMemorySqliteRuntime();
+    const attempt = new MissionAttempt(stateGradedMission, runtime);
+    await attempt.open();
+
+    const submission = await attempt.submit(
+      "CREATE UNIQUE INDEX player_guardrail ON bookings (room_id, booking_date, slot);",
+    );
+
+    expect(submission).toEqual({
+      evaluation: { passed: true, earnedXp: 25 },
+      completion: {
+        missionId: "state-graded-test-mission",
+        missionTitle: "Test Mission",
+        concepts: ["SELECT"],
+        playerQuery:
+          "CREATE UNIQUE INDEX player_guardrail ON bookings (room_id, booking_date, slot);",
+        referenceQuery:
+          "CREATE UNIQUE INDEX bookings_room_slot ON bookings (room_id, booking_date, slot);",
+        explanation: "The answer is 42.",
+        xp: 25,
+      },
+    });
+
+    attempt.dispose();
+  });
+
+  it("fails a valid State-graded script when a query Probe finds changed state", async () => {
+    const runtime = new InMemorySqliteRuntime();
+    const attempt = new MissionAttempt(stateGradedMission, runtime);
+    await attempt.open();
+
+    const submission = await attempt.submit(`
+      DELETE FROM bookings WHERE id = 2;
+      CREATE UNIQUE INDEX player_guardrail
+      ON bookings (room_id, booking_date, slot);
+    `);
+
+    expect(submission).toEqual({
+      evaluation: {
+        passed: false,
+        reason: "INCORRECT_ROWS",
+        message:
+          "The columns are right, but you returned 1 row(s) and the expected result has 2. Check your JOIN and WHERE conditions.",
+      },
+      completion: null,
+    });
+
+    attempt.dispose();
+  });
+
+  it("rejects infrastructure failures during must-fail Probes", async () => {
+    const runtime = new RecordingRuntime();
+    runtime.runResults.push(
+      { ok: true, results: [], durationMs: 1 },
+      {
+        ok: true,
+        results: [
+          {
+            columns: ["id", "room_id", "booking_date", "slot"],
+            rows: [
+              [1, 7, "2026-08-01", "10:00"],
+              [2, 7, "2026-08-01", "11:00"],
+            ],
+          },
+        ],
+        durationMs: 1,
+      },
+      { ok: false, error: "worker crashed", errorKind: "runtime" },
+      { ok: true, results: [], durationMs: 1 },
+      {
+        ok: true,
+        results: [
+          {
+            columns: ["id", "room_id", "booking_date", "slot"],
+            rows: [
+              [1, 7, "2026-08-01", "10:00"],
+              [2, 7, "2026-08-01", "11:00"],
+            ],
+          },
+        ],
+        durationMs: 1,
+      },
+      {
+        ok: false,
+        error: "UNIQUE constraint failed",
+        errorKind: "sql",
+      },
+    );
+
+    const submission = await new MissionAttempt(
+      stateGradedMission,
+      runtime,
+    ).submit("CREATE UNIQUE INDEX player_guardrail ON bookings (room_id)");
+
+    expect(submission).toEqual({
+      evaluation: {
+        passed: false,
+        reason: "SQL_ERROR",
+        message: "Probe 2 could not run: worker crashed",
+      },
+      completion: null,
+    });
+  });
+
+  it("fails a must-fail Probe when SQLite accepts its statement", async () => {
+    const runtime = new InMemorySqliteRuntime();
+    const attempt = new MissionAttempt(stateGradedMission, runtime);
+    await attempt.open();
+
+    const submission = await attempt.submit(
+      "CREATE INDEX player_non_guardrail ON bookings (room_id, booking_date, slot);",
+    );
+
+    expect(submission).toEqual({
+      evaluation: {
+        passed: false,
+        reason: "PROBE_FAILED",
+        message:
+          "Probe 2 expected SQLite to reject the statement, but it succeeded.",
+      },
+      completion: null,
+    });
+
+    attempt.dispose();
+  });
+
+  it("isolates State-graded submission from prior workbench changes", async () => {
+    const runtime = new InMemorySqliteRuntime();
+    const attempt = new MissionAttempt(stateGradedMission, runtime);
+    await attempt.open();
+    await attempt.run("DELETE FROM bookings WHERE id = 2");
+
+    const submission = await attempt.submit(
+      "CREATE UNIQUE INDEX player_guardrail ON bookings (room_id, booking_date, slot);",
+    );
+
+    expect(submission.evaluation).toEqual({ passed: true, earnedXp: 25 });
+
+    attempt.dispose();
+  });
+
+  it("grades the state left by a script even when a later statement errors", async () => {
+    const runtime = new InMemorySqliteRuntime();
+    const attempt = new MissionAttempt(stateGradedMission, runtime);
+    await attempt.open();
+
+    const submission = await attempt.submit(`
+      CREATE UNIQUE INDEX player_guardrail
+      ON bookings (room_id, booking_date, slot);
+      SELECT missing_column FROM bookings;
+    `);
+
+    expect(submission.evaluation).toEqual({ passed: true, earnedXp: 25 });
+
+    attempt.dispose();
   });
 });

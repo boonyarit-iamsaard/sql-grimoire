@@ -53,6 +53,7 @@ self.onmessage = async (event: MessageEvent<Request>) => {
       id: msg.id,
       ok: false,
       error: error instanceof Error ? error.message : String(error),
+      errorKind: msg.kind === "run" && db ? "sql" : "runtime",
     });
   }
 };

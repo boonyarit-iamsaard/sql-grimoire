@@ -6,7 +6,7 @@ import { Button } from "../../../shared/ui/button";
 import { SqlCodeBlock } from "../../../shared/ui/sql-code-block";
 import { TextWithCode } from "../../../shared/ui/text-with-code";
 import type { EvaluationResult } from "../../../sql/evaluator";
-import type { Mission } from "../mission-types";
+import { isStateGrading, type Mission } from "../mission-types";
 
 interface MissionFeedbackProps {
   mission: Mission;
@@ -123,6 +123,12 @@ export function MissionFeedback({
   // that navigate away leave instantly — the route crossfade covers those.
   const { closing, closeThen } = useAnimatedClose();
   const dismissToEditor = () => closeThen(onReturnToEditor);
+  const challenge = mission.challenge;
+  const stateGraded = isStateGrading(challenge);
+  const expectedColumns = stateGraded ? null : challenge.expectedColumns;
+  const referenceSolution = stateGraded
+    ? challenge.referenceScript
+    : challenge.referenceQuery;
 
   if (!evaluation.passed) {
     return (
@@ -134,12 +140,14 @@ export function MissionFeedback({
           {evaluation.reason.replaceAll("_", " ")}
         </div>
         <p>{evaluation.message}</p>
-        <h3 className={sectionHeadingClasses}>
-          The mission expects these columns
-        </h3>
-        <pre className={preClasses}>
-          {mission.challenge.expectedColumns.join(", ")}
-        </pre>
+        {expectedColumns && (
+          <>
+            <h3 className={sectionHeadingClasses}>
+              The mission expects these columns
+            </h3>
+            <pre className={preClasses}>{expectedColumns.join(", ")}</pre>
+          </>
+        )}
         <div className="mt-5.5 flex gap-3">
           <Button
             variant="primary"
@@ -181,11 +189,13 @@ export function MissionFeedback({
         ))}
       </div>
 
-      <h3 className={sectionHeadingClasses}>Your query</h3>
+      <h3 className={sectionHeadingClasses}>
+        Your {stateGraded ? "script" : "query"}
+      </h3>
       <SqlCodeBlock code={playerQuery} />
 
       <h3 className={sectionHeadingClasses}>Reference solution</h3>
-      <SqlCodeBlock code={mission.challenge.referenceQuery} />
+      <SqlCodeBlock code={referenceSolution} />
 
       <h3 className={sectionHeadingClasses}>How it works</h3>
       <p>
