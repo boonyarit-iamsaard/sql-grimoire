@@ -1,10 +1,13 @@
 packages:
   - "apps/*"
 
-nodeVersion: 24.0.0
+nodeVersion: 24.15.0
 engineStrict: true
 strictPeerDependencies: true
 verifyDepsBeforeRun: error
+
+overrides:
+  "miniflare>sharp": 0.35.0
 
 minimumReleaseAge: 1440
 minimumReleaseAgeIgnoreMissingTime: false
