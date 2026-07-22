@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { type Case, CaseCatalog, caseCatalog } from "./case-catalog";
+import type { Case } from "./case-catalog";
+import { CaseCatalog, caseCatalog } from "./case-catalog";
 
 describe("Case catalog", () => {
   it("resolves Missions and locks Cadence until Harborline is complete", () => {

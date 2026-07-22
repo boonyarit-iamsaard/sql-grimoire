@@ -1,4 +1,5 @@
-import { type ReactNode, useEffect, useRef, useState } from "react";
+import type { ReactNode } from "react";
+import { useEffect, useRef, useState } from "react";
 import xpIcon from "../../../assets/ui/xp-icon.svg";
 import { cn } from "../../../lib/cn";
 import { playClick } from "../../../shared/audio/sound";
@@ -6,7 +7,8 @@ import { Button } from "../../../shared/ui/button";
 import { SqlCodeBlock } from "../../../shared/ui/sql-code-block";
 import { TextWithCode } from "../../../shared/ui/text-with-code";
 import type { EvaluationResult } from "../../../sql/evaluator";
-import { isStateGrading, type Mission } from "../mission-types";
+import type { Mission } from "../mission-types";
+import { isStateGrading } from "../mission-types";
 
 interface MissionFeedbackProps {
   mission: Mission;

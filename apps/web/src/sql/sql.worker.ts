@@ -1,6 +1,8 @@
 // Web Worker that owns the sql.js database. Running SQL off the main thread
 // lets the app terminate this worker to interrupt a runaway query.
-import initSqlJs, { type Database } from "sql.js";
+
+import type { Database } from "sql.js";
+import initSqlJs from "sql.js";
 import wasmUrl from "sql.js/dist/sql-wasm.wasm?url";
 
 type Request =

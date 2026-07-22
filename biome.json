@@ -64,6 +64,12 @@
         "useAsConstAssertion": "error",
         "useBlockStatements": "error",
         "useDefaultParameterLast": "error",
+        "useImportType": {
+          "level": "error",
+          "options": {
+            "style": "separatedType"
+          }
+        },
         "useNodejsImportProtocol": "error",
         "useSelfClosingElements": "error",
         "useSingleVarDeclarator": "error",

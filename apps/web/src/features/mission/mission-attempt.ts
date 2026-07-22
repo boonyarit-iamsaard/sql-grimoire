@@ -1,21 +1,16 @@
-import {
-  type EvaluationResult,
-  evaluate,
-  evaluateProbes,
-  type ProbeEvaluationInput,
+import type {
+  EvaluationResult,
+  ProbeEvaluationInput,
 } from "../../sql/evaluator";
+import { evaluate, evaluateProbes } from "../../sql/evaluator";
 import type {
   QueryResult,
   RunResult,
   SqlRuntime,
   TableInfo,
 } from "../../sql/sql-runtime";
-import {
-  isStateGrading,
-  type Mission,
-  type Probe,
-  type StateGrading,
-} from "./mission-types";
+import type { Mission, Probe, StateGrading } from "./mission-types";
+import { isStateGrading } from "./mission-types";
 
 export interface MissionCompletion {
   missionId: string;

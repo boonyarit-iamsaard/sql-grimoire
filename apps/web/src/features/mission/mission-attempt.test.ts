@@ -1,4 +1,5 @@
-import initSqlJs, { type Database, type SqlJsStatic } from "sql.js";
+import type { Database, SqlJsStatic } from "sql.js";
+import initSqlJs from "sql.js";
 import { describe, expect, it } from "vitest";
 import type { RunResult, SqlRuntime, TableInfo } from "../../sql/sql-runtime";
 import { MissionAttempt } from "./mission-attempt";

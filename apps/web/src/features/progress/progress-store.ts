@@ -1,10 +1,7 @@
 import { useSyncExternalStore } from "react";
 import type { MissionCompletion } from "../mission/mission-attempt";
-import {
-  emptyProgress,
-  type GrimoireEntry,
-  type Progress,
-} from "./progress-types";
+import type { GrimoireEntry, Progress } from "./progress-types";
+import { emptyProgress } from "./progress-types";
 
 const STORAGE_KEY = "sql-rpg-progress-v1";
 
