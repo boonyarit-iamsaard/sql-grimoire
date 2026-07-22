@@ -26,8 +26,8 @@
   --color-ctp-mantle: #1e2030;
   --color-ctp-crust: #181926;
 
-  --font-display: Georgia, "Times New Roman", serif;
-  --font-body: "Segoe UI", system-ui, sans-serif;
+  --font-display: "Newsreader", Georgia, "Times New Roman", serif;
+  --font-body: "IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
   --font-mono: "JetBrains Mono", "Cascadia Code", Consolas, monospace;
 
   /* All code surfaces render at this size (`text-mono`). */

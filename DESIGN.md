@@ -26,31 +26,31 @@ colors:
   warning-maroon: "#ee99a0"
 typography:
   display:
-    fontFamily: "Georgia, 'Times New Roman', serif"
+    fontFamily: "'Newsreader', Georgia, 'Times New Roman', serif"
     fontSize: "clamp(2.6rem, 6vw, 4.2rem)"
     fontWeight: 400
     lineHeight: 1.1
     letterSpacing: "0.06em"
   headline:
-    fontFamily: "Georgia, 'Times New Roman', serif"
+    fontFamily: "'Newsreader', Georgia, 'Times New Roman', serif"
     fontSize: "2rem"
     fontWeight: 400
     lineHeight: 1.2
     letterSpacing: "normal"
   title:
-    fontFamily: "Georgia, 'Times New Roman', serif"
+    fontFamily: "'Newsreader', Georgia, 'Times New Roman', serif"
     fontSize: "1.5rem"
     fontWeight: 400
     lineHeight: 1.3
     letterSpacing: "normal"
   body:
-    fontFamily: "'Segoe UI', system-ui, sans-serif"
+    fontFamily: "'IBM Plex Sans', 'Segoe UI', system-ui, sans-serif"
     fontSize: "1rem"
     fontWeight: 400
     lineHeight: 1.5
     letterSpacing: "normal"
   label:
-    fontFamily: "Georgia, 'Times New Roman', serif"
+    fontFamily: "'Newsreader', Georgia, 'Times New Roman', serif"
     fontSize: "1rem"
     fontWeight: 400
     lineHeight: 1.2
@@ -160,8 +160,8 @@ sit on soft paper shadow, and gold is spent sparingly enough to still feel like 
 **Key Characteristics:**
 
 - Cool slate base, warm gold-and-peach accents, lit by a top-center radial "candlelight" glow.
-- Georgia serif for every heading and button; JetBrains Mono for every code and data surface at a
-  fixed 14px; Segoe UI sans for prose.
+- Newsreader serif for every heading and button; JetBrains Mono for every code and data surface at a
+  fixed 14px; IBM Plex Sans for prose.
 - Calm density: developer-tool precision (mono grids, sticky headers, dotted schema trees) without
   dashboard ornament.
 - Tactile, bookish components — pressable buttons with a hard bottom edge, paper-shadow cards.
@@ -231,15 +231,20 @@ stays cool; the light is warm.
 
 ## 3. Typography
 
-**Display / Heading Font:** Georgia (with Times New Roman, serif fallback)
-**Body Font:** Segoe UI (with system-ui, sans-serif fallback)
+**Display / Heading Font:** Newsreader (self-hosted via Fontsource; with Georgia, Times New Roman,
+serif fallback)
+**Body Font:** IBM Plex Sans (self-hosted via Fontsource; with Segoe UI, system-ui, sans-serif
+fallback)
 **Code / Data Font:** JetBrains Mono (self-hosted via Fontsource; with Cascadia Code, Consolas
 fallback)
 
-**Character:** A serif-and-mono pairing on a true contrast axis: bookish Georgia headings for the
-scholarly, grimoire mood, and crisp JetBrains Mono for every surface where SQL or query results live.
-Segoe UI carries plain prose between them. The serif-plus-mono contrast is the whole personality —
-one side is the study, the other is the terminal.
+**Character:** Three humanist faces, one warm scholar. Newsreader — a literary serif built for
+screen reading — carries the candlelit, grimoire mood across headings and buttons. IBM Plex Sans
+holds the primers and briefings: a humanist sans that shares its open, technical skeleton with
+JetBrains Mono, so prose and the SQL surfaces read as one system rather than two. JetBrains Mono
+remains the voice of the workbench for every surface where SQL or query results live. The
+serif-versus-mono contrast is still the personality — one side the study, the other the terminal —
+with the body sans now deliberate rather than a system default.
 
 ### Hierarchy
 
