@@ -11,6 +11,10 @@ describe("Case catalog", () => {
       title: "The Same Room, Twice",
       caseId: "cadence",
     });
+    expect(caseCatalog.getMission("refund-exposure")).toMatchObject({
+      title: "The Refund List",
+      caseId: "cadence",
+    });
     expect(caseCatalog.getMission("unknown")).toBeUndefined();
 
     const cases = caseCatalog.getCases();
@@ -36,14 +40,40 @@ describe("Case catalog", () => {
       },
     ]);
 
-    const afterHarborline = caseCatalog.getCases(
-      (missionId) => missionId !== "double-booked-slots",
+    const harborlineMissionIds = [
+      "missing-shipment",
+      "council-tally",
+      "unwritten-scrolls",
+    ];
+    const afterHarborline = caseCatalog.getCases((missionId) =>
+      harborlineMissionIds.includes(missionId),
     );
     expect(afterHarborline[1]).toMatchObject({
       id: "cadence",
       state: "available",
+      completedCount: 0,
       nextMissionId: "double-booked-slots",
     });
+    expect(afterHarborline[1].missions.map(({ state }) => state)).toEqual([
+      "next",
+      "locked",
+    ]);
+
+    const afterCollisionReport = caseCatalog.getCases(
+      (missionId) =>
+        harborlineMissionIds.includes(missionId) ||
+        missionId === "double-booked-slots",
+    );
+    expect(afterCollisionReport[1]).toMatchObject({
+      id: "cadence",
+      state: "available",
+      completedCount: 1,
+      nextMissionId: "refund-exposure",
+    });
+    expect(afterCollisionReport[1].missions.map(({ state }) => state)).toEqual([
+      "completed",
+      "next",
+    ]);
   });
 
   it("unlocks Missions one by one within a Case", () => {
