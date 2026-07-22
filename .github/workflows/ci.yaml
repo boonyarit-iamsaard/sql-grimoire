@@ -51,10 +51,10 @@ jobs:
 
       - run: pnpm run ci
 
-      # Deploys are skipped under act (local CI verification): act cannot read
-      # GitHub secrets, and a local run must not publish real deployments.
+      # Preview deploys are skipped under act and for Dependabot pull requests:
+      # neither environment can access the Cloudflare deployment secrets.
       - name: Deploy preview to Cloudflare Pages
-        if: github.event_name == 'pull_request' && !env.ACT
+        if: github.event_name == 'pull_request' && github.event.pull_request.user.login != 'dependabot[bot]' && !env.ACT
         env:
           DEPLOY_BRANCH: ${{ github.head_ref }}
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
