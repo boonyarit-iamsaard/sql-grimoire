@@ -1,3 +1,4 @@
+import { roomCollisions } from "../../missions/cadence/01-collisions/mission";
 import { delayedOrders } from "../../missions/harborline/01-delayed-orders/mission";
 import { failingRoutes } from "../../missions/harborline/02-failing-routes/mission";
 import { paidNeverShipped } from "../../missions/harborline/03-paid-never-shipped/mission";
@@ -116,6 +117,7 @@ const missions: readonly Mission[] = [
   delayedOrders,
   failingRoutes,
   paidNeverShipped,
+  roomCollisions,
 ];
 
 const cases: readonly Case[] = [
@@ -128,13 +130,12 @@ const cases: readonly Case[] = [
     missionIds: [delayedOrders.id, failingRoutes.id, paidNeverShipped.id],
   },
   {
-    id: "next-client",
-    name: "A New Client Is Preparing Their Case",
-    company: "???",
-    summary: "",
-    missionIds: [],
-    comingSoonNote:
-      "Their schema arrives soon — and this one will not survive on SELECT alone.",
+    id: "cadence",
+    name: "The Double Booking",
+    company: "Cadence Studios",
+    summary:
+      "Customers are arriving for rehearsal sessions only to find the same room sold twice. Trace the collisions from the calendar to the booking flow, then add the guarantees that keep them from returning.",
+    missionIds: [roomCollisions.id],
   },
 ];
 

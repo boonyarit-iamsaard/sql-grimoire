@@ -2,10 +2,14 @@ import { describe, expect, it } from "vitest";
 import { type Case, CaseCatalog, caseCatalog } from "./case-catalog";
 
 describe("Case catalog", () => {
-  it("resolves Missions and keeps the empty coming-soon Case locked", () => {
+  it("resolves Missions and locks Cadence until Harborline is complete", () => {
     expect(caseCatalog.getMission("missing-shipment")?.title).toBe(
       "Delayed Orders Piling Up",
     );
+    expect(caseCatalog.getMission("double-booked-slots")).toMatchObject({
+      title: "The Same Room, Twice",
+      caseId: "cadence",
+    });
     expect(caseCatalog.getMission("unknown")).toBeUndefined();
 
     const cases = caseCatalog.getCases();
@@ -24,12 +28,21 @@ describe("Case catalog", () => {
         nextMissionId: "missing-shipment",
       },
       {
-        id: "next-client",
+        id: "cadence",
         state: "locked",
         completedCount: 0,
         nextMissionId: null,
       },
     ]);
+
+    const afterHarborline = caseCatalog.getCases(
+      (missionId) => missionId !== "double-booked-slots",
+    );
+    expect(afterHarborline[1]).toMatchObject({
+      id: "cadence",
+      state: "available",
+      nextMissionId: "double-booked-slots",
+    });
   });
 
   it("unlocks Missions one by one within a Case", () => {
