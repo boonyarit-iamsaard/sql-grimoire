@@ -15,6 +15,10 @@ describe("Case catalog", () => {
       title: "The Refund List",
       caseId: "cadence",
     });
+    expect(caseCatalog.getMission("prevent-double-booking")).toMatchObject({
+      title: "Nothing Stopped It",
+      caseId: "cadence",
+    });
     expect(caseCatalog.getMission("unknown")).toBeUndefined();
 
     const cases = caseCatalog.getCases();
@@ -57,6 +61,7 @@ describe("Case catalog", () => {
     expect(afterHarborline[1].missions.map(({ state }) => state)).toEqual([
       "next",
       "locked",
+      "locked",
     ]);
 
     const afterCollisionReport = caseCatalog.getCases(
@@ -71,6 +76,25 @@ describe("Case catalog", () => {
       nextMissionId: "refund-exposure",
     });
     expect(afterCollisionReport[1].missions.map(({ state }) => state)).toEqual([
+      "completed",
+      "next",
+      "locked",
+    ]);
+
+    const afterRefundReport = caseCatalog.getCases(
+      (missionId) =>
+        harborlineMissionIds.includes(missionId) ||
+        missionId === "double-booked-slots" ||
+        missionId === "refund-exposure",
+    );
+    expect(afterRefundReport[1]).toMatchObject({
+      id: "cadence",
+      state: "available",
+      completedCount: 2,
+      nextMissionId: "prevent-double-booking",
+    });
+    expect(afterRefundReport[1].missions.map(({ state }) => state)).toEqual([
+      "completed",
       "completed",
       "next",
     ]);
