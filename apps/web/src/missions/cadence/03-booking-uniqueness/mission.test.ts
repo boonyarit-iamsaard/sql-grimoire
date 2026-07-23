@@ -100,6 +100,71 @@ describe("Nothing Stopped It", () => {
     attempt.dispose();
   });
 
+  it("rejects a guardrail that protects only one room", async () => {
+    const attempt = new MissionAttempt(
+      bookingUniqueness,
+      new InMemorySqliteRuntime(),
+    );
+    await attempt.open();
+
+    const submission = await attempt.submit(`
+      CREATE UNIQUE INDEX player_booking_slot
+      ON bookings (room_id, booking_date, slot_hour)
+      WHERE room_id = 1;
+    `);
+
+    expect(submission.evaluation).toMatchObject({
+      passed: false,
+      reason: "PROBE_FAILED",
+    });
+    expect(submission.completion).toBeNull();
+
+    attempt.dispose();
+  });
+
+  it("rejects a guardrail that protects only earlier booking dates", async () => {
+    const attempt = new MissionAttempt(
+      bookingUniqueness,
+      new InMemorySqliteRuntime(),
+    );
+    await attempt.open();
+
+    const submission = await attempt.submit(`
+      CREATE UNIQUE INDEX player_booking_slot
+      ON bookings (room_id, booking_date, slot_hour)
+      WHERE booking_date <= '2026-07-21';
+    `);
+
+    expect(submission.evaluation).toMatchObject({
+      passed: false,
+      reason: "PROBE_FAILED",
+    });
+    expect(submission.completion).toBeNull();
+
+    attempt.dispose();
+  });
+
+  it("rejects a guardrail that includes the customer in the slot key", async () => {
+    const attempt = new MissionAttempt(
+      bookingUniqueness,
+      new InMemorySqliteRuntime(),
+    );
+    await attempt.open();
+
+    const submission = await attempt.submit(`
+      CREATE UNIQUE INDEX player_booking_slot
+      ON bookings (room_id, booking_date, slot_hour, customer_id);
+    `);
+
+    expect(submission.evaluation).toMatchObject({
+      passed: false,
+      reason: "PROBE_FAILED",
+    });
+    expect(submission.completion).toBeNull();
+
+    attempt.dispose();
+  });
+
   it("rejects a guardrail script that removes a legitimate booking", async () => {
     const attempt = new MissionAttempt(
       bookingUniqueness,

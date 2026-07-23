@@ -52,7 +52,51 @@ export const bookingUniqueness: Mission = {
       },
       {
         type: "must-fail",
-        sql: "INSERT INTO bookings (id, room_id, booking_date, slot_hour, customer_id) VALUES (117, 1, '2026-07-18', 17, 2);",
+        sql: "INSERT INTO bookings (id, room_id, booking_date, slot_hour, customer_id) VALUES (117, 1, '2026-07-18', 18, 2);",
+      },
+      {
+        type: "must-fail",
+        sql: "INSERT INTO bookings (id, room_id, booking_date, slot_hour, customer_id) VALUES (118, 1, '2026-07-18', 17, 1);",
+      },
+      {
+        type: "must-fail",
+        sql: "INSERT INTO bookings (id, room_id, booking_date, slot_hour, customer_id) VALUES (119, 1, '2026-07-18', 19, 7);",
+      },
+      {
+        type: "must-fail",
+        sql: "INSERT INTO bookings (id, room_id, booking_date, slot_hour, customer_id) VALUES (120, 2, '2026-07-19', 14, 4);",
+      },
+      {
+        type: "must-fail",
+        sql: "INSERT INTO bookings (id, room_id, booking_date, slot_hour, customer_id) VALUES (121, 2, '2026-07-19', 15, 3);",
+      },
+      {
+        type: "must-fail",
+        sql: "INSERT INTO bookings (id, room_id, booking_date, slot_hour, customer_id) VALUES (122, 3, '2026-07-20', 19, 2);",
+      },
+      {
+        type: "must-fail",
+        sql: "INSERT INTO bookings (id, room_id, booking_date, slot_hour, customer_id) VALUES (123, 3, '2026-07-20', 18, 4);",
+      },
+      {
+        type: "must-fail",
+        sql: "INSERT INTO bookings (id, room_id, booking_date, slot_hour, customer_id) VALUES (124, 3, '2026-07-20', 20, 8);",
+      },
+      {
+        type: "must-fail",
+        sql: "INSERT INTO bookings (id, room_id, booking_date, slot_hour, customer_id) VALUES (125, 4, '2026-07-21', 10, 7);",
+      },
+      {
+        type: "must-fail",
+        sql: "INSERT INTO bookings (id, room_id, booking_date, slot_hour, customer_id) VALUES (126, 4, '2026-07-20', 18, 1);",
+      },
+      {
+        type: "must-fail",
+        sql: "INSERT INTO bookings (id, room_id, booking_date, slot_hour, customer_id) VALUES (127, 4, '2026-07-21', 11, 6);",
+      },
+      {
+        type: "must-fail",
+        sql: "INSERT INTO bookings (id, room_id, booking_date, slot_hour, customer_id) VALUES (128, 1, '2026-07-22', 18, 5);",
       },
     ],
     hints: [
