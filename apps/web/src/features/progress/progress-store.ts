@@ -1,10 +1,11 @@
 import { useSyncExternalStore } from "react";
-import type { MissionCompletion } from "../mission/mission-attempt";
-import {
-  emptyProgress,
-  type GrimoireEntry,
-  type Progress,
+import type {
+  GrimoireEntry,
+  MissionCompletion,
+  MissionCompletionOutcome,
+  Progress,
 } from "./progress-types";
+import { emptyProgress } from "./progress-types";
 
 const STORAGE_KEY = "sql-rpg-progress-v1";
 
@@ -64,7 +65,7 @@ export class PlayerProgress {
     this.save({ ...this.progress, currentMissionId: missionId });
   }
 
-  completeMission(completion: MissionCompletion): void {
+  completeMission(completion: MissionCompletion): MissionCompletionOutcome {
     const alreadyCompleted = this.isMissionCompleted(completion.missionId);
     const entry: GrimoireEntry = {
       missionId: completion.missionId,
@@ -92,6 +93,10 @@ export class PlayerProgress {
       ],
       currentMissionId: null,
     });
+    return {
+      firstCompletion: !alreadyCompleted,
+      awardedXp: alreadyCompleted ? 0 : completion.xp,
+    };
   }
 
   reset(): void {

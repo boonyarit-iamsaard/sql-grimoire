@@ -10,6 +10,11 @@ A realistic database incident with its own objective, grading rules, guidance, r
 explanation, solved against its Case's schema.
 _Avoid_: Challenge, exercise, level, quest
 
+**Mission Verification**:
+An executable authoring check that proves a Mission's database, Primer examples, reference
+solution, grading, and authored acceptance and rejection examples behave as intended.
+_Avoid_: Test harness, test kit, conformance test
+
 **Case**:
 One business problem: a fictional company or system, one schema, and an ordered set of Missions
 that unlock one by one. A Mission is the unit of play; a Case is the unit of progression.
@@ -29,8 +34,22 @@ _Avoid_: Session, run, workbench state
 
 **Player Progress**:
 The durable record of a player's current Mission, earned XP, completed Missions, last queries, and
-Grimoire entries. It is the authority for applying a Mission completion exactly once.
+Grimoire entries. It awards XP and advances progression only on first completion; a later
+successful submission may replace that Mission's Grimoire Entry without earning XP again.
 _Avoid_: Save state, profile
+
+**State-graded Mission**:
+A Mission graded by the database state the player's submitted script leaves behind, verified by
+Probes, rather than by comparing one query's result set. Its submission is a script of one or
+more statements. Missions that are not state-graded are result-graded.
+_Avoid_: DDL mission, write mission
+
+**Probe**:
+One authored grading step for a State-graded Mission, run after the player's script replays on a
+fresh database. A Probe is either a query whose result must match the same Probe run after the
+reference script, or a statement that must fail. Probes judge what the database does, never the
+text or shape of the player's SQL.
+_Avoid_: Assertion, check, test case
 
 **Grimoire Entry**:
 The durable learning record produced by a completed Mission, containing the player's query, the

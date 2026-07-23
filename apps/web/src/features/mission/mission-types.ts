@@ -23,6 +23,34 @@ export interface Primer {
   sections: PrimerSection[];
 }
 
+export type Probe =
+  | { type: "query"; sql: string }
+  | { type: "must-fail"; sql: string };
+
+export interface ResultGrading {
+  expectedColumns: string[];
+  referenceQuery: string;
+  hints: string[];
+  probes?: never;
+  referenceScript?: never;
+}
+
+export interface StateGrading {
+  referenceScript: string;
+  probes: Probe[];
+  hints: string[];
+  expectedColumns?: never;
+  referenceQuery?: never;
+}
+
+export type MissionGrading = ResultGrading | StateGrading;
+
+export function isStateGrading(
+  grading: MissionGrading,
+): grading is StateGrading {
+  return grading.probes !== undefined;
+}
+
 export interface Mission {
   id: string;
   title: string;
@@ -37,11 +65,7 @@ export interface Mission {
     seedSql: string;
   };
 
-  challenge: {
-    expectedColumns: string[];
-    referenceQuery: string;
-    hints: string[];
-  };
+  challenge: MissionGrading;
 
   reward: {
     xp: number;

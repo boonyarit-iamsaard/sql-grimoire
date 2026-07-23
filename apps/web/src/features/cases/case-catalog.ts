@@ -1,3 +1,8 @@
+import { roomCollisions } from "../../missions/cadence/01-collisions/mission";
+import { refundExposure } from "../../missions/cadence/02-damage-report/mission";
+import { bookingUniqueness } from "../../missions/cadence/03-booking-uniqueness/mission";
+import { orphanedPayments } from "../../missions/cadence/04-orphaned-payments/mission";
+import { halfFinishedBooking } from "../../missions/cadence/05-half-finished-booking/mission";
 import { delayedOrders } from "../../missions/harborline/01-delayed-orders/mission";
 import { failingRoutes } from "../../missions/harborline/02-failing-routes/mission";
 import { paidNeverShipped } from "../../missions/harborline/03-paid-never-shipped/mission";
@@ -55,6 +60,23 @@ export class CaseCatalog {
 
   getMission(id: string): Mission | undefined {
     return this.missionsById.get(id);
+  }
+
+  getMissions(): readonly Mission[] {
+    return [...this.missionsById.values()];
+  }
+
+  nextMission(
+    caseId: string,
+    isMissionCompleted: (missionId: string) => boolean,
+  ): Mission | null {
+    const caseView = this.getCases(isMissionCompleted).find(
+      (candidate) => candidate.id === caseId,
+    );
+    if (caseView?.state !== "available" || !caseView.nextMissionId) {
+      return null;
+    }
+    return this.getMission(caseView.nextMissionId) ?? null;
   }
 
   /** Cases in catalog order. A Case is locked while the previous Case that
@@ -116,6 +138,11 @@ const missions: readonly Mission[] = [
   delayedOrders,
   failingRoutes,
   paidNeverShipped,
+  roomCollisions,
+  refundExposure,
+  bookingUniqueness,
+  orphanedPayments,
+  halfFinishedBooking,
 ];
 
 const cases: readonly Case[] = [
@@ -128,13 +155,27 @@ const cases: readonly Case[] = [
     missionIds: [delayedOrders.id, failingRoutes.id, paidNeverShipped.id],
   },
   {
-    id: "next-client",
-    name: "A New Client Is Preparing Their Case",
-    company: "???",
+    id: "cadence",
+    name: "The Double Booking",
+    company: "Cadence Studios",
+    summary:
+      "Customers are arriving for rehearsal sessions only to find the same room sold twice. Trace the collisions from the calendar to the booking flow, then add the guarantees that keep them from returning.",
+    missionIds: [
+      roomCollisions.id,
+      refundExposure.id,
+      bookingUniqueness.id,
+      orphanedPayments.id,
+      halfFinishedBooking.id,
+    ],
+  },
+  {
+    id: "kestrel",
+    name: "The Report That Would Not Finish",
+    company: "Kestrel Metrics",
     summary: "",
     missionIds: [],
     comingSoonNote:
-      "Their schema arrives soon — and this one will not survive on SELECT alone.",
+      "The morning revenue report once took seconds. Now, teams give up before it finishes.",
   },
 ];
 

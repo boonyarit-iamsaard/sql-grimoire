@@ -23,6 +23,34 @@ incidents grouped into Cases, with a Primer lesson beside each Mission's workben
 in the original vision now means structured progression and earned rewards, not story dialogue.
 See `docs/adr/0001-business-incident-framing.md`._
 
+_Note (2026-07-19, second): three sequencing amendments from the post-playtest planning session._
+
+> _First, the product stays free for now. The playtest showed the SQL reasoning itself helping
+> people with real business questions, and the founder chooses to grow that value before pricing
+> it. Monetization is deferred indefinitely but deliberately left open — the moat argument below
+> still stands. The two-session concurrency spike defers with it, because it exists only to
+> de-risk a claim that pricing would depend on._
+>
+> _Second, Case 2 is built before the second playtest, repeating the round-one call that content
+> production is cheap enough to test a complete progression. Case 2 ("The Double Booking" at the
+> fictional Cadence Studios) covers constraints and transactions in a five-Mission ramp and
+> introduces state-graded Missions verified by behavioral Probes
+> (`docs/adr/0002-behavioral-probe-grading.md`). Plan of record:
+> `.scratch/cadence-studios-case/spec.md`._
+>
+> _Third, the second-playtest gate is amended from "outside the founder's circle" to
+> cold-to-the-product: four to six testers — QA engineers and other-team engineers known
+> professionally but not closely, all regular SQL users, none of whom have seen or heard of the
+> project, none of whom the founder manages. Sessions are asynchronous with a follow-up
+> conversation, matching how round one was actually run. Both Cases are measured with identical
+> observables but scored separately: Case 1's verdict answers the format question, Case 2's
+> answers curriculum calibration, and voluntary entry into Case 2 is Case 1's strongest demand
+> signal. The pass rule, fixed in advance: all testers who attempt a Case finish it; at most one
+> tester needs a conceptual lookup outside the platform (syntax trivia does not count, but every
+> lookup of either kind is logged as a content defect); and a majority ask what comes next. The
+> unmet-demand probe becomes a locked Case 3 card teasing a performance incident, mechanics
+> unnamed. Protocol: `.scratch/guild-ledger-arc/issues/05-playtest-protocol.md`._
+
 ## Where the prototype fits
 
 The three-Mission Case in this repository ("The Vanishing Orders" at the fictional Harborline

@@ -3,7 +3,8 @@ import { cn } from "../../lib/cn";
 import { playClick } from "../../shared/audio/sound";
 import { Button } from "../../shared/ui/button";
 import { usePlayerProgress } from "../progress/progress-store";
-import { type CaseView, caseCatalog } from "./case-catalog";
+import type { CaseView } from "./case-catalog";
+import { caseCatalog } from "./case-catalog";
 
 interface CaseDashboardScreenProps {
   onOpenGrimoire: () => void;

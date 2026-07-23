@@ -1,11 +1,52 @@
 import { describe, expect, it } from "vitest";
-import { type Case, CaseCatalog, caseCatalog } from "./case-catalog";
+import type { Case } from "./case-catalog";
+import { CaseCatalog, caseCatalog } from "./case-catalog";
 
 describe("Case catalog", () => {
-  it("resolves Missions and keeps the empty coming-soon Case locked", () => {
+  it("ends with a locked performance-incident teaser", () => {
+    const teaser = caseCatalog.getCases(() => true).at(-1);
+
+    expect(teaser).toMatchObject({
+      id: "kestrel",
+      name: "The Report That Would Not Finish",
+      company: "Kestrel Metrics",
+      missionIds: [],
+      comingSoonNote:
+        "The morning revenue report once took seconds. Now, teams give up before it finishes.",
+      state: "locked",
+      missions: [],
+      completedCount: 0,
+      nextMissionId: null,
+    });
+    expect(teaser?.comingSoonNote).not.toMatch(
+      /concurr|index|query plan|pglite|postgres/i,
+    );
+  });
+
+  it("resolves Missions and locks Cadence until Harborline is complete", () => {
     expect(caseCatalog.getMission("missing-shipment")?.title).toBe(
       "Delayed Orders Piling Up",
     );
+    expect(caseCatalog.getMission("double-booked-slots")).toMatchObject({
+      title: "The Same Room, Twice",
+      caseId: "cadence",
+    });
+    expect(caseCatalog.getMission("refund-exposure")).toMatchObject({
+      title: "The Refund List",
+      caseId: "cadence",
+    });
+    expect(caseCatalog.getMission("prevent-double-booking")).toMatchObject({
+      title: "Nothing Stopped It",
+      caseId: "cadence",
+    });
+    expect(caseCatalog.getMission("prevent-orphaned-payments")).toMatchObject({
+      title: "The Cleanup That Made It Worse",
+      caseId: "cadence",
+    });
+    expect(caseCatalog.getMission("finish-booking-atomically")).toMatchObject({
+      title: "The Half-Finished Booking",
+      caseId: "cadence",
+    });
     expect(caseCatalog.getMission("unknown")).toBeUndefined();
 
     const cases = caseCatalog.getCases();
@@ -24,12 +65,114 @@ describe("Case catalog", () => {
         nextMissionId: "missing-shipment",
       },
       {
-        id: "next-client",
+        id: "cadence",
+        state: "locked",
+        completedCount: 0,
+        nextMissionId: null,
+      },
+      {
+        id: "kestrel",
         state: "locked",
         completedCount: 0,
         nextMissionId: null,
       },
     ]);
+
+    const harborlineMissionIds = [
+      "missing-shipment",
+      "council-tally",
+      "unwritten-scrolls",
+    ];
+    const afterHarborline = caseCatalog.getCases((missionId) =>
+      harborlineMissionIds.includes(missionId),
+    );
+    expect(afterHarborline[1]).toMatchObject({
+      id: "cadence",
+      state: "available",
+      completedCount: 0,
+      nextMissionId: "double-booked-slots",
+    });
+    expect(afterHarborline[1].missions.map(({ state }) => state)).toEqual([
+      "next",
+      "locked",
+      "locked",
+      "locked",
+      "locked",
+    ]);
+
+    const afterCollisionReport = caseCatalog.getCases(
+      (missionId) =>
+        harborlineMissionIds.includes(missionId) ||
+        missionId === "double-booked-slots",
+    );
+    expect(afterCollisionReport[1]).toMatchObject({
+      id: "cadence",
+      state: "available",
+      completedCount: 1,
+      nextMissionId: "refund-exposure",
+    });
+    expect(afterCollisionReport[1].missions.map(({ state }) => state)).toEqual([
+      "completed",
+      "next",
+      "locked",
+      "locked",
+      "locked",
+    ]);
+
+    const afterRefundReport = caseCatalog.getCases(
+      (missionId) =>
+        harborlineMissionIds.includes(missionId) ||
+        missionId === "double-booked-slots" ||
+        missionId === "refund-exposure",
+    );
+    expect(afterRefundReport[1]).toMatchObject({
+      id: "cadence",
+      state: "available",
+      completedCount: 2,
+      nextMissionId: "prevent-double-booking",
+    });
+    expect(afterRefundReport[1].missions.map(({ state }) => state)).toEqual([
+      "completed",
+      "completed",
+      "next",
+      "locked",
+      "locked",
+    ]);
+
+    const afterBookingGuardrail = caseCatalog.getCases(
+      (missionId) =>
+        harborlineMissionIds.includes(missionId) ||
+        missionId === "double-booked-slots" ||
+        missionId === "refund-exposure" ||
+        missionId === "prevent-double-booking",
+    );
+    expect(afterBookingGuardrail[1]).toMatchObject({
+      id: "cadence",
+      state: "available",
+      completedCount: 3,
+      nextMissionId: "prevent-orphaned-payments",
+    });
+    expect(afterBookingGuardrail[1].missions.map(({ state }) => state)).toEqual(
+      ["completed", "completed", "completed", "next", "locked"],
+    );
+
+    const afterPaymentGuardrail = caseCatalog.getCases(
+      (missionId) =>
+        harborlineMissionIds.includes(missionId) ||
+        missionId === "double-booked-slots" ||
+        missionId === "refund-exposure" ||
+        missionId === "prevent-double-booking" ||
+        missionId === "prevent-orphaned-payments",
+    );
+    expect(afterPaymentGuardrail[1]).toMatchObject({
+      id: "cadence",
+      state: "available",
+      completedCount: 4,
+      nextMissionId: "finish-booking-atomically",
+    });
+    expect(afterPaymentGuardrail[1].missions.map(({ state }) => state)).toEqual(
+      ["completed", "completed", "completed", "completed", "next"],
+    );
   });
 
   it("unlocks Missions one by one within a Case", () => {

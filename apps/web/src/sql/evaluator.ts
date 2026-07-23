@@ -1,5 +1,5 @@
-// Pure evaluation logic — compares the *results* of the player query and the
-// reference query, never the SQL text. Portable: depends only on data types.
+// Pure evaluation logic — compares query results and behavioral Probe
+// outcomes, never SQL text. Portable: depends only on data types.
 import type { QueryResult, RunResult, SqlValue } from "./sql-runtime";
 
 const NULL_SENTINEL = "␀NULL";
@@ -8,7 +8,11 @@ export type EvaluationResult =
   | { passed: true; earnedXp: number }
   | {
       passed: false;
-      reason: "SQL_ERROR" | "INCORRECT_COLUMNS" | "INCORRECT_ROWS";
+      reason:
+        | "SQL_ERROR"
+        | "INCORRECT_COLUMNS"
+        | "INCORRECT_ROWS"
+        | "PROBE_FAILED";
       message: string;
     };
 
@@ -86,6 +90,66 @@ export function evaluate(
       };
     }
   }
+  return { passed: true, earnedXp: xp };
+}
+
+export interface ProbeEvaluationInput {
+  type: "query" | "must-fail";
+  playerRun: RunResult;
+  referenceRun: RunResult;
+}
+
+export function evaluateProbes(
+  probes: ProbeEvaluationInput[],
+  xp: number,
+): EvaluationResult {
+  for (const [index, probe] of probes.entries()) {
+    if (probe.type === "must-fail") {
+      if (probe.referenceRun.ok) {
+        return {
+          passed: false,
+          reason: "SQL_ERROR",
+          message: `Mission bug — Probe ${index + 1} succeeded after the reference script, but it must fail.`,
+        };
+      }
+      if (probe.referenceRun.errorKind !== "sql") {
+        return {
+          passed: false,
+          reason: "SQL_ERROR",
+          message: `Probe ${index + 1} could not run after the reference script: ${probe.referenceRun.error}`,
+        };
+      }
+      if (probe.playerRun.ok) {
+        return {
+          passed: false,
+          reason: "PROBE_FAILED",
+          message: `Probe ${index + 1} expected SQLite to reject the statement, but it succeeded.`,
+        };
+      }
+      if (probe.playerRun.errorKind !== "sql") {
+        return {
+          passed: false,
+          reason: "SQL_ERROR",
+          message: `Probe ${index + 1} could not run: ${probe.playerRun.error}`,
+        };
+      }
+      continue;
+    }
+
+    const expectedColumns = probe.referenceRun.ok
+      ? (probe.referenceRun.results.at(-1)?.columns ?? [])
+      : [];
+    const evaluation = evaluate(
+      probe.playerRun,
+      probe.referenceRun,
+      expectedColumns,
+      xp,
+    );
+    if (!evaluation.passed) {
+      return evaluation;
+    }
+  }
+
   return { passed: true, earnedXp: xp };
 }
 

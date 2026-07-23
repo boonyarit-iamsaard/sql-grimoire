@@ -1,4 +1,5 @@
-import { type ReactNode, useEffect, useRef, useState } from "react";
+import type { ReactNode } from "react";
+import { useEffect, useRef, useState } from "react";
 import xpIcon from "../../../assets/ui/xp-icon.svg";
 import { cn } from "../../../lib/cn";
 import { playClick } from "../../../shared/audio/sound";
@@ -7,11 +8,13 @@ import { SqlCodeBlock } from "../../../shared/ui/sql-code-block";
 import { TextWithCode } from "../../../shared/ui/text-with-code";
 import type { EvaluationResult } from "../../../sql/evaluator";
 import type { Mission } from "../mission-types";
+import { isStateGrading } from "../mission-types";
 
 interface MissionFeedbackProps {
   mission: Mission;
   evaluation: EvaluationResult;
   playerQuery: string;
+  firstCompletion: boolean;
   onReturnToEditor: () => void;
   onReturnToMap: () => void;
   nextMission: Mission | null;
@@ -107,6 +110,7 @@ export function MissionFeedback({
   mission,
   evaluation,
   playerQuery,
+  firstCompletion,
   onReturnToEditor,
   onReturnToMap,
   nextMission,
@@ -123,6 +127,12 @@ export function MissionFeedback({
   // that navigate away leave instantly — the route crossfade covers those.
   const { closing, closeThen } = useAnimatedClose();
   const dismissToEditor = () => closeThen(onReturnToEditor);
+  const challenge = mission.challenge;
+  const stateGraded = isStateGrading(challenge);
+  const expectedColumns = stateGraded ? null : challenge.expectedColumns;
+  const referenceSolution = stateGraded
+    ? challenge.referenceScript
+    : challenge.referenceQuery;
 
   if (!evaluation.passed) {
     return (
@@ -134,12 +144,14 @@ export function MissionFeedback({
           {evaluation.reason.replaceAll("_", " ")}
         </div>
         <p>{evaluation.message}</p>
-        <h3 className={sectionHeadingClasses}>
-          The mission expects these columns
-        </h3>
-        <pre className={preClasses}>
-          {mission.challenge.expectedColumns.join(", ")}
-        </pre>
+        {expectedColumns && (
+          <>
+            <h3 className={sectionHeadingClasses}>
+              The mission expects these columns
+            </h3>
+            <pre className={preClasses}>{expectedColumns.join(", ")}</pre>
+          </>
+        )}
         <div className="mt-5.5 flex gap-3">
           <Button
             variant="primary"
@@ -159,12 +171,19 @@ export function MissionFeedback({
   return (
     <FeedbackShell closing={closing} onDismiss={dismissToEditor}>
       <h2 id={headingId} className="text-[1.6rem] text-ctp-green">
-        Mission Complete — {mission.title}
+        {firstCompletion ? "Mission Complete" : "Mission Solved Again"} —{" "}
+        {mission.title}
       </h2>
-      <div className="my-2.5 inline-flex items-center gap-2 rounded-[10px] border-2 border-ctp-yellow border-dashed bg-ctp-mantle px-4.5 py-1.5 font-display text-[1.3rem] text-ctp-yellow">
-        <img className="h-6.5 w-6.5" src={xpIcon} alt="" /> +
-        {evaluation.earnedXp} XP
-      </div>
+      {firstCompletion ? (
+        <div className="my-2.5 inline-flex items-center gap-2 rounded-[10px] border-2 border-ctp-yellow border-dashed bg-ctp-mantle px-4.5 py-1.5 font-display text-[1.3rem] text-ctp-yellow">
+          <img className="h-6.5 w-6.5" src={xpIcon} alt="" /> +
+          {evaluation.earnedXp} XP
+        </div>
+      ) : (
+        <p className="font-mono text-ctp-lavender text-sm">
+          Casebook entry refreshed. XP was already awarded.
+        </p>
+      )}
       <p className="text-[1.05rem] text-ctp-subtext1 italic">
         {mission.reward.successMessage}
       </p>
@@ -181,11 +200,13 @@ export function MissionFeedback({
         ))}
       </div>
 
-      <h3 className={sectionHeadingClasses}>Your query</h3>
+      <h3 className={sectionHeadingClasses}>
+        Your {stateGraded ? "script" : "query"}
+      </h3>
       <SqlCodeBlock code={playerQuery} />
 
       <h3 className={sectionHeadingClasses}>Reference solution</h3>
-      <SqlCodeBlock code={mission.challenge.referenceQuery} />
+      <SqlCodeBlock code={referenceSolution} />
 
       <h3 className={sectionHeadingClasses}>How it works</h3>
       <p>

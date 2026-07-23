@@ -26,8 +26,8 @@
   --color-ctp-mantle: #1e2030;
   --color-ctp-crust: #181926;
 
-  --font-display: Georgia, "Times New Roman", serif;
-  --font-body: "Segoe UI", system-ui, sans-serif;
+  --font-display: "Newsreader", Georgia, "Times New Roman", serif;
+  --font-body: "IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
   --font-mono: "JetBrains Mono", "Cascadia Code", Consolas, monospace;
 
   /* All code surfaces render at this size (`text-mono`). */
@@ -43,7 +43,6 @@
   --animate-page-fade: page-fade 0.3s cubic-bezier(0.25, 1, 0.5, 1);
   --animate-fade-in: fade-in 0.3s cubic-bezier(0.25, 1, 0.5, 1);
   --animate-fade-out: fade-out 0.18s cubic-bezier(0.25, 1, 0.5, 1) forwards;
-  --animate-portrait-pop: portrait-pop 0.25s ease-out;
   --animate-shake: shake 0.3s ease-out;
   --animate-card-rise: card-rise 0.35s cubic-bezier(0.22, 1, 0.36, 1);
   --animate-card-settle: card-settle 0.18s cubic-bezier(0.25, 1, 0.5, 1)
@@ -72,12 +71,6 @@
     to {
       opacity: 1;
       transform: none;
-    }
-  }
-  @keyframes portrait-pop {
-    from {
-      transform: scale(0.94);
-      opacity: 0.4;
     }
   }
   @keyframes shake {
