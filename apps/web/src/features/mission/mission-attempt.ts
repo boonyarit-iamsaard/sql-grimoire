@@ -233,6 +233,7 @@ export class MissionAttempt {
       nextMission: null,
     });
     const submission = await this.gradeSubmission(query);
+    await this.restoreAfterGrading();
     if (this.snapshot.phase === "disposed") {
       return { accepted: true };
     }
@@ -339,6 +340,23 @@ export class MissionAttempt {
     });
   }
 
+  /**
+   * Grading ends with the reference solution applied. Returning the workbench
+   * in that state would leak the answer — the guardrail a constraint Mission
+   * asks for would already exist — so the database goes back to its seeded
+   * state and the player replays their own script from there.
+   */
+  private async restoreAfterGrading(): Promise<void> {
+    if (this.snapshot.phase === "disposed") {
+      return;
+    }
+    try {
+      await this.runtime.reset();
+    } catch {
+      // A failed restore is reported by the next Run, not by the verdict.
+    }
+  }
+
   private nextMissionInCase(): Mission | null {
     return this.catalog.nextMission(this.mission.caseId, (missionId) =>
       this.progress.isMissionCompleted(missionId),
@@ -385,6 +403,8 @@ export class MissionAttempt {
     let referenceProbeRuns: RunResult[];
     try {
       await this.runtime.reset();
+      // The player's script is not required to succeed end to end: State
+      // grading judges the committed state, not the script's exit status.
       await this.runtime.run(playerQuery);
       playerProbeRuns = await runProbes(this.runtime, challenge.probes);
 

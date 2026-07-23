@@ -50,10 +50,12 @@ export async function submitMission(
   query: string,
 ): Promise<MissionAttemptSnapshot> {
   const attempt = createTestMissionAttempt(mission);
-  await attempt.open();
-  attempt.setQuery(query);
-  await attempt.submit();
-  const snapshot = attempt.getSnapshot();
-  attempt.dispose();
-  return snapshot;
+  try {
+    await attempt.open();
+    attempt.setQuery(query);
+    await attempt.submit();
+    return attempt.getSnapshot();
+  } finally {
+    attempt.dispose();
+  }
 }

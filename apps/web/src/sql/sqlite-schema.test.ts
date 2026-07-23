@@ -20,6 +20,16 @@ describe("SQLite schema introspection", () => {
         errorKind: "runtime",
       })),
     ).rejects.toThrow("Could not read SQLite table names: worker unavailable");
+
+    await expect(
+      readSqliteTables(async () => ({
+        ok: false,
+        error: 'no such table: "orders"',
+        errorKind: "sql",
+      })),
+    ).rejects.toThrow(
+      'Could not read SQLite table names: no such table: "orders"',
+    );
   });
 
   it("rejects a missing introspection result set", async () => {

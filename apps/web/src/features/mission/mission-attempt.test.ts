@@ -349,6 +349,8 @@ describe("Mission Attempt", () => {
       `run:${stateGradedMission.challenge.referenceScript}`,
       `run:${stateGradedMission.challenge.probes[0].sql}`,
       `run:${stateGradedMission.challenge.probes[1].sql}`,
+      // Grading ends on the reference state; the workbench goes back to seed.
+      "reset",
     ]);
   });
 

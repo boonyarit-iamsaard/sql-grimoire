@@ -11,9 +11,11 @@ guardrail. First real use of the Probe engine (issue 01).
 
 ## Constraints
 
-- Submission is a script; any correct form passes — table constraint, column constraint, or
-  unique index, under any name — because grading is behavioral
-  (`docs/adr/0002-behavioral-probe-grading.md`).
+- Submission is a script; any correct form passes — a table-level composite UNIQUE constraint or a
+  composite unique index, under any name — because grading is behavioral
+  (`docs/adr/0002-behavioral-probe-grading.md`). The guardrail must cover the whole (room, date,
+  slot) key: a column-level UNIQUE on any single column is not a correct answer, and the Probes
+  reject it.
 - Probes: a must-fail Probe inserting a duplicate (room, date, slot) booking, which a correct
   guardrail must refuse; and a query Probe confirming the existing legitimate bookings survived
   the player's script unharmed.

@@ -46,9 +46,17 @@ export class InMemorySqliteRuntime implements SqlRuntime {
   }
 
   private async runNow(sql: string): Promise<RunResult> {
-    this.ensureActive();
+    // SqliteRuntime.sendNow resolves rather than throws on a dead runtime;
+    // the shared contract test holds both adapters to that.
+    if (this.disposed) {
+      return { ok: false, error: "Runtime disposed", errorKind: "runtime" };
+    }
     if (!this.database) {
-      throw new Error("Database not initialized");
+      return {
+        ok: false,
+        error: "Database not initialized",
+        errorKind: "runtime",
+      };
     }
     try {
       const results = this.database

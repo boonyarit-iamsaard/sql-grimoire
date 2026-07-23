@@ -84,10 +84,13 @@ export class SqliteRuntime implements SqlRuntime {
 
   async reset(): Promise<void> {
     return this.operations.run(async () => {
+      // Reset rebuilds the database from schema and seed, so it gets the
+      // initialization budget; interrupt-and-restore would replay that rebuild
+      // a second time only to report the reset as a runaway query.
       const result = await this.sendNow(
         { kind: "reset" },
-        this.queryTimeoutMs,
-        true,
+        this.initTimeoutMs,
+        false,
       );
       if (!result.ok) {
         throw new Error(result.error);
@@ -179,7 +182,7 @@ export class SqliteRuntime implements SqlRuntime {
       this.terminateWorker();
       this.resolvePending({
         ok: false,
-        error: `SQL worker failed to start: ${message || "unknown error"}`,
+        error: `SQL worker failed: ${message || "unknown error"}`,
         errorKind: "runtime",
       });
     });

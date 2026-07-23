@@ -28,6 +28,10 @@ async function expectSqliteRuntimeContract(runtime: SqlRuntime): Promise<void> {
     durationMs: 0,
   });
 
+  await expect(
+    runtime.run("SELECT label FROM missing;"),
+  ).resolves.toMatchObject({ ok: false, errorKind: "sql" });
+
   await expect(runtime.tables()).resolves.toEqual([
     {
       name: "answers",

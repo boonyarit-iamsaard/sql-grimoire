@@ -19,7 +19,7 @@ export async function readSqliteTables(runSql: RunSql): Promise<TableInfo[]> {
   for (const row of names.rows) {
     const name = String(row[0]);
     const info = await requireResult(
-      runSql(`PRAGMA table_info(${JSON.stringify(name)})`),
+      runSql(`PRAGMA table_info(${quoteIdentifier(name)})`),
       `read SQLite table ${name}`,
     );
     const columns = asRecords(info).map((column) => ({
@@ -32,6 +32,12 @@ export async function readSqliteTables(runSql: RunSql): Promise<TableInfo[]> {
   }
 
   return tables;
+}
+
+// SQLite escapes a double quote inside a quoted identifier by doubling it,
+// which is not the backslash escape JSON.stringify would produce.
+function quoteIdentifier(name: string): string {
+  return `"${name.replaceAll('"', '""')}"`;
 }
 
 async function requireResult(

@@ -248,21 +248,21 @@ with the body sans now deliberate rather than a system default.
 
 ### Hierarchy
 
-- **Display** (Georgia 400, `clamp(2.6rem, 6vw, 4.2rem)`, line-height 1.1, tracking 0.06em): the
+- **Display** (Newsreader 400, `clamp(2.6rem, 6vw, 4.2rem)`, line-height 1.1, tracking 0.06em): the
   landing title only, with a hard drop-shadow (`0 3px 0 rgba(12,12,22,0.55)`). The single fluid
   heading in the system; everything else is fixed.
-- **Headline** (Georgia 400, 2rem): mission and page `h1` titles ("Casebook", the Mission title in
+- **Headline** (Newsreader 400, 2rem): mission and page `h1` titles ("Casebook", the Mission title in
   the workbench top bar).
-- **Title** (Georgia 400, 1.5rem / 1.17rem for `h3`): in-card headings and the result-table `h2`.
-- **Body** (Segoe UI 400, 1rem, line-height 1.5): prose, objectives, explanations. Cap prose at
+- **Title** (Newsreader 400, 1.5rem / 1.17rem for `h3`): in-card headings and the result-table `h2`.
+- **Body** (IBM Plex Sans 400, 1rem, line-height 1.5): prose, objectives, explanations. Cap prose at
   65–75ch (the mission objective already holds a 72ch max).
-- **Label** (Georgia 400, 1rem, tracking 0.04em): all button labels and XP badges.
+- **Label** (Newsreader 400, 1rem, tracking 0.04em): all button labels and XP badges.
 - **Mono** (JetBrains Mono 400, 14px): every code and data surface — the SQL editor, result grids,
   schema explorer, concept chips, code blocks, and inline row/duration meta.
 
 ### Named Rules
 
-**The Serif-Button Rule.** Buttons wear the Georgia display face, not the sans or the mono — this is a
+**The Serif-Button Rule.** Buttons wear the Newsreader display face, not the sans or the mono — this is a
 deliberate departure from generic product UI and is core to the bookish character. Keep it; do not
 "correct" button labels to a sans.
 
@@ -307,7 +307,7 @@ feature components.
 
 ### Buttons
 
-- **Shape:** gently rounded (8px, `rounded-lg`), 2px border, padding `10px 22px`, Georgia label at
+- **Shape:** gently rounded (8px, `rounded-lg`), 2px border, padding `10px 22px`, Newsreader label at
   tracking 0.04em.
 - **Default:** vertical slate gradient (Slate Raised → Ink Base), Parchment Text, Slate Edge border,
   Press Edge shadow. The neutral action (Submit Answer, Back to the Casebook).
@@ -395,7 +395,7 @@ incident itself; it frames the work from its own pane and never interrupts the q
   every mission screen; narrative frames and then recedes ("Workbench first, story as candlelight").
 - **Do** spend Candle Gold (`#eed49f`) only on headings, the one primary action, current/active
   state, and earned rewards. Rarity is the point.
-- **Do** render every SQL and data surface in JetBrains Mono at 14px, and keep Georgia serif on
+- **Do** render every SQL and data surface in JetBrains Mono at 14px, and keep the Newsreader serif on
   headings and buttons.
 - **Do** give buttons their press: a colored 2px bottom edge at rest, flattened on `:active`, a 1px
   drop, and a hover brightness lift, plus a visible Rune Lavender `:focus-visible` ring.
