@@ -1,6 +1,25 @@
 import { describe, expect, it } from "vitest";
-import { submitMission } from "../../../test/mission-verification-support";
+import {
+  createTestMissionAttempt,
+  submitMission,
+} from "../../../test/mission-verification-support";
 import { orphanedPayments } from "./mission";
+
+const rebuildPaymentsSql = `
+  DELETE FROM payments WHERE id = 2002;
+  CREATE TABLE guarded_payments (
+    id INTEGER PRIMARY KEY,
+    booking_id INTEGER NOT NULL,
+    amount INTEGER NOT NULL,
+    paid_at TEXT NOT NULL,
+    FOREIGN KEY (booking_id) REFERENCES bookings (id)
+  );
+  INSERT INTO guarded_payments (id, booking_id, amount, paid_at)
+  SELECT id, booking_id, amount, paid_at
+  FROM payments;
+  DROP TABLE payments;
+  ALTER TABLE guarded_payments RENAME TO payments;
+`;
 
 describe("The Cleanup That Made It Worse", () => {
   it("accepts repairing the orphan and adding an enforced foreign key", async () => {
@@ -8,19 +27,7 @@ describe("The Cleanup That Made It Worse", () => {
       orphanedPayments,
       `
       PRAGMA foreign_keys = ON;
-      DELETE FROM payments WHERE id = 2002;
-      CREATE TABLE guarded_payments (
-        id INTEGER PRIMARY KEY,
-        booking_id INTEGER NOT NULL,
-        amount INTEGER NOT NULL,
-        paid_at TEXT NOT NULL,
-        FOREIGN KEY (booking_id) REFERENCES bookings (id)
-      );
-      INSERT INTO guarded_payments (id, booking_id, amount, paid_at)
-      SELECT id, booking_id, amount, paid_at
-      FROM payments;
-      DROP TABLE payments;
-      ALTER TABLE guarded_payments RENAME TO payments;
+      ${rebuildPaymentsSql}
     `,
     );
 
@@ -44,28 +51,52 @@ describe("The Cleanup That Made It Worse", () => {
     expect(submission.completionOutcome).toBeNull();
   });
 
-  it("rejects declaring the foreign key without enabling enforcement", async () => {
+  it("accepts a correct rebuild when the workbench supplies enforcement", async () => {
+    const submission = await submitMission(
+      orphanedPayments,
+      rebuildPaymentsSql,
+    );
+
+    expect(submission.evaluation).toEqual({
+      passed: true,
+      earnedXp: orphanedPayments.reward.xp,
+    });
+  });
+
+  it("enforces the rebuilt relationship during interactive investigation", async () => {
+    const attempt = createTestMissionAttempt(orphanedPayments);
+    try {
+      await attempt.open();
+      attempt.setQuery(rebuildPaymentsSql);
+      await attempt.run();
+
+      attempt.setQuery(
+        "INSERT INTO payments (id, booking_id, amount, paid_at) VALUES (2017, 999, 75, '2026-07-23 09:00:00');",
+      );
+      await attempt.run();
+
+      expect(attempt.getSnapshot().notice).toMatchObject({
+        kind: "error",
+        message: expect.stringContaining("FOREIGN KEY constraint failed"),
+      });
+    } finally {
+      attempt.dispose();
+    }
+  });
+
+  it("re-enables enforcement after the player script disables it", async () => {
     const submission = await submitMission(
       orphanedPayments,
       `
-      DELETE FROM payments WHERE id = 2002;
-      CREATE TABLE guarded_payments (
-        id INTEGER PRIMARY KEY,
-        booking_id INTEGER NOT NULL,
-        amount INTEGER NOT NULL,
-        paid_at TEXT NOT NULL,
-        FOREIGN KEY (booking_id) REFERENCES bookings (id)
-      );
-      INSERT INTO guarded_payments (id, booking_id, amount, paid_at)
-      SELECT id, booking_id, amount, paid_at
-      FROM payments;
-      DROP TABLE payments;
-      ALTER TABLE guarded_payments RENAME TO payments;
+      ${rebuildPaymentsSql}
+      PRAGMA foreign_keys = OFF;
     `,
     );
 
-    expect(submission.evaluation?.passed).toBe(false);
-    expect(submission.completionOutcome).toBeNull();
+    expect(submission.evaluation).toEqual({
+      passed: true,
+      earnedXp: orphanedPayments.reward.xp,
+    });
   });
 
   it("rejects a repair that removes a legitimate payment", async () => {

@@ -232,8 +232,14 @@ export class MissionAttempt {
       completionOutcome: null,
       nextMission: null,
     });
-    const submission = await this.gradeSubmission(query);
-    await this.restoreAfterGrading();
+    let submission: MissionSubmission;
+    try {
+      submission = await this.gradeSubmission(query);
+    } finally {
+      await this.restoreAfterGrading(
+        isStateGrading(this.mission.challenge) ? query : null,
+      );
+    }
     if (this.snapshot.phase === "disposed") {
       return { accepted: true };
     }
@@ -346,12 +352,15 @@ export class MissionAttempt {
    * asks for would already exist — so the database goes back to its seeded
    * state and the player replays their own script from there.
    */
-  private async restoreAfterGrading(): Promise<void> {
+  private async restoreAfterGrading(playerQuery: string | null): Promise<void> {
     if (this.snapshot.phase === "disposed") {
       return;
     }
     try {
       await this.runtime.reset();
+      if (playerQuery !== null) {
+        await this.runtime.run(playerQuery);
+      }
     } catch {
       // A failed restore is reported by the next Run, not by the verdict.
     }
@@ -403,9 +412,10 @@ export class MissionAttempt {
     let referenceProbeRuns: RunResult[];
     try {
       await this.runtime.reset();
-      // The player's script is not required to succeed end to end: State
-      // grading judges the committed state, not the script's exit status.
-      await this.runtime.run(playerQuery);
+      const playerScriptRun = await this.runtime.run(playerQuery);
+      if (!playerScriptRun.ok) {
+        return failedSubmission(playerScriptRun.error);
+      }
       playerProbeRuns = await runProbes(this.runtime, challenge.probes);
 
       await this.runtime.reset();
@@ -465,9 +475,19 @@ async function runProbes(
 ): Promise<RunResult[]> {
   const runs: RunResult[] = [];
   for (const probe of probes) {
+    await enableForeignKeys(runtime);
     runs.push(await runtime.run(probe.sql));
   }
   return runs;
+}
+
+async function enableForeignKeys(runtime: SqlRuntime): Promise<void> {
+  const result = await runtime.run("PRAGMA foreign_keys = ON;");
+  if (!result.ok) {
+    throw new Error(
+      `Could not enable foreign-key enforcement before grading: ${result.error}`,
+    );
+  }
 }
 
 function failedSubmission(message: string): MissionSubmission {

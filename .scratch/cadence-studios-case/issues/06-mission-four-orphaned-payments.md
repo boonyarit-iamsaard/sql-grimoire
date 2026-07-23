@@ -17,11 +17,12 @@ the FOREIGN KEY that would have refused the careless delete. State-graded.
   or folded into the briefing is an authoring call.
 - SQLite specifics are part of the lesson: foreign key enforcement requires
   `PRAGMA foreign_keys = ON`, and adding a FOREIGN KEY to an existing table requires the
-  table-rebuild pattern. Decide at authoring time how much of that the Primer carries versus
-  how much the runtime pre-arranges (for example, the runtime always enabling the pragma);
-  keep whichever choice consistent with the Probe design.
-- Probes: a must-fail Probe inserting a payment for a nonexistent booking; a query Probe
-  confirming no orphaned payments remain; a query Probe confirming legitimate payments
-  survived.
+  table-rebuild pattern. The Mission database enables enforcement for interactive investigation,
+  and the grading runtime re-enables it immediately before every Probe, so a submission cannot
+  bypass an embedded reference by leaving enforcement disabled.
+- Probes: a Probe that attempts `PRAGMA foreign_keys = OFF`; a must-fail Probe inserting a payment
+  for a nonexistent booking; a query Probe confirming no orphaned payments remain; and a query
+  Probe confirming legitimate payments survived. Re-enabling enforcement before each Probe means
+  the attempted opt-out cannot affect the checks that follow it.
 - Primer: referential integrity as a guarantee; why the orphan is the application's fault only
   until the schema makes it impossible.

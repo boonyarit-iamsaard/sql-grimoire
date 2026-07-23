@@ -70,6 +70,9 @@ class RecordingRuntime implements SqlRuntime {
   runError: Error | null = null;
   resetError: Error | null = null;
   runGate: Promise<void> | null = null;
+  runStarted: Promise<void> = Promise.resolve();
+  throwOnceOnSql: string | null = null;
+  private notifyRunStarted: (() => void) | null = null;
   nextRun: RunResult = {
     ok: true,
     results: [{ columns: ["answer"], rows: [[42]] }],
@@ -82,7 +85,13 @@ class RecordingRuntime implements SqlRuntime {
 
   async run(sql: string): Promise<RunResult> {
     this.calls.push(`run:${sql}`);
+    this.notifyRunStarted?.();
+    this.notifyRunStarted = null;
     await this.runGate;
+    if (this.throwOnceOnSql === sql) {
+      this.throwOnceOnSql = null;
+      throw new Error("grading crashed");
+    }
     if (this.runError) {
       throw this.runError;
     }
@@ -103,6 +112,13 @@ class RecordingRuntime implements SqlRuntime {
 
   dispose() {
     this.calls.push("dispose");
+  }
+
+  gateRunsUntil(gate: Promise<void>): void {
+    this.runGate = gate;
+    this.runStarted = new Promise((resolve) => {
+      this.notifyRunStarted = resolve;
+    });
   }
 }
 
@@ -280,16 +296,16 @@ describe("Mission Attempt", () => {
   it("keeps disposal terminal while an accepted operation settles", async () => {
     const runtime = new RecordingRuntime();
     let releaseRun = () => {};
-    runtime.runGate = new Promise<void>((resolve) => {
+    const runGate = new Promise<void>((resolve) => {
       releaseRun = resolve;
     });
+    runtime.gateRunsUntil(runGate);
     const attempt = createTestMissionAttempt(mission, runtime);
     await attempt.open();
     attempt.setQuery(mission.challenge.referenceQuery);
 
     const submission = attempt.submit();
-    await Promise.resolve();
-    await Promise.resolve();
+    await runtime.runStarted;
     attempt.dispose();
     releaseRun();
     await submission;
@@ -321,12 +337,26 @@ describe("Mission Attempt", () => {
       error: "UNIQUE constraint failed",
       errorKind: "sql",
     };
+    const scriptOk: RunResult = {
+      ok: true,
+      results: [],
+      durationMs: 1,
+    };
+    const pragmaOk: RunResult = {
+      ok: true,
+      results: [],
+      durationMs: 1,
+    };
     runtime.runResults.push(
-      { ok: true, results: [], durationMs: 1 },
+      scriptOk,
+      pragmaOk,
       bookingsResult,
+      pragmaOk,
       constraintError,
-      { ok: true, results: [], durationMs: 1 },
+      scriptOk,
+      pragmaOk,
       bookingsResult,
+      pragmaOk,
       constraintError,
     );
     const attempt = createTestMissionAttempt(stateGradedMission, runtime);
@@ -343,14 +373,20 @@ describe("Mission Attempt", () => {
     expect(runtime.calls.slice(2)).toEqual([
       "reset",
       `run:${playerScript}`,
+      "run:PRAGMA foreign_keys = ON;",
       `run:${stateGradedMission.challenge.probes[0].sql}`,
+      "run:PRAGMA foreign_keys = ON;",
       `run:${stateGradedMission.challenge.probes[1].sql}`,
       "reset",
       `run:${stateGradedMission.challenge.referenceScript}`,
+      "run:PRAGMA foreign_keys = ON;",
       `run:${stateGradedMission.challenge.probes[0].sql}`,
+      "run:PRAGMA foreign_keys = ON;",
       `run:${stateGradedMission.challenge.probes[1].sql}`,
-      // Grading ends on the reference state; the workbench goes back to seed.
+      // Grading ends on the reference state; the workbench restores the
+      // player's submitted state.
       "reset",
+      `run:${playerScript}`,
     ]);
   });
 
@@ -372,7 +408,30 @@ describe("Mission Attempt", () => {
     attempt.dispose();
   });
 
-  it("grades committed state even when a later statement errors", async () => {
+  it("restores player state when State grading throws", async () => {
+    const runtime = new RecordingRuntime();
+    runtime.throwOnceOnSql = stateGradedMission.challenge.referenceScript;
+    const attempt = createTestMissionAttempt(stateGradedMission, runtime);
+    await attempt.open();
+    const playerScript =
+      "CREATE UNIQUE INDEX player_guardrail ON bookings (room_id, booking_date, slot);";
+    attempt.setQuery(playerScript);
+
+    await attempt.submit();
+
+    expect(attempt.getSnapshot().evaluation).toEqual({
+      passed: false,
+      reason: "SQL_ERROR",
+      message: "grading crashed",
+    });
+    expect(runtime.calls.slice(-3)).toEqual([
+      `run:${stateGradedMission.challenge.referenceScript}`,
+      "reset",
+      `run:${playerScript}`,
+    ]);
+  });
+
+  it("rejects a State-graded script when player execution fails", async () => {
     const attempt = createTestMissionAttempt(stateGradedMission);
     await attempt.open();
     attempt.setQuery(`
@@ -382,9 +441,10 @@ describe("Mission Attempt", () => {
     `);
     await attempt.submit();
 
-    expect(attempt.getSnapshot().evaluation).toEqual({
-      passed: true,
-      earnedXp: 25,
+    expect(attempt.getSnapshot().evaluation).toMatchObject({
+      passed: false,
+      reason: "SQL_ERROR",
+      message: expect.stringContaining("missing_column"),
     });
     attempt.dispose();
   });

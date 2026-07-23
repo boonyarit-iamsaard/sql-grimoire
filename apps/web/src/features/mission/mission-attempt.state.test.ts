@@ -1,33 +1,18 @@
 import { describe, expect, it } from "vitest";
 import { delayedOrders } from "../../missions/harborline/01-delayed-orders/mission";
 import { InMemorySqliteRuntime } from "../../test/in-memory-sqlite-runtime";
+import { VerificationStorage } from "../../test/mission-verification-support";
 import { caseCatalog } from "../cases/case-catalog";
 import { PlayerProgress } from "../progress/progress-store";
 import { MissionAttempt } from "./mission-attempt";
 import { isStateGrading } from "./mission-types";
-
-class MemoryStorage {
-  private readonly values = new Map<string, string>();
-
-  getItem(key: string): string | null {
-    return this.values.get(key) ?? null;
-  }
-
-  setItem(key: string, value: string): void {
-    this.values.set(key, value);
-  }
-
-  removeItem(key: string): void {
-    this.values.delete(key);
-  }
-}
 
 describe("Mission Attempt state", () => {
   it("owns investigation sequencing and durable completion", async () => {
     if (isStateGrading(delayedOrders.challenge)) {
       throw new Error("Expected a result-graded Mission");
     }
-    const progress = new PlayerProgress(new MemoryStorage());
+    const progress = new PlayerProgress(new VerificationStorage());
     const attempt = new MissionAttempt({
       mission: delayedOrders,
       runtime: new InMemorySqliteRuntime(),

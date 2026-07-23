@@ -16,6 +16,11 @@ const schemaSql = `
 `;
 
 async function expectSqliteRuntimeContract(runtime: SqlRuntime): Promise<void> {
+  await expect(runtime.run("SELECT 1;")).resolves.toMatchObject({
+    ok: false,
+    errorKind: "runtime",
+  });
+
   const opening = runtime.init(
     schemaSql,
     "INSERT INTO answers VALUES (1, 'known');",
@@ -43,6 +48,10 @@ async function expectSqliteRuntimeContract(runtime: SqlRuntime): Promise<void> {
   ]);
 
   runtime.dispose();
+  await expect(runtime.run("SELECT 1;")).resolves.toMatchObject({
+    ok: false,
+    errorKind: "runtime",
+  });
 }
 
 class RealClock implements RuntimeClock {

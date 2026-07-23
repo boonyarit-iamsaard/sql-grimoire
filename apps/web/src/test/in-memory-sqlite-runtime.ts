@@ -15,10 +15,12 @@ export class InMemorySqliteRuntime implements SqlRuntime {
   async init(schemaSql: string, seedSql: string): Promise<void> {
     return this.operations.run(async () => {
       this.ensureActive();
-      this.sqlJs ??= await initSqlJs();
+      const sqlJs = this.sqlJs ?? (await initSqlJs());
+      this.ensureActive();
+      this.sqlJs = sqlJs;
+      this.recreateDatabase(schemaSql, seedSql);
       this.schemaSql = schemaSql;
       this.seedSql = seedSql;
-      this.recreateDatabase();
     });
   }
 
@@ -78,13 +80,22 @@ export class InMemorySqliteRuntime implements SqlRuntime {
     }
   }
 
-  private recreateDatabase(): void {
+  private recreateDatabase(
+    schemaSql: string = this.schemaSql,
+    seedSql: string = this.seedSql,
+  ): void {
     if (!this.sqlJs) {
       throw new Error("SQL.js not initialized");
     }
+    const replacement = new this.sqlJs.Database();
+    try {
+      replacement.run(schemaSql);
+      replacement.run(seedSql);
+    } catch (error) {
+      replacement.close();
+      throw error;
+    }
     this.database?.close();
-    this.database = new this.sqlJs.Database();
-    this.database.run(this.schemaSql);
-    this.database.run(this.seedSql);
+    this.database = replacement;
   }
 }

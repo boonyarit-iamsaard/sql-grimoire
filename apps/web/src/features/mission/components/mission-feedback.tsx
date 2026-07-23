@@ -181,7 +181,7 @@ export function MissionFeedback({
         </div>
       ) : (
         <p className="font-mono text-ctp-lavender text-sm">
-          Grimoire entry refreshed. XP was already awarded.
+          Casebook entry refreshed. XP was already awarded.
         </p>
       )}
       <p className="text-[1.05rem] text-ctp-subtext1 italic">

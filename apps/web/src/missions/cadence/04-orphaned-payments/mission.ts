@@ -36,7 +36,7 @@ export const orphanedPayments: Mission = {
       },
       {
         heading: "SQLite requires enforcement and a table rebuild",
-        body: "SQLite checks foreign keys only when the connection has run `PRAGMA foreign_keys = ON`. Put that statement before any transaction. SQLite also cannot add this constraint to an existing table with `ALTER TABLE`, so create a replacement table with the foreign key, copy the repaired rows, drop the old table, and rename the replacement. A transaction keeps that multi-step change together.",
+        body: "A SQLite connection you open yourself starts with foreign-key enforcement off, so production code must run `PRAGMA foreign_keys = ON` before any transaction that relies on those guarantees. The workbench starts this Mission with enforcement enabled and re-enables it before grading Probes, making the pragma important real-world connection setup rather than a required part of this answer. SQLite also cannot add this constraint to an existing table with `ALTER TABLE`, so create a replacement table with the foreign key, copy the repaired rows, drop the old table, and rename the replacement. A transaction keeps that multi-step change together.",
         exampleSql:
           "PRAGMA foreign_keys = ON;\n\nBEGIN TRANSACTION;\nCREATE TABLE replacement_payments (\n    id INTEGER PRIMARY KEY,\n    booking_id INTEGER NOT NULL,\n    FOREIGN KEY (booking_id) REFERENCES bookings (id)\n);\n-- Copy repaired rows, replace the old table, then COMMIT.",
       },
@@ -55,6 +55,10 @@ export const orphanedPayments: Mission = {
       {
         type: "query",
         sql: "SELECT COUNT(*) AS orphaned_payments FROM payments AS p LEFT JOIN bookings AS b ON b.id = p.booking_id WHERE b.id IS NULL;",
+      },
+      {
+        type: "query",
+        sql: "PRAGMA foreign_keys = OFF; PRAGMA foreign_keys;",
       },
       {
         type: "must-fail",
@@ -76,7 +80,7 @@ export const orphanedPayments: Mission = {
     hints: [
       "Start by locating the broken relationship: keep every payment with a `LEFT JOIN` to `bookings`, then filter for `b.id IS NULL`. Delete only those orphaned payment rows before copying data into the replacement table.",
       "SQLite cannot add this foreign key to the existing `payments` table. Create a replacement with the same four columns plus `FOREIGN KEY (booking_id) REFERENCES bookings (id)`, copy the repaired payments, drop the old table, and rename the replacement. Keep the default delete action so a booking with a payment cannot be deleted.",
-      "Run `PRAGMA foreign_keys = ON;` before `BEGIN TRANSACTION`. Then perform the cleanup and table rebuild inside the transaction. The pragma is connection-level; declaring `REFERENCES` without enabling enforcement will not make the invalid insert fail.",
+      "The workbench starts this Mission with foreign-key enforcement enabled and re-enables it before grading Probes, so focus your submitted script on the cleanup and table rebuild. On a SQLite connection you open yourself, run `PRAGMA foreign_keys = ON;` before `BEGIN TRANSACTION`, then perform the cleanup and rebuild inside that transaction.",
     ],
   },
 
@@ -88,7 +92,7 @@ export const orphanedPayments: Mission = {
 
   explanation: {
     summary:
-      "The anti-join identified the payment whose parent booking had been deleted. Removing that orphan made the existing data valid enough to copy into a replacement `payments` table. The rebuilt table declares `booking_id` as a foreign key to `bookings.id`, while `PRAGMA foreign_keys = ON` activates SQLite's enforcement for the connection. The transaction keeps the cleanup and replacement together. The completed schema now rejects payments that reference nonexistent bookings and refuses to delete a booking while its payment remains, without sacrificing legitimate payment history.",
+      "The anti-join identified the payment whose parent booking had been deleted. Removing that orphan made the existing data valid enough to copy into a replacement `payments` table. The rebuilt table declares `booking_id` as a foreign key to `bookings.id`; the workbench keeps enforcement active during investigation and re-enables it while grading, while a SQLite connection you open yourself requires `PRAGMA foreign_keys = ON`. The transaction keeps the cleanup and replacement together. The completed schema now rejects payments that reference nonexistent bookings and refuses to delete a booking while its payment remains, without sacrificing legitimate payment history.",
     concepts: [
       "Referential integrity",
       "FOREIGN KEY",

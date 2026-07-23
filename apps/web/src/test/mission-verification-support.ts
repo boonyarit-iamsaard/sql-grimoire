@@ -6,7 +6,7 @@ import { PlayerProgress } from "../features/progress/progress-store";
 import type { SqlRuntime } from "../sql/sql-runtime";
 import { InMemorySqliteRuntime } from "./in-memory-sqlite-runtime";
 
-class VerificationStorage {
+export class VerificationStorage {
   private readonly values = new Map<string, string>();
 
   getItem(key: string): string | null {
