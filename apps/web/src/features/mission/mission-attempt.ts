@@ -82,6 +82,7 @@ export class MissionAttempt {
   private readonly progress: PlayerProgress;
   private readonly catalog: CaseCatalog;
   private readonly listeners = new Set<() => void>();
+  private openingDatabase: Promise<void> | null = null;
   private snapshot: MissionAttemptSnapshot;
 
   constructor(options: MissionAttemptOptions) {
@@ -123,15 +124,14 @@ export class MissionAttempt {
 
     this.update({ phase: "opening", initError: null });
     this.progress.enterMission(this.mission.id);
+    const openingDatabase = this.initializeDatabase();
+    this.openingDatabase = openingDatabase;
     try {
-      await this.runtime.init(
-        this.mission.database.schemaSql,
-        this.mission.database.seedSql,
-      );
-      const tables = await this.runtime.tables();
-      this.update({ phase: "ready", tables });
-    } catch (error) {
-      this.update({ phase: "failed", initError: errorMessage(error) });
+      await openingDatabase;
+    } finally {
+      if (this.openingDatabase === openingDatabase) {
+        this.openingDatabase = null;
+      }
     }
     return { accepted: true };
   }
@@ -214,11 +214,14 @@ export class MissionAttempt {
   }
 
   async submit(): Promise<AttemptActionResult> {
+    const query = this.snapshot.query;
+    if (this.snapshot.phase === "opening" && this.openingDatabase) {
+      await this.openingDatabase;
+    }
     const rejection = this.rejectUnless("ready");
     if (rejection) {
       return rejection;
     }
-    const query = this.snapshot.query;
     if (query.trim() === "") {
       return { accepted: false, reason: "EMPTY_QUERY" };
     }
@@ -269,6 +272,19 @@ export class MissionAttempt {
       nextMission: this.nextMissionInCase(),
     });
     return { accepted: true };
+  }
+
+  private async initializeDatabase(): Promise<void> {
+    try {
+      await this.runtime.init(
+        this.mission.database.schemaSql,
+        this.mission.database.seedSql,
+      );
+      const tables = await this.runtime.tables();
+      this.update({ phase: "ready", tables });
+    } catch (error) {
+      this.update({ phase: "failed", initError: errorMessage(error) });
+    }
   }
 
   async reset(): Promise<AttemptActionResult> {
