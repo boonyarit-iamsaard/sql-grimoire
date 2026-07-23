@@ -3,6 +3,26 @@ import type { Case } from "./case-catalog";
 import { CaseCatalog, caseCatalog } from "./case-catalog";
 
 describe("Case catalog", () => {
+  it("ends with a locked performance-incident teaser", () => {
+    const teaser = caseCatalog.getCases(() => true).at(-1);
+
+    expect(teaser).toMatchObject({
+      id: "kestrel",
+      name: "The Report That Would Not Finish",
+      company: "Kestrel Metrics",
+      missionIds: [],
+      comingSoonNote:
+        "The morning revenue report once took seconds. Now, teams give up before it finishes.",
+      state: "locked",
+      missions: [],
+      completedCount: 0,
+      nextMissionId: null,
+    });
+    expect(teaser?.comingSoonNote).not.toMatch(
+      /concurr|index|query plan|pglite|postgres/i,
+    );
+  });
+
   it("resolves Missions and locks Cadence until Harborline is complete", () => {
     expect(caseCatalog.getMission("missing-shipment")?.title).toBe(
       "Delayed Orders Piling Up",
@@ -46,6 +66,12 @@ describe("Case catalog", () => {
       },
       {
         id: "cadence",
+        state: "locked",
+        completedCount: 0,
+        nextMissionId: null,
+      },
+      {
+        id: "kestrel",
         state: "locked",
         completedCount: 0,
         nextMissionId: null,

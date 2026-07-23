@@ -151,6 +151,15 @@ const cases: readonly Case[] = [
       halfFinishedBooking.id,
     ],
   },
+  {
+    id: "kestrel",
+    name: "The Report That Would Not Finish",
+    company: "Kestrel Metrics",
+    summary: "",
+    missionIds: [],
+    comingSoonNote:
+      "The morning revenue report once took seconds. Now, teams give up before it finishes.",
+  },
 ];
 
 export const caseCatalog = new CaseCatalog(missions, cases);
