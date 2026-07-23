@@ -122,10 +122,12 @@ export class MissionAttempt {
       return rejection;
     }
 
+    const openingDatabase = Promise.resolve().then(() =>
+      this.initializeDatabase(),
+    );
+    this.openingDatabase = openingDatabase;
     this.update({ phase: "opening", initError: null });
     this.progress.enterMission(this.mission.id);
-    const openingDatabase = this.initializeDatabase();
-    this.openingDatabase = openingDatabase;
     try {
       await openingDatabase;
     } finally {
@@ -280,6 +282,9 @@ export class MissionAttempt {
         this.mission.database.schemaSql,
         this.mission.database.seedSql,
       );
+      if (this.snapshot.phase === "disposed") {
+        return;
+      }
       const tables = await this.runtime.tables();
       this.update({ phase: "ready", tables });
     } catch (error) {

@@ -7,6 +7,7 @@ import {
 } from "../../test/mission-verification-support";
 import { CaseCatalog } from "../cases/case-catalog";
 import { PlayerProgress } from "../progress/progress-store";
+import type { AttemptActionResult } from "./mission-attempt";
 import { MissionAttempt } from "./mission-attempt";
 import type { Mission } from "./mission-types";
 
@@ -93,7 +94,6 @@ class RecordingRuntime implements SqlRuntime {
   runGate: Promise<void> | null = null;
   runStarted: Promise<void> = Promise.resolve();
   throwOnceOnSql: string | null = null;
-  private disposed = false;
   private notifyInitStarted: (() => void) | null = null;
   private notifyRunStarted: (() => void) | null = null;
   nextRun: RunResult = {
@@ -107,9 +107,6 @@ class RecordingRuntime implements SqlRuntime {
     this.notifyInitStarted?.();
     this.notifyInitStarted = null;
     await this.initGate;
-    if (this.disposed) {
-      throw new Error("Runtime disposed");
-    }
   }
 
   async run(sql: string): Promise<RunResult> {
@@ -141,7 +138,6 @@ class RecordingRuntime implements SqlRuntime {
 
   dispose() {
     this.calls.push("dispose");
-    this.disposed = true;
   }
 
   gateRunsUntil(gate: Promise<void>): void {
@@ -248,6 +244,41 @@ describe("Mission Attempt", () => {
     attempt.dispose();
   });
 
+  it("queues a submission triggered by the opening notification", async () => {
+    const runtime = new RecordingRuntime();
+    let releaseInitialization = () => {};
+    runtime.gateInitializationUntil(
+      new Promise<void>((resolve) => {
+        releaseInitialization = resolve;
+      }),
+    );
+    const attempt = createTestMissionAttempt(mission, runtime);
+    attempt.setQuery(mission.challenge.referenceQuery);
+    let submission: Promise<AttemptActionResult> | null = null;
+    const unsubscribe = attempt.subscribe(() => {
+      if (attempt.getSnapshot().phase === "opening" && submission === null) {
+        submission = attempt.submit();
+      }
+    });
+
+    const opening = attempt.open();
+    await runtime.initStarted;
+    releaseInitialization();
+    await opening;
+    unsubscribe();
+
+    if (submission === null) {
+      throw new Error("Opening notification did not trigger submission");
+    }
+    await expect(submission).resolves.toEqual({ accepted: true });
+    expect(attempt.getSnapshot()).toMatchObject({
+      phase: "ready",
+      evaluatedQuery: mission.challenge.referenceQuery,
+      evaluation: { passed: true },
+    });
+    attempt.dispose();
+  });
+
   it("rejects a queued submission when database initialization fails", async () => {
     const runtime = new RecordingRuntime();
     let rejectInitialization = (_error: Error) => {};
@@ -280,7 +311,7 @@ describe("Mission Attempt", () => {
     attempt.dispose();
   });
 
-  it("rejects a queued submission when its Mission Attempt is disposed", async () => {
+  it("skips table inspection when initialization finishes after disposal", async () => {
     const runtime = new RecordingRuntime();
     let releaseInitialization = () => {};
     runtime.gateInitializationUntil(
