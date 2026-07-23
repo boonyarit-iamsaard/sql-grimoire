@@ -1,6 +1,7 @@
 import { roomCollisions } from "../../missions/cadence/01-collisions/mission";
 import { refundExposure } from "../../missions/cadence/02-damage-report/mission";
 import { bookingUniqueness } from "../../missions/cadence/03-booking-uniqueness/mission";
+import { orphanedPayments } from "../../missions/cadence/04-orphaned-payments/mission";
 import { delayedOrders } from "../../missions/harborline/01-delayed-orders/mission";
 import { failingRoutes } from "../../missions/harborline/02-failing-routes/mission";
 import { paidNeverShipped } from "../../missions/harborline/03-paid-never-shipped/mission";
@@ -122,6 +123,7 @@ const missions: readonly Mission[] = [
   roomCollisions,
   refundExposure,
   bookingUniqueness,
+  orphanedPayments,
 ];
 
 const cases: readonly Case[] = [
@@ -139,7 +141,12 @@ const cases: readonly Case[] = [
     company: "Cadence Studios",
     summary:
       "Customers are arriving for rehearsal sessions only to find the same room sold twice. Trace the collisions from the calendar to the booking flow, then add the guarantees that keep them from returning.",
-    missionIds: [roomCollisions.id, refundExposure.id, bookingUniqueness.id],
+    missionIds: [
+      roomCollisions.id,
+      refundExposure.id,
+      bookingUniqueness.id,
+      orphanedPayments.id,
+    ],
   },
 ];
 
