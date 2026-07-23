@@ -2,6 +2,7 @@ import { roomCollisions } from "../../missions/cadence/01-collisions/mission";
 import { refundExposure } from "../../missions/cadence/02-damage-report/mission";
 import { bookingUniqueness } from "../../missions/cadence/03-booking-uniqueness/mission";
 import { orphanedPayments } from "../../missions/cadence/04-orphaned-payments/mission";
+import { halfFinishedBooking } from "../../missions/cadence/05-half-finished-booking/mission";
 import { delayedOrders } from "../../missions/harborline/01-delayed-orders/mission";
 import { failingRoutes } from "../../missions/harborline/02-failing-routes/mission";
 import { paidNeverShipped } from "../../missions/harborline/03-paid-never-shipped/mission";
@@ -124,6 +125,7 @@ const missions: readonly Mission[] = [
   refundExposure,
   bookingUniqueness,
   orphanedPayments,
+  halfFinishedBooking,
 ];
 
 const cases: readonly Case[] = [
@@ -146,6 +148,7 @@ const cases: readonly Case[] = [
       refundExposure.id,
       bookingUniqueness.id,
       orphanedPayments.id,
+      halfFinishedBooking.id,
     ],
   },
 ];

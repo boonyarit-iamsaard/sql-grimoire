@@ -23,6 +23,10 @@ describe("Case catalog", () => {
       title: "The Cleanup That Made It Worse",
       caseId: "cadence",
     });
+    expect(caseCatalog.getMission("finish-booking-atomically")).toMatchObject({
+      title: "The Half-Finished Booking",
+      caseId: "cadence",
+    });
     expect(caseCatalog.getMission("unknown")).toBeUndefined();
 
     const cases = caseCatalog.getCases();
@@ -67,6 +71,7 @@ describe("Case catalog", () => {
       "locked",
       "locked",
       "locked",
+      "locked",
     ]);
 
     const afterCollisionReport = caseCatalog.getCases(
@@ -83,6 +88,7 @@ describe("Case catalog", () => {
     expect(afterCollisionReport[1].missions.map(({ state }) => state)).toEqual([
       "completed",
       "next",
+      "locked",
       "locked",
       "locked",
     ]);
@@ -104,6 +110,7 @@ describe("Case catalog", () => {
       "completed",
       "next",
       "locked",
+      "locked",
     ]);
 
     const afterBookingGuardrail = caseCatalog.getCases(
@@ -120,7 +127,25 @@ describe("Case catalog", () => {
       nextMissionId: "prevent-orphaned-payments",
     });
     expect(afterBookingGuardrail[1].missions.map(({ state }) => state)).toEqual(
-      ["completed", "completed", "completed", "next"],
+      ["completed", "completed", "completed", "next", "locked"],
+    );
+
+    const afterPaymentGuardrail = caseCatalog.getCases(
+      (missionId) =>
+        harborlineMissionIds.includes(missionId) ||
+        missionId === "double-booked-slots" ||
+        missionId === "refund-exposure" ||
+        missionId === "prevent-double-booking" ||
+        missionId === "prevent-orphaned-payments",
+    );
+    expect(afterPaymentGuardrail[1]).toMatchObject({
+      id: "cadence",
+      state: "available",
+      completedCount: 4,
+      nextMissionId: "finish-booking-atomically",
+    });
+    expect(afterPaymentGuardrail[1].missions.map(({ state }) => state)).toEqual(
+      ["completed", "completed", "completed", "completed", "next"],
     );
   });
 
