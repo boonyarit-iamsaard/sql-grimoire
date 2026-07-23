@@ -1,7 +1,14 @@
 import { describe, expect, it } from "vitest";
 import type { RunResult, SqlRuntime, TableInfo } from "../../sql/sql-runtime";
 import { InMemorySqliteRuntime } from "../../test/in-memory-sqlite-runtime";
-import { createTestMissionAttempt } from "../../test/mission-verification-support";
+import {
+  createTestMissionAttempt,
+  VerificationStorage,
+} from "../../test/mission-verification-support";
+import { CaseCatalog } from "../cases/case-catalog";
+import { PlayerProgress } from "../progress/progress-store";
+import type { AttemptActionResult } from "./mission-attempt";
+import { MissionAttempt } from "./mission-attempt";
 import type { Mission } from "./mission-types";
 
 const mission = {
@@ -64,14 +71,30 @@ const stateGradedMission = {
   },
 } satisfies Mission;
 
+const catalog = new CaseCatalog(
+  [mission],
+  [
+    {
+      id: mission.caseId,
+      name: "Test Case",
+      company: "Test Company",
+      summary: "Test fixture.",
+      missionIds: [mission.id],
+    },
+  ],
+);
+
 class RecordingRuntime implements SqlRuntime {
   readonly calls: string[] = [];
   readonly runResults: RunResult[] = [];
+  initGate: Promise<void> | null = null;
+  initStarted: Promise<void> = Promise.resolve();
   runError: Error | null = null;
   resetError: Error | null = null;
   runGate: Promise<void> | null = null;
   runStarted: Promise<void> = Promise.resolve();
   throwOnceOnSql: string | null = null;
+  private notifyInitStarted: (() => void) | null = null;
   private notifyRunStarted: (() => void) | null = null;
   nextRun: RunResult = {
     ok: true,
@@ -81,6 +104,9 @@ class RecordingRuntime implements SqlRuntime {
 
   async init(schemaSql: string, seedSql: string) {
     this.calls.push(`init:${schemaSql}:${seedSql}`);
+    this.notifyInitStarted?.();
+    this.notifyInitStarted = null;
+    await this.initGate;
   }
 
   async run(sql: string): Promise<RunResult> {
@@ -118,6 +144,13 @@ class RecordingRuntime implements SqlRuntime {
     this.runGate = gate;
     this.runStarted = new Promise((resolve) => {
       this.notifyRunStarted = resolve;
+    });
+  }
+
+  gateInitializationUntil(gate: Promise<void>): void {
+    this.initGate = gate;
+    this.initStarted = new Promise((resolve) => {
+      this.notifyInitStarted = resolve;
     });
   }
 }
@@ -172,6 +205,140 @@ describe("Mission Attempt", () => {
       "run:SELECT 1; SELECT 42 AS answer",
       "reset",
       "tables",
+      "dispose",
+    ]);
+  });
+
+  it("queues a saved submission until the Mission database is ready", async () => {
+    const runtime = new RecordingRuntime();
+    const progress = new PlayerProgress(new VerificationStorage());
+    progress.recordLastQuery(mission.id, mission.challenge.referenceQuery);
+    let releaseInitialization = () => {};
+    runtime.gateInitializationUntil(
+      new Promise<void>((resolve) => {
+        releaseInitialization = resolve;
+      }),
+    );
+    const attempt = new MissionAttempt({
+      mission,
+      runtime,
+      progress,
+      catalog,
+    });
+
+    const opening = attempt.open();
+    await runtime.initStarted;
+    const submission = attempt.submit();
+    attempt.setQuery("SELECT 41 AS answer");
+    releaseInitialization();
+    await opening;
+
+    await expect(submission).resolves.toEqual({ accepted: true });
+    expect(attempt.getSnapshot()).toMatchObject({
+      phase: "ready",
+      query: "SELECT 41 AS answer",
+      evaluatedQuery: mission.challenge.referenceQuery,
+      evaluation: { passed: true, earnedXp: 25 },
+      completionOutcome: { firstCompletion: true, awardedXp: 25 },
+    });
+    attempt.dispose();
+  });
+
+  it("queues a submission triggered by the opening notification", async () => {
+    const runtime = new RecordingRuntime();
+    let releaseInitialization = () => {};
+    runtime.gateInitializationUntil(
+      new Promise<void>((resolve) => {
+        releaseInitialization = resolve;
+      }),
+    );
+    const attempt = createTestMissionAttempt(mission, runtime);
+    attempt.setQuery(mission.challenge.referenceQuery);
+    let submission: Promise<AttemptActionResult> | null = null;
+    const unsubscribe = attempt.subscribe(() => {
+      if (attempt.getSnapshot().phase === "opening" && submission === null) {
+        submission = attempt.submit();
+      }
+    });
+
+    const opening = attempt.open();
+    await runtime.initStarted;
+    releaseInitialization();
+    await opening;
+    unsubscribe();
+
+    if (submission === null) {
+      throw new Error("Opening notification did not trigger submission");
+    }
+    await expect(submission).resolves.toEqual({ accepted: true });
+    expect(attempt.getSnapshot()).toMatchObject({
+      phase: "ready",
+      evaluatedQuery: mission.challenge.referenceQuery,
+      evaluation: { passed: true },
+    });
+    attempt.dispose();
+  });
+
+  it("rejects a queued submission when database initialization fails", async () => {
+    const runtime = new RecordingRuntime();
+    let rejectInitialization = (_error: Error) => {};
+    runtime.gateInitializationUntil(
+      new Promise<void>((_resolve, reject) => {
+        rejectInitialization = reject;
+      }),
+    );
+    const attempt = createTestMissionAttempt(mission, runtime);
+    attempt.setQuery(mission.challenge.referenceQuery);
+
+    const opening = attempt.open();
+    await runtime.initStarted;
+    const submission = attempt.submit();
+    rejectInitialization(new Error("seed failed"));
+    await opening;
+
+    await expect(submission).resolves.toEqual({
+      accepted: false,
+      reason: "NOT_READY",
+    });
+    expect(attempt.getSnapshot()).toMatchObject({
+      phase: "failed",
+      initError: "seed failed",
+      evaluation: null,
+    });
+    expect(runtime.calls).toEqual([
+      `init:${mission.database.schemaSql}:${mission.database.seedSql}`,
+    ]);
+    attempt.dispose();
+  });
+
+  it("skips table inspection when initialization finishes after disposal", async () => {
+    const runtime = new RecordingRuntime();
+    let releaseInitialization = () => {};
+    runtime.gateInitializationUntil(
+      new Promise<void>((resolve) => {
+        releaseInitialization = resolve;
+      }),
+    );
+    const attempt = createTestMissionAttempt(mission, runtime);
+    attempt.setQuery(mission.challenge.referenceQuery);
+
+    const opening = attempt.open();
+    await runtime.initStarted;
+    const submission = attempt.submit();
+    attempt.dispose();
+    releaseInitialization();
+    await opening;
+
+    await expect(submission).resolves.toEqual({
+      accepted: false,
+      reason: "DISPOSED",
+    });
+    expect(attempt.getSnapshot()).toMatchObject({
+      phase: "disposed",
+      evaluation: null,
+    });
+    expect(runtime.calls).toEqual([
+      `init:${mission.database.schemaSql}:${mission.database.seedSql}`,
       "dispose",
     ]);
   });
