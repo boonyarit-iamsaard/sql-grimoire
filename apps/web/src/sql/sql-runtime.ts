@@ -7,7 +7,7 @@ export interface QueryResult {
   rows: SqlValue[][];
 }
 
-export type RunErrorKind = "sql" | "runtime";
+export type RunErrorKind = "sql" | "runtime" | "interrupted";
 
 export type RunResult =
   | { ok: true; results: QueryResult[]; durationMs: number }

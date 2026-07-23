@@ -1,6 +1,6 @@
 # 01 — Add Harborline Mission content tests
 
-Status: ready-for-agent
+Status: completed
 
 ## What to build
 
@@ -14,11 +14,11 @@ unless a test exposes a genuine defect.
 
 ## Acceptance criteria
 
-- [ ] Each Harborline Mission's reference query executes successfully against its own schema and
+- [x] Each Harborline Mission's reference query executes successfully against its own schema and
       seed.
-- [ ] Each test asserts exact result columns and independently authored literal rows.
-- [ ] Assertions do not depend on result row order.
-- [ ] Existing formatting, SQL lint, typechecking, build, and test checks pass.
+- [x] Each test asserts exact result columns and independently authored literal rows.
+- [x] Assertions do not depend on result row order.
+- [x] Existing formatting, SQL lint, typechecking, build, and test checks pass.
 
 ## Blocked by
 

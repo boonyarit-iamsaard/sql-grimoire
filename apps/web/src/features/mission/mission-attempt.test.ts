@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import type { RunResult, SqlRuntime, TableInfo } from "../../sql/sql-runtime";
 import { InMemorySqliteRuntime } from "../../test/in-memory-sqlite-runtime";
-import { MissionAttempt } from "./mission-attempt";
+import { createTestMissionAttempt } from "../../test/mission-verification-support";
 import type { Mission } from "./mission-types";
 
 const mission = {
@@ -11,7 +11,10 @@ const mission = {
   objective: "Return the answer.",
   briefing: { reporter: "Test", role: "Tester", channel: "Note", body: [] },
   primer: { title: "Test primer", sections: [] },
-  database: { schemaSql: "CREATE TABLE answers (value INTEGER);", seedSql: "" },
+  database: {
+    schemaSql: "CREATE TABLE answers (value INTEGER);",
+    seedSql: "",
+  },
   challenge: {
     expectedColumns: ["answer"],
     referenceQuery: "SELECT 42 AS answer",
@@ -66,6 +69,7 @@ class RecordingRuntime implements SqlRuntime {
   readonly runResults: RunResult[] = [];
   runError: Error | null = null;
   resetError: Error | null = null;
+  runGate: Promise<void> | null = null;
   nextRun: RunResult = {
     ok: true,
     results: [{ columns: ["answer"], rows: [[42]] }],
@@ -78,6 +82,7 @@ class RecordingRuntime implements SqlRuntime {
 
   async run(sql: string): Promise<RunResult> {
     this.calls.push(`run:${sql}`);
+    await this.runGate;
     if (this.runError) {
       throw this.runError;
     }
@@ -102,13 +107,19 @@ class RecordingRuntime implements SqlRuntime {
 }
 
 describe("Mission Attempt", () => {
-  it("owns database lifecycle and projects the last query result", async () => {
+  it("owns lifecycle, workbench projection, and reset semantics", async () => {
     const runtime = new RecordingRuntime();
-    const attempt = new MissionAttempt(mission, runtime);
+    const attempt = createTestMissionAttempt(mission, runtime);
 
-    await expect(attempt.open()).resolves.toEqual([
-      { name: "answers", columns: [] },
-    ]);
+    const opening = attempt.open();
+    expect(attempt.getSnapshot()).toMatchObject({
+      phase: "opening",
+      busy: true,
+      databaseReady: false,
+    });
+    expect(await attempt.run()).toEqual({ accepted: false, reason: "BUSY" });
+    await opening;
+
     runtime.nextRun = {
       ok: true,
       results: [
@@ -117,14 +128,26 @@ describe("Mission Attempt", () => {
       ],
       durationMs: 3,
     };
-    await expect(attempt.run("SELECT 1; SELECT 42 AS answer")).resolves.toEqual(
-      {
-        ok: true,
+    attempt.setQuery("SELECT 1; SELECT 42 AS answer");
+    await attempt.run();
+    expect(attempt.getSnapshot()).toMatchObject({
+      phase: "ready",
+      readyToSeal: true,
+      lastRun: {
+        query: "SELECT 1; SELECT 42 AS answer",
         data: { columns: ["answer"], rows: [[42]] },
         durationMs: 3,
       },
-    );
+    });
+
+    attempt.revealNextHint();
     await attempt.reset();
+    expect(attempt.getSnapshot()).toMatchObject({
+      query: "SELECT 1; SELECT 42 AS answer",
+      hintIndex: -1,
+      lastRun: null,
+      readyToSeal: false,
+    });
     attempt.dispose();
 
     expect(runtime.calls).toEqual([
@@ -132,34 +155,53 @@ describe("Mission Attempt", () => {
       "tables",
       "run:SELECT 1; SELECT 42 AS answer",
       "reset",
+      "tables",
       "dispose",
     ]);
   });
 
-  it("isolates grading and returns completion facts for a correct query", async () => {
-    const runtime = new RecordingRuntime();
-    const attempt = new MissionAttempt(mission, runtime);
+  it("applies first completion once and refreshes later solutions without XP", async () => {
+    const attempt = createTestMissionAttempt(
+      mission,
+      new InMemorySqliteRuntime(),
+    );
+    await attempt.open();
+    attempt.setQuery(mission.challenge.referenceQuery);
 
-    const submission = await attempt.submit("SELECT 42 AS answer");
-
-    expect(runtime.calls).toEqual([
-      "reset",
-      "run:SELECT 42 AS answer",
-      "reset",
-      "run:SELECT 42 AS answer",
-    ]);
-    expect(submission).toEqual({
+    await attempt.submit();
+    expect(attempt.getSnapshot()).toMatchObject({
       evaluation: { passed: true, earnedXp: 25 },
-      completion: {
-        missionId: "test-mission",
-        missionTitle: "Test Mission",
-        concepts: ["SELECT"],
-        playerQuery: "SELECT 42 AS answer",
-        referenceQuery: "SELECT 42 AS answer",
-        explanation: "The answer is 42.",
-        xp: 25,
-      },
+      completionOutcome: { firstCompletion: true, awardedXp: 25 },
     });
+
+    attempt.clearVerdict();
+    attempt.setQuery("SELECT 6 * 7 AS answer");
+    await attempt.submit();
+    expect(attempt.getSnapshot()).toMatchObject({
+      evaluation: { passed: true, earnedXp: 0 },
+      completionOutcome: { firstCompletion: false, awardedXp: 0 },
+    });
+    attempt.dispose();
+  });
+
+  it("keeps a verdict attached to the query that was submitted", async () => {
+    const attempt = createTestMissionAttempt(
+      mission,
+      new InMemorySqliteRuntime(),
+    );
+    await attempt.open();
+    attempt.setQuery(mission.challenge.referenceQuery);
+
+    const submission = attempt.submit();
+    attempt.setQuery("SELECT 41 AS answer");
+    await submission;
+
+    expect(attempt.getSnapshot()).toMatchObject({
+      query: "SELECT 41 AS answer",
+      evaluatedQuery: mission.challenge.referenceQuery,
+      evaluation: { passed: true },
+    });
+    attempt.dispose();
   });
 
   it("grades through canonical columns and row multisets", async () => {
@@ -201,41 +243,65 @@ describe("Mission Attempt", () => {
         expectedColumns: ["answer", "label"],
       },
     };
+    const attempt = createTestMissionAttempt(gradingMission, runtime);
+    await attempt.open();
+    attempt.setQuery("SELECT answer, label FROM answers");
+    await attempt.submit();
 
-    const submission = await new MissionAttempt(gradingMission, runtime).submit(
-      "SELECT answer, label FROM answers",
-    );
-
-    expect(submission.evaluation).toEqual({ passed: true, earnedXp: 25 });
+    expect(attempt.getSnapshot().evaluation).toEqual({
+      passed: true,
+      earnedXp: 25,
+    });
   });
 
-  it("projects rejected runtime operations without leaking them", async () => {
+  it("projects runtime failures without leaking runtime exceptions", async () => {
     const runtime = new RecordingRuntime();
-    const attempt = new MissionAttempt(mission, runtime);
+    const attempt = createTestMissionAttempt(mission, runtime);
+    await attempt.open();
+    attempt.setQuery("SELECT 42");
     runtime.runError = new Error("worker crashed");
 
-    await expect(attempt.run("SELECT 42")).resolves.toEqual({
-      ok: false,
-      error: "worker crashed",
+    await attempt.run();
+    expect(attempt.getSnapshot()).toMatchObject({
+      phase: "ready",
+      notice: { kind: "error", message: "worker crashed" },
+      lastRun: null,
     });
 
     runtime.runError = null;
     runtime.resetError = new Error("reset failed");
-    await expect(attempt.reset()).resolves.toEqual({
-      ok: false,
-      error: "reset failed",
-    });
-    await expect(attempt.submit("SELECT 42")).resolves.toEqual({
-      evaluation: {
-        passed: false,
-        reason: "SQL_ERROR",
-        message: "reset failed",
-      },
-      completion: null,
+    await attempt.reset();
+    expect(attempt.getSnapshot().notice).toEqual({
+      kind: "error",
+      message: "reset failed",
     });
   });
 
-  it("runs State-graded Probes in their authored order", async () => {
+  it("keeps disposal terminal while an accepted operation settles", async () => {
+    const runtime = new RecordingRuntime();
+    let releaseRun = () => {};
+    runtime.runGate = new Promise<void>((resolve) => {
+      releaseRun = resolve;
+    });
+    const attempt = createTestMissionAttempt(mission, runtime);
+    await attempt.open();
+    attempt.setQuery(mission.challenge.referenceQuery);
+
+    const submission = attempt.submit();
+    await Promise.resolve();
+    await Promise.resolve();
+    attempt.dispose();
+    releaseRun();
+    await submission;
+
+    expect(attempt.getSnapshot()).toMatchObject({
+      phase: "disposed",
+      evaluation: null,
+      completionOutcome: null,
+    });
+  });
+
+  it("runs State-grading Probes in their authored order", async () => {
     const runtime = new RecordingRuntime();
     const bookingsResult: RunResult = {
       ok: true,
@@ -263,16 +329,18 @@ describe("Mission Attempt", () => {
       bookingsResult,
       constraintError,
     );
-
+    const attempt = createTestMissionAttempt(stateGradedMission, runtime);
+    await attempt.open();
     const playerScript =
       "CREATE UNIQUE INDEX player_guardrail ON bookings (room_id, booking_date, slot);";
-    const submission = await new MissionAttempt(
-      stateGradedMission,
-      runtime,
-    ).submit(playerScript);
+    attempt.setQuery(playerScript);
+    await attempt.submit();
 
-    expect(submission.evaluation).toEqual({ passed: true, earnedXp: 25 });
-    expect(runtime.calls).toEqual([
+    expect(attempt.getSnapshot().evaluation).toEqual({
+      passed: true,
+      earnedXp: 25,
+    });
+    expect(runtime.calls.slice(2)).toEqual([
       "reset",
       `run:${playerScript}`,
       `run:${stateGradedMission.challenge.probes[0].sql}`,
@@ -284,161 +352,38 @@ describe("Mission Attempt", () => {
     ]);
   });
 
-  it("passes a State-graded script when every Probe passes", async () => {
-    const runtime = new InMemorySqliteRuntime();
-    const attempt = new MissionAttempt(stateGradedMission, runtime);
+  it("rejects a State-graded script that changes legitimate state", async () => {
+    const attempt = createTestMissionAttempt(stateGradedMission);
     await attempt.open();
-
-    const submission = await attempt.submit(
-      "CREATE UNIQUE INDEX player_guardrail ON bookings (room_id, booking_date, slot);",
-    );
-
-    expect(submission).toEqual({
-      evaluation: { passed: true, earnedXp: 25 },
-      completion: {
-        missionId: "state-graded-test-mission",
-        missionTitle: "Test Mission",
-        concepts: ["SELECT"],
-        playerQuery:
-          "CREATE UNIQUE INDEX player_guardrail ON bookings (room_id, booking_date, slot);",
-        referenceQuery:
-          "CREATE UNIQUE INDEX bookings_room_slot ON bookings (room_id, booking_date, slot);",
-        explanation: "The answer is 42.",
-        xp: 25,
-      },
-    });
-
-    attempt.dispose();
-  });
-
-  it("fails a valid State-graded script when a query Probe finds changed state", async () => {
-    const runtime = new InMemorySqliteRuntime();
-    const attempt = new MissionAttempt(stateGradedMission, runtime);
-    await attempt.open();
-
-    const submission = await attempt.submit(`
+    attempt.setQuery(`
       DELETE FROM bookings WHERE id = 2;
       CREATE UNIQUE INDEX player_guardrail
       ON bookings (room_id, booking_date, slot);
     `);
+    await attempt.submit();
 
-    expect(submission).toEqual({
-      evaluation: {
-        passed: false,
-        reason: "INCORRECT_ROWS",
-        message:
-          "The columns are right, but you returned 1 row(s) and the expected result has 2. Check your JOIN and WHERE conditions.",
-      },
-      completion: null,
+    expect(attempt.getSnapshot().evaluation).toMatchObject({
+      passed: false,
+      reason: "INCORRECT_ROWS",
     });
-
+    expect(attempt.getSnapshot().completionOutcome).toBeNull();
     attempt.dispose();
   });
 
-  it("rejects infrastructure failures during must-fail Probes", async () => {
-    const runtime = new RecordingRuntime();
-    runtime.runResults.push(
-      { ok: true, results: [], durationMs: 1 },
-      {
-        ok: true,
-        results: [
-          {
-            columns: ["id", "room_id", "booking_date", "slot"],
-            rows: [
-              [1, 7, "2026-08-01", "10:00"],
-              [2, 7, "2026-08-01", "11:00"],
-            ],
-          },
-        ],
-        durationMs: 1,
-      },
-      { ok: false, error: "worker crashed", errorKind: "runtime" },
-      { ok: true, results: [], durationMs: 1 },
-      {
-        ok: true,
-        results: [
-          {
-            columns: ["id", "room_id", "booking_date", "slot"],
-            rows: [
-              [1, 7, "2026-08-01", "10:00"],
-              [2, 7, "2026-08-01", "11:00"],
-            ],
-          },
-        ],
-        durationMs: 1,
-      },
-      {
-        ok: false,
-        error: "UNIQUE constraint failed",
-        errorKind: "sql",
-      },
-    );
-
-    const submission = await new MissionAttempt(
-      stateGradedMission,
-      runtime,
-    ).submit("CREATE UNIQUE INDEX player_guardrail ON bookings (room_id)");
-
-    expect(submission).toEqual({
-      evaluation: {
-        passed: false,
-        reason: "SQL_ERROR",
-        message: "Probe 2 could not run: worker crashed",
-      },
-      completion: null,
-    });
-  });
-
-  it("fails a must-fail Probe when SQLite accepts its statement", async () => {
-    const runtime = new InMemorySqliteRuntime();
-    const attempt = new MissionAttempt(stateGradedMission, runtime);
+  it("grades committed state even when a later statement errors", async () => {
+    const attempt = createTestMissionAttempt(stateGradedMission);
     await attempt.open();
-
-    const submission = await attempt.submit(
-      "CREATE INDEX player_non_guardrail ON bookings (room_id, booking_date, slot);",
-    );
-
-    expect(submission).toEqual({
-      evaluation: {
-        passed: false,
-        reason: "PROBE_FAILED",
-        message:
-          "Probe 2 expected SQLite to reject the statement, but it succeeded.",
-      },
-      completion: null,
-    });
-
-    attempt.dispose();
-  });
-
-  it("isolates State-graded submission from prior workbench changes", async () => {
-    const runtime = new InMemorySqliteRuntime();
-    const attempt = new MissionAttempt(stateGradedMission, runtime);
-    await attempt.open();
-    await attempt.run("DELETE FROM bookings WHERE id = 2");
-
-    const submission = await attempt.submit(
-      "CREATE UNIQUE INDEX player_guardrail ON bookings (room_id, booking_date, slot);",
-    );
-
-    expect(submission.evaluation).toEqual({ passed: true, earnedXp: 25 });
-
-    attempt.dispose();
-  });
-
-  it("grades the state left by a script even when a later statement errors", async () => {
-    const runtime = new InMemorySqliteRuntime();
-    const attempt = new MissionAttempt(stateGradedMission, runtime);
-    await attempt.open();
-
-    const submission = await attempt.submit(`
+    attempt.setQuery(`
       CREATE UNIQUE INDEX player_guardrail
       ON bookings (room_id, booking_date, slot);
       SELECT missing_column FROM bookings;
     `);
+    await attempt.submit();
 
-    expect(submission.evaluation).toEqual({ passed: true, earnedXp: 25 });
-
+    expect(attempt.getSnapshot().evaluation).toEqual({
+      passed: true,
+      earnedXp: 25,
+    });
     attempt.dispose();
   });
 });

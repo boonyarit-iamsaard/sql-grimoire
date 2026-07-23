@@ -8,6 +8,21 @@ export interface GrimoireEntry {
   completedAt: string;
 }
 
+export interface MissionCompletion {
+  missionId: string;
+  missionTitle: string;
+  concepts: string[];
+  playerQuery: string;
+  referenceQuery: string;
+  explanation: string;
+  xp: number;
+}
+
+export interface MissionCompletionOutcome {
+  firstCompletion: boolean;
+  awardedXp: number;
+}
+
 export interface Progress {
   xp: number;
   completedMissionIds: string[];

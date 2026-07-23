@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
-import type { MissionCompletion } from "../mission/mission-attempt";
 import { PlayerProgress } from "./progress-store";
+import type { MissionCompletion } from "./progress-types";
 
 class MemoryStorage {
   readonly values = new Map<string, string>();
@@ -36,10 +36,21 @@ describe("Player Progress", () => {
       () => new Date("2026-07-11T10:00:00.000Z"),
     );
 
-    progress.completeMission(completion);
-    progress.completeMission({ ...completion, playerQuery: "SELECT 1;" });
+    const firstCompletion = progress.completeMission(completion);
+    const repeatedCompletion = progress.completeMission({
+      ...completion,
+      playerQuery: "SELECT 1;",
+    });
 
     expect(progress.xp).toBe(100);
+    expect(firstCompletion).toEqual({
+      firstCompletion: true,
+      awardedXp: 100,
+    });
+    expect(repeatedCompletion).toEqual({
+      firstCompletion: false,
+      awardedXp: 0,
+    });
     expect(progress.isMissionCompleted("missing-shipment")).toBe(true);
     expect(progress.grimoireEntries).toEqual([
       {

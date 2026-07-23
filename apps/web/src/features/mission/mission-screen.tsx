@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { format } from "sql-formatter";
 import { cn } from "../../lib/cn";
 import { playClick, playMissionComplete } from "../../shared/audio/sound";
@@ -13,19 +13,16 @@ import {
   WarningIcon,
 } from "../../shared/ui/icons";
 import { TextWithCode } from "../../shared/ui/text-with-code";
-import type { EvaluationResult } from "../../sql/evaluator";
-import type { QueryResult, TableInfo } from "../../sql/sql-runtime";
-import { SqliteRuntime } from "../../sql/sqlite-runtime";
 import { caseCatalog } from "../cases/case-catalog";
-import { playerProgress } from "../progress/progress-store";
 import { IncidentReport } from "./components/incident-report";
 import { MissionFeedback } from "./components/mission-feedback";
 import { PrimerPanel } from "./components/primer-panel";
 import { QueryResultTable } from "./components/query-result-table";
 import { SchemaExplorer } from "./components/schema-explorer";
 import { SqlEditor } from "./components/sql-editor";
-import { MissionAttempt } from "./mission-attempt";
+import type { AttemptNotice } from "./mission-attempt";
 import type { Mission } from "./mission-types";
+import { useMissionAttempt } from "./use-mission-attempt";
 
 const centeredScreenClasses =
   "flex min-h-screen flex-col items-center justify-center gap-[22px] p-6";
@@ -36,30 +33,10 @@ const errorCardClasses =
 const interruptCardClasses =
   "flex items-start gap-2 rounded-[10px] border-2 border-ctp-peach bg-ctp-base px-4 py-3 font-mono text-mono whitespace-pre-wrap text-ctp-peach motion-safe:animate-page-fade";
 
-type RunNotice = { kind: "error" | "interrupted"; message: string };
-
-function classifyRunError(message: string): RunNotice {
-  const interrupted = /^(query )?interrupted/i.test(message);
-  return { kind: interrupted ? "interrupted" : "error", message };
-}
-
 interface MissionScreenProps {
   missionId: string;
   onBack: () => void;
   onOpenMission: (missionId: string) => void;
-}
-
-/** The next uncompleted Mission in the same Case, if any — computed after
- *  completion has been applied to Player Progress, so a just-finished Mission
- *  never nominates itself. */
-function nextMissionIn(caseId: string): Mission | null {
-  const caseView = caseCatalog
-    .getCases((missionId) => playerProgress.isMissionCompleted(missionId))
-    .find((candidate) => candidate.id === caseId);
-  if (caseView?.state !== "available" || !caseView.nextMissionId) {
-    return null;
-  }
-  return caseCatalog.getMission(caseView.nextMissionId) ?? null;
 }
 
 export function MissionScreen({
@@ -99,92 +76,41 @@ function MissionAttemptScreen({
   onBack,
   onOpenMission,
 }: Readonly<MissionAttemptScreenProps>) {
-  const attemptRef = useRef<MissionAttempt | null>(null);
-  const [tables, setTables] = useState<TableInfo[]>([]);
-  const [query, setQuery] = useState(() =>
-    playerProgress.lastQueryFor(mission.id),
-  );
-  const [result, setResult] = useState<{
-    data: QueryResult;
-    durationMs: number;
-  } | null>(null);
-  const [runNotice, setRunNotice] = useState<RunNotice | null>(null);
-  const [hintIndex, setHintIndex] = useState(-1);
-  const [evaluation, setEvaluation] = useState<EvaluationResult | null>(null);
-  const [busy, setBusy] = useState(false);
-  const [dbReady, setDbReady] = useState(false);
-  const [initError, setInitError] = useState<string | null>(null);
+  const { attempt, snapshot } = useMissionAttempt(mission);
+  const [formatNotice, setFormatNotice] = useState<AttemptNotice | null>(null);
 
   useEffect(() => {
-    const runtime = new SqliteRuntime();
-    const attempt = new MissionAttempt(mission, runtime);
-    attemptRef.current = attempt;
-    playerProgress.enterMission(mission.id);
-    let disposed = false;
-    attempt
-      .open()
-      .then((t) => {
-        setTables(t);
-        setDbReady(true);
-      })
-      .catch((error: Error) => {
-        if (!disposed) {
-          setInitError(error.message);
-        }
-      });
-    return () => {
-      disposed = true;
-      attempt.dispose();
-    };
-  }, [mission]);
+    if (snapshot.completionOutcome?.firstCompletion) {
+      playMissionComplete();
+    }
+  }, [snapshot.completionOutcome]);
 
-  const runQuery = async () => {
-    const attempt = attemptRef.current;
-    if (!attempt || busy) {
-      return;
-    }
+  const runQuery = () => {
     playClick();
-    setBusy(true);
-    setRunNotice(null);
-    playerProgress.recordLastQuery(mission.id, query);
-    const run = await attempt.run(query);
-    if (!run.ok) {
-      setRunNotice(classifyRunError(run.error));
-      setResult(null);
-    } else {
-      setRunNotice(null);
-      setResult({ data: run.data, durationMs: run.durationMs });
-    }
-    setBusy(false);
+    setFormatNotice(null);
+    void attempt.run();
   };
 
-  const submitAnswer = async () => {
-    const attempt = attemptRef.current;
-    if (!attempt || busy) {
-      return;
-    }
+  const submitAnswer = () => {
     playClick();
-    setBusy(true);
-    setRunNotice(null);
-    playerProgress.recordLastQuery(mission.id, query);
-    const submission = await attempt.submit(query);
-    if (submission.completion) {
-      playMissionComplete();
-      playerProgress.completeMission(submission.completion);
-    }
-    setEvaluation(submission.evaluation);
-    setBusy(false);
+    setFormatNotice(null);
+    void attempt.submit();
   };
 
   const formatQuery = () => {
     playClick();
     try {
-      setQuery(format(query, { language: "sqlite", keywordCase: "upper" }));
-      setRunNotice(null);
+      attempt.setQuery(
+        format(snapshot.query, {
+          language: "sqlite",
+          keywordCase: "upper",
+        }),
+      );
+      setFormatNotice(null);
     } catch {
       // sql-formatter can't parse it — leave the text as typed; running the
       // query will surface the real SQLite error.
-      setRunNotice({
+      setFormatNotice({
         kind: "error",
         message:
           "Couldn't format — the SQL isn't parseable yet. Run it to see the exact error.",
@@ -192,11 +118,7 @@ function MissionAttemptScreen({
     }
   };
 
-  const resetDatabase = async () => {
-    const attempt = attemptRef.current;
-    if (!attempt || busy) {
-      return;
-    }
+  const resetDatabase = () => {
     if (
       !window.confirm(
         "Reset the case database to its original seeded state? Anything you've changed will be undone.",
@@ -205,22 +127,16 @@ function MissionAttemptScreen({
       return;
     }
     playClick();
-    setBusy(true);
-    const reset = await attempt.reset();
-    if (reset.ok) {
-      setResult(null);
-      setRunNotice(null);
-    } else {
-      setRunNotice({ kind: "error", message: reset.error });
-    }
-    setBusy(false);
+    setFormatNotice(null);
+    void attempt.reset();
   };
 
-  // Explore-Then-Seal: Run keeps the gold; Submit only lights up as the
-  // earned terminal step once a result exists. See DESIGN.md.
-  const readyToSeal = result !== null && !busy && dbReady;
+  const notice = formatNotice ?? snapshot.notice;
   const outputEmpty =
-    !initError && hintIndex < 0 && runNotice === null && result === null;
+    !snapshot.initError &&
+    snapshot.hintIndex < 0 &&
+    notice === null &&
+    snapshot.lastRun === null;
 
   return (
     <div className="mx-auto flex h-screen max-w-[1560px] flex-col px-5 pt-4 pb-4 max-[900px]:h-auto max-[900px]:pb-8">
@@ -251,7 +167,7 @@ function MissionAttemptScreen({
           <div className="min-h-0 flex-1 divide-y divide-ctp-surface1 overflow-y-auto max-[900px]:overflow-visible">
             <IncidentReport briefing={mission.briefing} />
             <PrimerPanel primer={mission.primer} />
-            <SchemaExplorer tables={tables} />
+            <SchemaExplorer tables={snapshot.tables} />
           </div>
         </div>
 
@@ -259,8 +175,11 @@ function MissionAttemptScreen({
           <div className="flex min-h-[264px] shrink-0 flex-col overflow-hidden rounded-xl border-2 border-ctp-surface1 bg-ctp-base shadow-paper min-[901px]:h-[45%]">
             <div className="min-h-[180px] flex-1 [&>div]:h-full">
               <SqlEditor
-                value={query}
-                onChange={setQuery}
+                value={snapshot.query}
+                onChange={(query) => {
+                  setFormatNotice(null);
+                  attempt.setQuery(query);
+                }}
                 onRun={runQuery}
                 onSubmit={submitAnswer}
                 height="100%"
@@ -270,19 +189,19 @@ function MissionAttemptScreen({
               <Button
                 variant="primary"
                 onClick={runQuery}
-                disabled={busy || !dbReady}
+                disabled={snapshot.busy || !snapshot.databaseReady}
               >
                 <PlayIcon /> Run Query
               </Button>
               <Button
                 onClick={submitAnswer}
-                disabled={busy || !dbReady || query.trim() === ""}
+                disabled={snapshot.query.trim() === ""}
                 className={cn(
-                  readyToSeal &&
+                  snapshot.readyToSeal &&
                     "ring-2 ring-ctp-yellow/70 ring-offset-2 ring-offset-ctp-mantle",
                 )}
                 title={
-                  readyToSeal
+                  snapshot.readyToSeal
                     ? "Ready to submit — ⌘/Ctrl+Shift+Enter"
                     : undefined
                 }
@@ -293,7 +212,7 @@ function MissionAttemptScreen({
               <Button
                 variant="ghost"
                 onClick={formatQuery}
-                disabled={query.trim() === ""}
+                disabled={snapshot.query.trim() === ""}
               >
                 <PenIcon /> Format
               </Button>
@@ -301,18 +220,18 @@ function MissionAttemptScreen({
                 variant="ghost"
                 onClick={() => {
                   playClick();
-                  setHintIndex((i) =>
-                    Math.min(i + 1, mission.challenge.hints.length - 1),
-                  );
+                  attempt.revealNextHint();
                 }}
-                disabled={hintIndex >= mission.challenge.hints.length - 1}
+                disabled={
+                  snapshot.hintIndex >= mission.challenge.hints.length - 1
+                }
               >
                 <LampIcon /> Hint
               </Button>
               <Button
                 variant="danger"
                 onClick={resetDatabase}
-                disabled={busy || !dbReady}
+                disabled={snapshot.busy || !snapshot.databaseReady}
                 title="Reset the case database to its seeded state"
               >
                 <ResetIcon /> Reset
@@ -328,54 +247,59 @@ function MissionAttemptScreen({
               </div>
             )}
 
-            {initError && (
+            {snapshot.initError && (
               <div className={errorCardClasses}>
                 <WarningIcon className="mt-0.5 shrink-0" />
-                <span>The case database failed to open: {initError}</span>
+                <span>
+                  The case database failed to open: {snapshot.initError}
+                </span>
               </div>
             )}
 
-            {hintIndex >= 0 && (
+            {snapshot.hintIndex >= 0 && (
               <div className="rounded-xl border-2 border-ctp-surface1 bg-ctp-base px-4 py-3 text-ctp-text italic shadow-paper motion-safe:animate-page-fade">
                 <span className="mr-2 font-display text-ctp-peach not-italic">
-                  Hint {hintIndex + 1}/{mission.challenge.hints.length}
+                  Hint {snapshot.hintIndex + 1}/{mission.challenge.hints.length}
                 </span>
-                <TextWithCode text={mission.challenge.hints[hintIndex]} />
+                <TextWithCode
+                  text={mission.challenge.hints[snapshot.hintIndex]}
+                />
               </div>
             )}
 
-            {runNotice?.kind === "interrupted" && (
+            {notice?.kind === "interrupted" && (
               <div className={interruptCardClasses}>
                 <HourglassIcon className="mt-0.5 shrink-0" />
-                <span>{runNotice.message}</span>
+                <span>{notice.message}</span>
               </div>
             )}
 
-            {runNotice?.kind === "error" && (
+            {notice?.kind === "error" && (
               <div className={errorCardClasses}>
                 <WarningIcon className="mt-0.5 shrink-0" />
-                <span>{runNotice.message}</span>
+                <span>{notice.message}</span>
               </div>
             )}
 
-            {result && (
+            {snapshot.lastRun && (
               <QueryResultTable
-                result={result.data}
-                durationMs={result.durationMs}
+                result={snapshot.lastRun.data}
+                durationMs={snapshot.lastRun.durationMs}
               />
             )}
           </div>
         </div>
       </div>
 
-      {evaluation && (
+      {snapshot.evaluation && (
         <MissionFeedback
           mission={mission}
-          evaluation={evaluation}
-          playerQuery={query}
-          onReturnToEditor={() => setEvaluation(null)}
+          evaluation={snapshot.evaluation}
+          playerQuery={snapshot.evaluatedQuery ?? snapshot.query}
+          firstCompletion={snapshot.completionOutcome?.firstCompletion ?? false}
+          onReturnToEditor={attempt.clearVerdict}
           onReturnToMap={onBack}
-          nextMission={evaluation.passed ? nextMissionIn(mission.caseId) : null}
+          nextMission={snapshot.evaluation.passed ? snapshot.nextMission : null}
           onOpenMission={onOpenMission}
         />
       )}

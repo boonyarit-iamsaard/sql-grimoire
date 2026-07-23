@@ -62,6 +62,23 @@ export class CaseCatalog {
     return this.missionsById.get(id);
   }
 
+  getMissions(): readonly Mission[] {
+    return [...this.missionsById.values()];
+  }
+
+  nextMission(
+    caseId: string,
+    isMissionCompleted: (missionId: string) => boolean,
+  ): Mission | null {
+    const caseView = this.getCases(isMissionCompleted).find(
+      (candidate) => candidate.id === caseId,
+    );
+    if (caseView?.state !== "available" || !caseView.nextMissionId) {
+      return null;
+    }
+    return this.getMission(caseView.nextMissionId) ?? null;
+  }
+
   /** Cases in catalog order. A Case is locked while the previous Case that
    *  has Missions is unfinished; a Case with no Missions is always locked. */
   getCases(

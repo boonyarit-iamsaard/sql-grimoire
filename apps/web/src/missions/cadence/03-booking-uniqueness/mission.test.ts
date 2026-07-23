@@ -1,17 +1,11 @@
 import { describe, expect, it } from "vitest";
-import { MissionAttempt } from "../../../features/mission/mission-attempt";
-import { InMemorySqliteRuntime } from "../../../test/in-memory-sqlite-runtime";
+import { submitMission } from "../../../test/mission-verification-support";
 import { bookingUniqueness } from "./mission";
 
 describe("Nothing Stopped It", () => {
   it("accepts a uniqueness guardrail without losing legitimate bookings", async () => {
-    const attempt = new MissionAttempt(
+    const submission = await submitMission(
       bookingUniqueness,
-      new InMemorySqliteRuntime(),
-    );
-    await attempt.open();
-
-    const submission = await attempt.submit(
       "CREATE UNIQUE INDEX player_booking_slot ON bookings (slot_hour, room_id, booking_date);",
     );
 
@@ -19,25 +13,19 @@ describe("Nothing Stopped It", () => {
       passed: true,
       earnedXp: bookingUniqueness.reward.xp,
     });
-    expect(submission.completion).toMatchObject({
-      missionId: "prevent-double-booking",
-      missionTitle: "Nothing Stopped It",
+    expect(submission.completionOutcome).toEqual({
+      firstCompletion: true,
+      awardedXp: bookingUniqueness.reward.xp,
     });
     expect(bookingUniqueness.reward.successMessage).toContain(
       "UNIQUE constraint failed",
     );
-
-    attempt.dispose();
   });
 
   it("accepts rebuilding the table with a UNIQUE constraint", async () => {
-    const attempt = new MissionAttempt(
+    const submission = await submitMission(
       bookingUniqueness,
-      new InMemorySqliteRuntime(),
-    );
-    await attempt.open();
-
-    const submission = await attempt.submit(`
+      `
       CREATE TABLE guarded_bookings (
         id INTEGER PRIMARY KEY,
         room_id INTEGER NOT NULL,
@@ -53,24 +41,18 @@ describe("Nothing Stopped It", () => {
       FROM bookings;
       DROP TABLE bookings;
       ALTER TABLE guarded_bookings RENAME TO bookings;
-    `);
+    `,
+    );
 
     expect(submission.evaluation).toEqual({
       passed: true,
       earnedXp: bookingUniqueness.reward.xp,
     });
-
-    attempt.dispose();
   });
 
   it("rejects an index that does not enforce uniqueness", async () => {
-    const attempt = new MissionAttempt(
+    const submission = await submitMission(
       bookingUniqueness,
-      new InMemorySqliteRuntime(),
-    );
-    await attempt.open();
-
-    const submission = await attempt.submit(
       "CREATE INDEX player_booking_slot ON bookings (room_id, booking_date, slot_hour);",
     );
 
@@ -78,112 +60,83 @@ describe("Nothing Stopped It", () => {
       passed: false,
       reason: "PROBE_FAILED",
     });
-    expect(submission.completion).toBeNull();
-
-    attempt.dispose();
+    expect(submission.completionOutcome).toBeNull();
   });
 
   it("rejects a guardrail that blocks separate rooms at the same time", async () => {
-    const attempt = new MissionAttempt(
+    const submission = await submitMission(
       bookingUniqueness,
-      new InMemorySqliteRuntime(),
-    );
-    await attempt.open();
-
-    const submission = await attempt.submit(
       "CREATE UNIQUE INDEX player_booking_slot ON bookings (booking_date, slot_hour);",
     );
 
-    expect(submission.evaluation.passed).toBe(false);
-    expect(submission.completion).toBeNull();
-
-    attempt.dispose();
+    expect(submission.evaluation?.passed).toBe(false);
+    expect(submission.completionOutcome).toBeNull();
   });
 
   it("rejects a guardrail that protects only one room", async () => {
-    const attempt = new MissionAttempt(
+    const submission = await submitMission(
       bookingUniqueness,
-      new InMemorySqliteRuntime(),
-    );
-    await attempt.open();
-
-    const submission = await attempt.submit(`
+      `
       CREATE UNIQUE INDEX player_booking_slot
       ON bookings (room_id, booking_date, slot_hour)
       WHERE room_id = 1;
-    `);
+    `,
+    );
 
     expect(submission.evaluation).toMatchObject({
       passed: false,
       reason: "PROBE_FAILED",
     });
-    expect(submission.completion).toBeNull();
-
-    attempt.dispose();
+    expect(submission.completionOutcome).toBeNull();
   });
 
   it("rejects a guardrail that protects only earlier booking dates", async () => {
-    const attempt = new MissionAttempt(
+    const submission = await submitMission(
       bookingUniqueness,
-      new InMemorySqliteRuntime(),
-    );
-    await attempt.open();
-
-    const submission = await attempt.submit(`
+      `
       CREATE UNIQUE INDEX player_booking_slot
       ON bookings (room_id, booking_date, slot_hour)
       WHERE booking_date <= '2026-07-21';
-    `);
+    `,
+    );
 
     expect(submission.evaluation).toMatchObject({
       passed: false,
       reason: "PROBE_FAILED",
     });
-    expect(submission.completion).toBeNull();
-
-    attempt.dispose();
+    expect(submission.completionOutcome).toBeNull();
   });
 
   it("rejects a guardrail that includes the customer in the slot key", async () => {
-    const attempt = new MissionAttempt(
+    const submission = await submitMission(
       bookingUniqueness,
-      new InMemorySqliteRuntime(),
-    );
-    await attempt.open();
-
-    const submission = await attempt.submit(`
+      `
       CREATE UNIQUE INDEX player_booking_slot
       ON bookings (room_id, booking_date, slot_hour, customer_id);
-    `);
+    `,
+    );
 
     expect(submission.evaluation).toMatchObject({
       passed: false,
       reason: "PROBE_FAILED",
     });
-    expect(submission.completion).toBeNull();
-
-    attempt.dispose();
+    expect(submission.completionOutcome).toBeNull();
   });
 
   it("rejects a guardrail script that removes a legitimate booking", async () => {
-    const attempt = new MissionAttempt(
+    const submission = await submitMission(
       bookingUniqueness,
-      new InMemorySqliteRuntime(),
-    );
-    await attempt.open();
-
-    const submission = await attempt.submit(`
+      `
       DELETE FROM bookings WHERE id = 103;
       CREATE UNIQUE INDEX player_booking_slot
       ON bookings (room_id, booking_date, slot_hour);
-    `);
+    `,
+    );
 
     expect(submission.evaluation).toMatchObject({
       passed: false,
       reason: "INCORRECT_ROWS",
     });
-    expect(submission.completion).toBeNull();
-
-    attempt.dispose();
+    expect(submission.completionOutcome).toBeNull();
   });
 });

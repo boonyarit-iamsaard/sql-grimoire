@@ -1,17 +1,12 @@
 import { describe, expect, it } from "vitest";
-import { MissionAttempt } from "../../../features/mission/mission-attempt";
-import { InMemorySqliteRuntime } from "../../../test/in-memory-sqlite-runtime";
+import { submitMission } from "../../../test/mission-verification-support";
 import { orphanedPayments } from "./mission";
 
 describe("The Cleanup That Made It Worse", () => {
   it("accepts repairing the orphan and adding an enforced foreign key", async () => {
-    const attempt = new MissionAttempt(
+    const submission = await submitMission(
       orphanedPayments,
-      new InMemorySqliteRuntime(),
-    );
-    await attempt.open();
-
-    const submission = await attempt.submit(`
+      `
       PRAGMA foreign_keys = ON;
       DELETE FROM payments WHERE id = 2002;
       CREATE TABLE guarded_payments (
@@ -26,45 +21,33 @@ describe("The Cleanup That Made It Worse", () => {
       FROM payments;
       DROP TABLE payments;
       ALTER TABLE guarded_payments RENAME TO payments;
-    `);
+    `,
+    );
 
     expect(submission.evaluation).toEqual({
       passed: true,
       earnedXp: orphanedPayments.reward.xp,
     });
-    expect(submission.completion).toMatchObject({
-      missionId: "prevent-orphaned-payments",
-      missionTitle: "The Cleanup That Made It Worse",
+    expect(submission.completionOutcome).toEqual({
+      firstCompletion: true,
+      awardedXp: orphanedPayments.reward.xp,
     });
-
-    attempt.dispose();
   });
 
   it("rejects deleting the orphan without adding the foreign key", async () => {
-    const attempt = new MissionAttempt(
+    const submission = await submitMission(
       orphanedPayments,
-      new InMemorySqliteRuntime(),
-    );
-    await attempt.open();
-
-    const submission = await attempt.submit(
       "DELETE FROM payments WHERE id = 2002;",
     );
 
-    expect(submission.evaluation.passed).toBe(false);
-    expect(submission.completion).toBeNull();
-
-    attempt.dispose();
+    expect(submission.evaluation?.passed).toBe(false);
+    expect(submission.completionOutcome).toBeNull();
   });
 
   it("rejects declaring the foreign key without enabling enforcement", async () => {
-    const attempt = new MissionAttempt(
+    const submission = await submitMission(
       orphanedPayments,
-      new InMemorySqliteRuntime(),
-    );
-    await attempt.open();
-
-    const submission = await attempt.submit(`
+      `
       DELETE FROM payments WHERE id = 2002;
       CREATE TABLE guarded_payments (
         id INTEGER PRIMARY KEY,
@@ -78,22 +61,17 @@ describe("The Cleanup That Made It Worse", () => {
       FROM payments;
       DROP TABLE payments;
       ALTER TABLE guarded_payments RENAME TO payments;
-    `);
+    `,
+    );
 
-    expect(submission.evaluation.passed).toBe(false);
-    expect(submission.completion).toBeNull();
-
-    attempt.dispose();
+    expect(submission.evaluation?.passed).toBe(false);
+    expect(submission.completionOutcome).toBeNull();
   });
 
   it("rejects a repair that removes a legitimate payment", async () => {
-    const attempt = new MissionAttempt(
+    const submission = await submitMission(
       orphanedPayments,
-      new InMemorySqliteRuntime(),
-    );
-    await attempt.open();
-
-    const submission = await attempt.submit(`
+      `
       PRAGMA foreign_keys = ON;
       DELETE FROM payments WHERE id IN (2002, 2003);
       CREATE TABLE guarded_payments (
@@ -108,22 +86,17 @@ describe("The Cleanup That Made It Worse", () => {
       FROM payments;
       DROP TABLE payments;
       ALTER TABLE guarded_payments RENAME TO payments;
-    `);
+    `,
+    );
 
-    expect(submission.evaluation.passed).toBe(false);
-    expect(submission.completion).toBeNull();
-
-    attempt.dispose();
+    expect(submission.evaluation?.passed).toBe(false);
+    expect(submission.completionOutcome).toBeNull();
   });
 
   it("rejects rebuilding the table without repairing the orphan", async () => {
-    const attempt = new MissionAttempt(
+    const submission = await submitMission(
       orphanedPayments,
-      new InMemorySqliteRuntime(),
-    );
-    await attempt.open();
-
-    const submission = await attempt.submit(`
+      `
       CREATE TABLE guarded_payments (
         id INTEGER PRIMARY KEY,
         booking_id INTEGER NOT NULL,
@@ -137,22 +110,17 @@ describe("The Cleanup That Made It Worse", () => {
       DROP TABLE payments;
       ALTER TABLE guarded_payments RENAME TO payments;
       PRAGMA foreign_keys = ON;
-    `);
+    `,
+    );
 
-    expect(submission.evaluation.passed).toBe(false);
-    expect(submission.completion).toBeNull();
-
-    attempt.dispose();
+    expect(submission.evaluation?.passed).toBe(false);
+    expect(submission.completionOutcome).toBeNull();
   });
 
   it("rejects a targeted constraint that blocks only the authored insert", async () => {
-    const attempt = new MissionAttempt(
+    const submission = await submitMission(
       orphanedPayments,
-      new InMemorySqliteRuntime(),
-    );
-    await attempt.open();
-
-    const submission = await attempt.submit(`
+      `
       DELETE FROM payments WHERE id = 2002;
       CREATE TABLE guarded_payments (
         id INTEGER PRIMARY KEY,
@@ -165,22 +133,17 @@ describe("The Cleanup That Made It Worse", () => {
       FROM payments;
       DROP TABLE payments;
       ALTER TABLE guarded_payments RENAME TO payments;
-    `);
+    `,
+    );
 
-    expect(submission.evaluation.passed).toBe(false);
-    expect(submission.completion).toBeNull();
-
-    attempt.dispose();
+    expect(submission.evaluation?.passed).toBe(false);
+    expect(submission.completionOutcome).toBeNull();
   });
 
   it("rejects a foreign key that cascades the careless booking delete", async () => {
-    const attempt = new MissionAttempt(
+    const submission = await submitMission(
       orphanedPayments,
-      new InMemorySqliteRuntime(),
-    );
-    await attempt.open();
-
-    const submission = await attempt.submit(`
+      `
       PRAGMA foreign_keys = ON;
       DELETE FROM payments WHERE id = 2002;
       CREATE TABLE guarded_payments (
@@ -195,11 +158,10 @@ describe("The Cleanup That Made It Worse", () => {
       FROM payments;
       DROP TABLE payments;
       ALTER TABLE guarded_payments RENAME TO payments;
-    `);
+    `,
+    );
 
-    expect(submission.evaluation.passed).toBe(false);
-    expect(submission.completion).toBeNull();
-
-    attempt.dispose();
+    expect(submission.evaluation?.passed).toBe(false);
+    expect(submission.completionOutcome).toBeNull();
   });
 });

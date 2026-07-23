@@ -14,6 +14,7 @@ interface MissionFeedbackProps {
   mission: Mission;
   evaluation: EvaluationResult;
   playerQuery: string;
+  firstCompletion: boolean;
   onReturnToEditor: () => void;
   onReturnToMap: () => void;
   nextMission: Mission | null;
@@ -109,6 +110,7 @@ export function MissionFeedback({
   mission,
   evaluation,
   playerQuery,
+  firstCompletion,
   onReturnToEditor,
   onReturnToMap,
   nextMission,
@@ -169,12 +171,19 @@ export function MissionFeedback({
   return (
     <FeedbackShell closing={closing} onDismiss={dismissToEditor}>
       <h2 id={headingId} className="text-[1.6rem] text-ctp-green">
-        Mission Complete — {mission.title}
+        {firstCompletion ? "Mission Complete" : "Mission Solved Again"} —{" "}
+        {mission.title}
       </h2>
-      <div className="my-2.5 inline-flex items-center gap-2 rounded-[10px] border-2 border-ctp-yellow border-dashed bg-ctp-mantle px-4.5 py-1.5 font-display text-[1.3rem] text-ctp-yellow">
-        <img className="h-6.5 w-6.5" src={xpIcon} alt="" /> +
-        {evaluation.earnedXp} XP
-      </div>
+      {firstCompletion ? (
+        <div className="my-2.5 inline-flex items-center gap-2 rounded-[10px] border-2 border-ctp-yellow border-dashed bg-ctp-mantle px-4.5 py-1.5 font-display text-[1.3rem] text-ctp-yellow">
+          <img className="h-6.5 w-6.5" src={xpIcon} alt="" /> +
+          {evaluation.earnedXp} XP
+        </div>
+      ) : (
+        <p className="font-mono text-ctp-lavender text-sm">
+          Grimoire entry refreshed. XP was already awarded.
+        </p>
+      )}
       <p className="text-[1.05rem] text-ctp-subtext1 italic">
         {mission.reward.successMessage}
       </p>
